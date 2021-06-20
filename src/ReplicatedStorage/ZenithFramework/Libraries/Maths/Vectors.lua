@@ -1,7 +1,7 @@
 local Vectors = {}
 
 -- Converts a Vector to a string in the format 'x:y' or 'x:y:Z'
-function Vectors.convertVectorToString(vector)
+function Vectors.vectorToString(vector)
     local endPart = ""
     if typeof(vector) == "Vector3" then
         endPart = ":" .. vector.z
@@ -11,7 +11,7 @@ function Vectors.convertVectorToString(vector)
 end
 
 -- Converts a string in the format 'x:y' or 'x:y:z' to a Vector
-function Vectors.convertVectorFromString(str)
+function Vectors.stringToVector(str)
     local vals = str:split(":")
     if #vals == 2 then
         return Vector2.new(tonumber(vals[1]), tonumber(vals[2]))
