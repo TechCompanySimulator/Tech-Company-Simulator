@@ -1,6 +1,3 @@
--- Module loader
--- Author: TheM0rt0nator
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local StarterPlayer = game:GetService("StarterPlayer")
