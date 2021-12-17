@@ -4,17 +4,9 @@
 local RunService = game:GetService("RunService")
 
 local ModuleScriptLoader = require(script.ModuleScriptLoader)
+local DataStreamHandler = require(script.DataStreamHandler)
 
-local Framework = {}
+local newLoader = ModuleScriptLoader.new(RunService:IsServer() and "Server" or "Client")
+local dataStreamHandler = DataStreamHandler.new()
 
-if RunService:IsServer() then
-    local newLoader = ModuleScriptLoader.new("Server")
-
-    return newLoader
-elseif RunService:IsClient() then
-    local newLoader = ModuleScriptLoader.new("Client")
-
-    return newLoader
-end
-
-return Framework
+return {newLoader, dataStreamHandler}

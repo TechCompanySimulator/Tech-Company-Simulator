@@ -1,0 +1,3 @@
+local Probability = {}
+
+return Probability

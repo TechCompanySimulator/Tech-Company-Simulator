@@ -1,3 +1,6 @@
+-- Useful string manipulation functions
+-- Author: TheM0rt0nator
+
 local String = {}
 
 -- Removes all white space in a string
@@ -45,17 +48,6 @@ function String.upperFirstLetter(str)
     assert(typeof(str) == "string", "Argument needs to be a string")
 
     return string.upper(str:sub(1, 1)) .. str:sub(2)
-end
-
--- Converts a Number to a Letter, default case is upper.
-function String.numberToLetter(number, letterCase)
-    assert(typeof(number) == "number", "Argument needs to be a number")
-
-	if string.lower(letterCase) == "lower" then
-		return string.lower(string.char(string.byte("a")+number-1))
-	else
-		return string.upper(string.char(string.byte("a")+number-1))
-	end
 end
 
 return String

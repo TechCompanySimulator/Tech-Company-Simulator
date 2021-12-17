@@ -4,7 +4,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService  = game:GetService("RunService")
 
-local require = require(ReplicatedStorage.ZenithFramework)
+local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Raycast = require("Raycast")
 
@@ -15,8 +15,7 @@ if RunService:IsClient() then
         local camera = workspace.CurrentCamera
         local unitRay = camera:ScreenPointToRay(mouse.X, mouse.Y, 0)
         local raycastResult = Raycast.new(filterInstances, "Whitelist", unitRay.Origin, unitRay.Direction, distance)
-    
-        return (raycastResult ~= nil and raycastResult.Instance) or nil
+        return raycastResult and raycastResult.Instance
     end
 end
 
