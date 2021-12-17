@@ -1,6 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local StarterPlayer = game:GetService("StarterPlayer")
+local TestService = game:GetService("TestService")
 
 local SHARED_MODULE_PATHS = {
     ReplicatedStorage.SharedScripts;
@@ -35,8 +37,8 @@ function ModuleScriptLoader:LoadAll()
             require(module)
         end
     end
-
-    warn("Loaded all modules successfully!")
+	local env = RunService:IsServer() and "Server" or "Client"
+	TestService:Message(env .. " loaded all modules successfully!")
 end
 
 -- Looks for the module in the table and returns it if found
