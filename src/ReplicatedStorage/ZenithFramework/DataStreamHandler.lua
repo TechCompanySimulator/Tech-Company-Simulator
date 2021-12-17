@@ -24,13 +24,13 @@ if RunService:IsServer() then
 	RemotesFolder.Parent = ReplicatedStorage
 
 	BindablesFolder = Instance.new("Folder")
-	BindablesFolder.Name = "BindablesFolder"
+	BindablesFolder.Name = "Bindables"
 	BindablesFolder.Parent = ServerStorage
 elseif RunService:IsClient() then
 	RemotesFolder = ReplicatedStorage:WaitForChild("Remotes")
 
 	BindablesFolder = Instance.new("Folder")
-	BindablesFolder.Name = "BindablesFolder"
+	BindablesFolder.Name = "Bindables"
 	BindablesFolder.Parent = ReplicatedStorage
 end
 
