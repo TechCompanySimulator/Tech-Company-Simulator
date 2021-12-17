@@ -1,3 +1,6 @@
+-- Handles the storing and cleaning up of connections
+-- Author: TheM0rt0nator
+
 local Maid = {}
 Maid.__index = Maid
 
@@ -22,12 +25,6 @@ function Maid:DoCleaning()
             task:Disconnect()
         end
     end
-end
-
--- Overwrites all tasks and stores a new task in the maid
-function Maid:SetTask(task)
-    self:DoCleaning()
-    self:GiveTask(task)
 end
 
 return Maid

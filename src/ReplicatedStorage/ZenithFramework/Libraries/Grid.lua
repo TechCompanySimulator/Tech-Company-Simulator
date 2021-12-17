@@ -5,8 +5,8 @@ local Grid = {}
 Grid.__index = Grid
 
 -- Creates a new grid object
-function Grid.new(w, h, cellRefType)
-    assert(typeof(w) == "number" and typeof(h) == "number", "Width and height need to be of type number")
+function Grid.new(w, h, cellRefType, valType)
+    assert(typeof(w) == "number" and typeof(h) == "number", "Width and height need to be of type: number")
 
     local self = setmetatable({}, Grid)
 
@@ -14,33 +14,35 @@ function Grid.new(w, h, cellRefType)
     self.h = h
 
     if cellRefType and cellRefType == "LetterNum" then
-        self:CreateLetterNumCells()
+        self:CreateLetterNumCells(valType)
     else
-        self:CreateNumberedCells()
+        self:CreateNumberedCells(valType)
     end
 
     return self
 end
 
--- Creates a table containing the numbered grid reference of each cell
-function Grid:CreateNumberedCells()
+-- Creates a table containing the numbered grid reference of each cell (e.g. 1:1, 1:2, 2:1, etc)
+function Grid:CreateNumberedCells(valType)
     self.numberedCells = {}
+	local initialVal = (valType == "table" and {}) or (valType == "string" and "") or {}
 
     for w = 1, self.w do
         for h = 1, self.h do
-            self.numberedCells[w .. ":" .. h] = {}
+            self.numberedCells[w .. ":" .. h] = initialVal
         end
     end
 end
 
--- Creates a table containing the letter num grid reference of each cell 
-function Grid:CreateLetterNumCells()
+-- Creates a table containing the letter num grid reference of each cell (e.g. a:1, a:2, b:1, etc)
+function Grid:CreateLetterNumCells(valType)
     self.letterNumCells = {}
+	local initialVal = (valType == "table" and {}) or (valType == "string" and "") or {}
 
     for w = 1, self.w do
         local letter = string.char(w + 96)
         for h = 1, self.h do
-            self.numberedCells[letter .. ":" .. h] = {}
+            self.numberedCells[letter .. ":" .. h] = initialVal
         end
     end
 end

@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local StarterPlayer = game:GetService("StarterPlayer")
+local RunService = game:GetService("RunService")
 
 local SHARED_MODULE_PATHS = {
     ReplicatedStorage.SharedScripts;
@@ -8,6 +9,8 @@ local SHARED_MODULE_PATHS = {
 }
 local SERVER_MODULES_PATH
 local CLIENT_MODULES_PATH = StarterPlayer.StarterPlayerScripts.ClientScripts
+
+local LoadedSignal = Instance.new("BindableEvent")
 
 local ModuleScriptLoader = {}
 ModuleScriptLoader.__index = ModuleScriptLoader
@@ -28,15 +31,27 @@ function ModuleScriptLoader.new(loadLocation)
     return self
 end
 
+-- Yields until all of the modules have been loaded
+function ModuleScriptLoader:WaitForLoad()
+	if not self.modulesLoaded then
+		LoadedSignal:Wait()
+	end
+end
+
 -- Loads all the module scripts in _modules
 function ModuleScriptLoader:LoadAll()
+	local loadedModules = {}
     for moduleName, module in pairs(self._modules) do
         if module:GetAttribute("AutoLoad") == nil or module:GetAttribute("AutoLoad") then
-            require(module)
+            loadedModules[moduleName] = require(module)
         end
     end
 
+	self.modulesLoaded = true
+	LoadedSignal:Fire()
     warn("Loaded all modules successfully!")
+
+	return loadedModules
 end
 
 -- Looks for the module in the table and returns it if found
