@@ -4,9 +4,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService  = game:GetService("RunService")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Raycast = require("Raycast")
+local Raycast = loadModule("Raycast")
 
 local Mouse = {}
 

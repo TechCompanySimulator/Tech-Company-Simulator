@@ -1,8 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local makeActionCreator = require("makeActionCreator")
+local makeActionCreator = loadModule("makeActionCreator")
 
 return makeActionCreator("setPlayerLevel", function(userId, newLevel)
 	return {

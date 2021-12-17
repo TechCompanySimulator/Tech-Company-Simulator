@@ -1,14 +1,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Player = Players.LocalPlayer
 
-local Roact = require("Roact")
-local RoactRodux = require("RoactRodux")
-local RoduxStore = require("RoduxStore")
-local MainInterface = require("MainInterface")
+local Roact = loadModule("Roact")
+local RoactRodux = loadModule("RoactRodux")
+local RoduxStore = loadModule("RoduxStore")
+local MainInterface = loadModule("MainInterface")
 
 local UserInterface = Roact.createElement(RoactRodux.StoreProvider, {
 	store = RoduxStore,

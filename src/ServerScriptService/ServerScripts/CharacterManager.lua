@@ -1,9 +1,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local CollisionGroups = require("CollisionGroups")
+local CollisionGroups = loadModule("CollisionGroups")
 
 local CharacterManager = {}
 

@@ -1,9 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Rodux = require("Rodux")
-local Table = require("Table")
+local Rodux = loadModule("Rodux")
+local Table = loadModule("Table")
 
 return Rodux.createReducer({}, {
 	addPlayerSession = function(state, action)

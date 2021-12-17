@@ -1,8 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Roact = require("Roact")
+local Roact = loadModule("Roact")
 
 local MainInterface = Roact.Component:extend("MainInterface")
 

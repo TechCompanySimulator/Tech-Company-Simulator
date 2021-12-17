@@ -4,9 +4,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Table = require("Table")
+local Table = loadModule("Table")
 
 local DataStore = {}
 DataStore.Data = {}
@@ -245,7 +245,6 @@ if RunService:IsServer() then
 	-- Saves all data in all datastores
 	function DataStore.saveAllData()
 		for dataStore, data in pairs(DataStore.DataCache) do
-			warn(dataStore , " Autosaved")
 			for index, value in pairs(data) do
 				if typeof(value) == "number" then
 					DataStore.incrementDataAsync(dataStore, index, value)

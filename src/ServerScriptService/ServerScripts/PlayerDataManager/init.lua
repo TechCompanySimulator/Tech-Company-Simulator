@@ -2,16 +2,16 @@ local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local DataStore = require("DataStore")
-local DefaultData = require("DefaultData")
-local Table = require("Table")
-local RoduxStore = require("RoduxStore")
+local DataStore = loadModule("DataStore")
+local DefaultData = loadModule("DefaultData")
+local Table = loadModule("Table")
+local RoduxStore = loadModule("RoduxStore")
 
-local addPlayerSession = require("addPlayerSession")
-local removePlayerSession = require("removePlayerSession")
-local setPlayerLevel = require("setPlayerLevel")
+local addPlayerSession = loadModule("addPlayerSession")
+local removePlayerSession = loadModule("removePlayerSession")
+local setPlayerLevel = loadModule("setPlayerLevel")
 
 local PlayerDataStore = DataStoreService:GetDataStore("PlayerDataStore")
 
