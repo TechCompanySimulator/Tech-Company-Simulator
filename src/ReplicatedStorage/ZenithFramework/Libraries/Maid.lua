@@ -6,25 +6,25 @@ Maid.__index = Maid
 
 -- Creates a new maid object
 function Maid.new()
-    local self = setmetatable({}, Maid)
+	local self = setmetatable({}, Maid)
 
-    self.connections = {}
+	self.connections = {}
 
-    return self
+	return self
 end
 
 -- Stores a task connection in the maid
 function Maid:GiveTask(task)
-    table.insert(self.connections, task)
+	table.insert(self.connections, task)
 end
 
 -- Clears all tasks stored in the maid
 function Maid:DoCleaning()
-    for _, task in pairs(self.connections) do
-        if typeof(task) == "RBXScriptConnection" then
-            task:Disconnect()
-        end
-    end
+	for _, task in pairs(self.connections) do
+		if typeof(task) == "RBXScriptConnection" then
+			task:Disconnect()
+		end
+	end
 end
 
 return Maid

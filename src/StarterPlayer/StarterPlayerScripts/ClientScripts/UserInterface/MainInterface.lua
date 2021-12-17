@@ -11,11 +11,11 @@ function MainInterface:init()
 end
 
 function MainInterface:render()
-    local children = {}
+	local children = {}
 
-    return Roact.createElement("ScreenGui", {
-        Name = "MainInterface";
-    }, children)
+	return Roact.createElement("ScreenGui", {
+		Name = "MainInterface";
+	}, children)
 end
 
 return MainInterface

@@ -62,7 +62,7 @@ end
 -- Returns a clone of the given table
 function Table.clone(tab)
 	assert(typeof(tab == "table"), "Argument needs to be a table")
-	
+
 	local newTable = {}
 
 	for key, value in pairs(tab) do
@@ -72,7 +72,7 @@ function Table.clone(tab)
 	return newTable
 end
 
--- Returns the index of the value in the given table 
+-- Returns the index of the value in the given table
 function Table.getIndex(tab, value)
 	assert(typeof(tab) == "table", "First argument not a table")
 
