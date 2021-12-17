@@ -5,27 +5,27 @@ local String = {}
 
 -- Removes all white space in a string
 function String.removeSpaces(str)
-    assert(typeof(str) == "string", "Argument needs to be a string")
+	assert(typeof(str) == "string", "Argument needs to be a string")
 
-    local newString, numSpaces = string.gsub(str, "(%s)%s*", "")
+	local newString, numSpaces = string.gsub(str, "(%s)%s*", "")
 
-    return newString
+	return newString
 end
 
 -- Removes all punctation in a string, uncluding special characters like @
 function String.removePunc(str)
-    assert(typeof(str) == "string", "Argument needs to be a string")
+	assert(typeof(str) == "string", "Argument needs to be a string")
 
-    local newString, numRemovals = string.gsub(str, "%p", "")
+	local newString, numRemovals = string.gsub(str, "%p", "")
 
-    return newString
+	return newString
 end
 
--- Returns a table of start and end indexes of a pattern within a string 
+-- Returns a table of start and end indexes of a pattern within a string
 function String.getStringMatches(str, pattern)
-    assert(typeof(str) == "string" and typeof(pattern) == "string", "Arguments need to be a strings")
+	assert(typeof(str) == "string" and typeof(pattern) == "string", "Arguments need to be a strings")
 
-    local found = 0
+	local found = 0
 	local positions = {}
 	while(found)do
 		found += 1
@@ -38,16 +38,16 @@ end
 
 -- Makes the first letter of a string lowercase
 function String.lowerFirstLetter(str)
-    assert(typeof(str) == "string", "Argument needs to be a string")
+	assert(typeof(str) == "string", "Argument needs to be a string")
 
-    return string.lower(str:sub(1, 1)) .. str:sub(2)
+	return string.lower(str:sub(1, 1)) .. str:sub(2)
 end
 
 -- Makes the first letter of a string uppercase
 function String.upperFirstLetter(str)
-    assert(typeof(str) == "string", "Argument needs to be a string")
+	assert(typeof(str) == "string", "Argument needs to be a string")
 
-    return string.upper(str:sub(1, 1)) .. str:sub(2)
+	return string.upper(str:sub(1, 1)) .. str:sub(2)
 end
 
 return String

@@ -1,4 +1,4 @@
--- All functions related to basic Data Stores 
+-- All functions related to basic Data Stores
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -128,7 +128,7 @@ if RunService:IsServer() then
 		assert(typeof(index) == "string", "index argument must be a string")
 		assert(typeof(newValue) == "number", "newValue argument must be a number")
 
-		local incrementOptions 
+		local incrementOptions
 		if metaData then
 			incrementOptions= Instance.new("DataStoreIncrementOptions")
 			incrementOptions:SetMetadata(metaData)
@@ -203,7 +203,7 @@ if RunService:IsServer() then
 		local listSuccess, pages = pcall(function()
 			return dataStore:ListKeysAsync()
 		end)
-		if listSuccess then	
+		if listSuccess then
 			return pages
 		end
 	end

@@ -42,7 +42,7 @@ end)
 Players.PlayerAdded:Connect(PlayerDataManager.PlayerAdded)
 Players.PlayerRemoving:Connect(PlayerDataManager.PlayerRemoving)
 
-RoduxStore.changed:connect(function(newState, oldState) 
+RoduxStore.changed:connect(function(newState, oldState)
 	if not Table.deepCheckEquality(newState, oldState) then
 		print("New state: " , newState)
 		for userId, data in pairs(newState.playerData) do
