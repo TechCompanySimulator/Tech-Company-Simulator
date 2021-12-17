@@ -1,0 +1,8 @@
+{
+	"editor.insertSpaces": false,
+	"editor.detectIndentation": false,
+	"robloxLsp.diagnostics.disable": [
+		"count-down-loop"
+	],
+	"robloxLsp.workspace.maxPreload": 2000
+}
