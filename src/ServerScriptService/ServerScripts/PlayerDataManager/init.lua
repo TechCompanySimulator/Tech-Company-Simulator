@@ -17,11 +17,6 @@ local PlayerDataStore = DataStoreService:GetDataStore("PlayerDataStore")
 
 local PlayerDataManager = {}
 
-function PlayerDataManager:ResetData(userId)
-	RoduxStore:dispatch(addPlayerSession(userId, DefaultData))
-end
-
-
 function PlayerDataManager.PlayerAdded(player)
 	local userId = player.UserId
 	local playerDataIndex = "User_" .. userId
@@ -30,7 +25,6 @@ function PlayerDataManager.PlayerAdded(player)
 	if playersData then
 		RoduxStore:dispatch(addPlayerSession(userId, playersData))
 	end
-	PlayerDataManager:ResetData(userId)
 end
 
 function PlayerDataManager.PlayerRemoving(player)
@@ -50,7 +44,7 @@ Players.PlayerRemoving:Connect(PlayerDataManager.PlayerRemoving)
 
 RoduxStore.changed:connect(function(newState, oldState)
 	if not Table.deepCheckEquality(newState, oldState) then
-		print(newState)
+		print("New state: " , newState)
 		for userId, data in pairs(newState.playerData) do
 			if not oldState.playerData[userId] or not Table.deepCheckEquality(oldState.playerData[userId], data) then
 				DataStore.setSessionData(PlayerDataStore, "User_" .. userId, data)

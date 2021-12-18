@@ -33,10 +33,11 @@ return Rodux.createReducer({}, {
 		local userId = action.userId
 		if userId then
 			local currentData = newState[userId] or {}
-			currentData.Level = action.newLevel
 
 			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
+				[tostring(userId)] = Table.merge(currentData, {
+					Level = action.newLevel
+				})
 			})
 		end
 		return state

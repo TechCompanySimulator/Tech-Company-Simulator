@@ -7,7 +7,7 @@ local Rodux = loadModule("Rodux")
 local Reducers = {}
 
 for _, reducer in pairs(script:GetChildren()) do
-	Reducers[reducer.Name] = require(reducer)
+	Reducers[reducer.Name] = loadModule(reducer)
 end
 
 return Rodux.combineReducers(Reducers)
