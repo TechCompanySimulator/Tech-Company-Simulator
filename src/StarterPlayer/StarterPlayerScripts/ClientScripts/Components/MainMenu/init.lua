@@ -4,6 +4,7 @@ local Lighting = game:GetService("Lighting")
 local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Roact = loadModule("Roact")
+local UICorner = loadModule("UICorner")
 
 local SetInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
 
@@ -57,9 +58,7 @@ function MainMenu:render()
 						Lighting:WaitForChild("Blur").Size = 0
 					end
 				}, {
-					UICorner = Roact.createElement("UICorner", {
-						CornerRadius = UDim.new(0.2, 0);
-					});
+					UICorner = UICorner(0.2, 0);
 			
 					TextLabel = Roact.createElement("TextLabel", {
 						FontSize = Enum.FontSize.Size14;
