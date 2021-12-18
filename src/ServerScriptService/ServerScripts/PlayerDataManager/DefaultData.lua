@@ -5,6 +5,7 @@ local DefaultData = {
 	Gems = 0;
 	Orbs = {};
 	Warehouses = {};
+	Machines = {};
 }
 
 return DefaultData
