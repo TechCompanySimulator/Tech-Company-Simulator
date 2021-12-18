@@ -22,6 +22,9 @@ local InterfaceStates = {
 	loadingScreen = {
 		"LoadingScreen";
 	};
+	gameplay = {
+
+	};
 }
 
 function MainInterface:init()
@@ -49,7 +52,6 @@ function MainInterface:init()
 end
 
 function MainInterface:setState(state)
-	print("Setting state as: " , state)
 	self.currentState = state
 	local stateComponents = InterfaceStates[state]
 	for componentName, _ in pairs(Components) do
