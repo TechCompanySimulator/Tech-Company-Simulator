@@ -5,11 +5,20 @@ local RunService = game:GetService("RunService")
 if RunService:IsServer() then return {} end
 
 local ProximityManager = {}
+ProximityManager.__index = ProximityManager
 ProximityManager.enabled = {}
 
-function ProximityManager.setEnabled(bool, groupName)
-	ProximityManager.enabled[groupName] = bool
+function ProximityManager:Enable(groupName)
+	ProximityManager.enabled[groupName] = nil
+	ProximityManager._update()
+end
 
+function ProximityManager:Disable(groupName)
+	ProximityManager.enabled[groupName] = false
+	ProximityManager._update()
+end
+
+function ProximityManager._update()
 	local isEnabled = true
 
 	for _, groupEnabled in pairs(ProximityManager.enabled) do
