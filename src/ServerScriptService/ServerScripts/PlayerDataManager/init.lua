@@ -50,7 +50,6 @@ Players.PlayerRemoving:Connect(PlayerDataManager.PlayerRemoving)
 
 RoduxStore.changed:connect(function(newState, oldState)
 	if not Table.deepCheckEquality(newState, oldState) then
-		print(newState)
 		for userId, data in pairs(newState.playerData) do
 			if not oldState.playerData[userId] or not Table.deepCheckEquality(oldState.playerData[userId], data) then
 				DataStore.setSessionData(PlayerDataStore, "User_" .. userId, data)
