@@ -261,23 +261,21 @@ function DataStore.saveAllData()
 	end
 end
 
-function DataStore:initiate()
-	-- Auto save all the datastores at a set interval
-	task.spawn(function()
-		while true do
-			Time:WaitRealTime(AUTOSAVE_INTERVAL)
-			DataStore.saveAllData()
-		end
-	end)
-
-	game:BindToClose(function()
-		-- If the current session is studio, do nothing
-		if RunService:IsStudio() then
-			return
-		end
-
+-- Auto save all the datastores at a set interval
+task.spawn(function()
+	while true do
+		Time:WaitRealTime(AUTOSAVE_INTERVAL)
 		DataStore.saveAllData()
-	end)
-end
+	end
+end)
+
+game:BindToClose(function()
+	-- If the current session is studio, do nothing
+	if RunService:IsStudio() then
+		return
+	end
+
+	DataStore.saveAllData()
+end)
 
 return DataStore

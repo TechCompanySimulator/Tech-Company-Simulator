@@ -22,7 +22,7 @@ function CharacterManager.playerAdded(player)
 end
 
 -- Connects the playerAdded function
-function CharacterManager:begin()
+function CharacterManager:initiate()
 	for _, player in pairs(Players:GetPlayers()) do
 		CharacterManager.playerAdded(player)
 	end

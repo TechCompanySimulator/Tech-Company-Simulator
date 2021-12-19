@@ -3,14 +3,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local require, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
-
-local Rodux = require("Rodux")
-local Reducer = require("Reducer")
-local ReplicationMiddleware = require("ReplicationMiddleware")
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local RoduxReplicationEvent = getDataStream("RoduxReplicationEvent", "RemoteEvent")
 local RoduxReplicationFunc = getDataStream("RoduxReplicationFunction", "RemoteFunction")
+
+local Rodux = loadModule("Rodux")
+local Reducer = loadModule("Reducer")
+local ReplicationMiddleware = loadModule("ReplicationMiddleware")
 
 local RoduxStore = {}
 

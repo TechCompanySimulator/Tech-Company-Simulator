@@ -7,9 +7,11 @@ local SortedMaps = {}
 
 -- Created a memory store sorted map with the given name, and saves it in this module
 function SortedMaps.getSortedMap(mapName)
-	local newSortedMap = MemoryStoreService:GetSortedMap(mapName)
-	SortedMaps[mapName] = newSortedMap
-	return newSortedMap
+	local sortedMap = (SortedMaps[mapName] and SortedMaps[mapName]) or MemoryStoreService:GetSortedMap(mapName)
+	if not SortedMaps[mapName] then
+		SortedMaps[mapName] = sortedMap
+	end
+	return sortedMap
 end
 
 -- Gets the lowest unique key to insert into the sorted map server list (strings as numbers with KEY_LENGTH digits e.g. 005440 would be the 5440th key)

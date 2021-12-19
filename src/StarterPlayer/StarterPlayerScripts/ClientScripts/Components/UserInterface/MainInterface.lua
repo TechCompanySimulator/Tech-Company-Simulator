@@ -2,11 +2,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Roact = loadModule("Roact")
-local Maid = loadModule("Maid")
-
 --local SetInterfaceRemote = getDataStream("SetInterfaceState", "RemoteEvent")
 local SetInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
+
+local Roact = loadModule("Roact")
+local Maid = loadModule("Maid")
 
 local MainInterface = Roact.Component:extend("MainInterface")
 

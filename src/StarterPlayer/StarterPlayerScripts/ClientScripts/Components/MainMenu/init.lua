@@ -3,10 +3,10 @@ local Lighting = game:GetService("Lighting")
 
 local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
+local SetInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
+
 local Roact = loadModule("Roact")
 local UICorner = loadModule("UICorner")
-
-local SetInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
 
 local MainMenu = Roact.Component:extend("MainMenu")
 

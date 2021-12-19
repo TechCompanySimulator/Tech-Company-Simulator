@@ -49,28 +49,16 @@ function ModuleScriptLoader:LoadAll()
 		for moduleName, module in pairs(self._modules) do
 			-- Don't load Roact components due to them being locked by metatables
 			if module ~= Roact and not module:IsDescendantOf(Roact) and (module:GetAttribute("AutoLoad") == nil or module:GetAttribute("AutoLoad")) then
-				loadedModules[moduleName] = require(module)
+				local loadedModule = require(module)
+				if typeof(loadedModule) == "table" and loadedModule.initiate and typeof(loadedModule.initiate) == "function" then
+					loadedModule:initiate()
+				end
+				loadedModules[moduleName] = loadedModule
 			end
 		end
 
-		local initiateFunctions = {}
-		for _, module in pairs(loadedModules) do
-			if typeof(module) == "table" and module.initiate and typeof(module.initiate) == "function" then
-				table.insert(initiateFunctions, Promise.new(function(res)
-					module:initiate() 
-					res()
-				end))
-			end
-		end
-
-		resolve(Promise.all(initiateFunctions))
+		resolve()
 	end):andThen(function()
-		for _, module in pairs(loadedModules) do
-			if typeof(module) == "table" and module.begin and typeof(module.begin) == "function" then
-				task.spawn(module.begin, module)
-			end
-		end
-
 		local env = RunService:IsServer() and "Server" or "Client"
 		TestService:Message(env .. " loaded all modules successfully!")
 	end):catch(function(err)

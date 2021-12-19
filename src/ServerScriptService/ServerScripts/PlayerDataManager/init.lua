@@ -18,7 +18,7 @@ local PlayerDataStore = DataStoreService:GetDataStore("PlayerDataStore")
 local PlayerDataManager = {}
 
 -- Sets up the check for when the rodux store changes to update the players data, and sets up the playerAdded/playerRemoving functions
-function PlayerDataManager:begin()
+function PlayerDataManager:initiate()
 	task.spawn(function()
 		for _, player in pairs(Players:GetPlayers()) do
 			PlayerDataManager.PlayerAdded(player)

@@ -2,10 +2,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
+local SetInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
+
 local Roact = loadModule("Roact")
 local Flipper = loadModule("Flipper")
-
-local SetInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
 
 local LoadingScreen = Roact.Component:extend("LoadingScreen")
 
