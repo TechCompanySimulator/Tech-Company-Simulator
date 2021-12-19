@@ -32,7 +32,7 @@ return Rodux.createReducer({}, {
 		local newState = Table.clone(state)
 		local userId = action.userId
 		if userId then
-			local currentData = newState[userId] or {}
+			local currentData = newState[tostring(userId)] or {}
 			currentData.Level = action.newLevel
 
 			return Table.merge(newState, {
