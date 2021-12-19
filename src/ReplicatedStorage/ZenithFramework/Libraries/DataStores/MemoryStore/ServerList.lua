@@ -65,27 +65,29 @@ function ServerList.removeServer(map)
 	end
 end
 
--- If we want to save a list of server, append this server to the list of servers and connect the server closed function
-if SAVE_SERVER_LIST then
-	local serverListMap = SortedMaps.getSortedMap("ServerList")
-	task.spawn(function()
-		ServerList.appendServer(serverListMap)
-	end)
+function ServerList:begin()
+	-- If we want to save a list of server, append this server to the list of servers and connect the server closed function
+	if SAVE_SERVER_LIST then
+		local serverListMap = SortedMaps.getSortedMap("ServerList")
+		task.spawn(function()
+			ServerList.appendServer(serverListMap)
+		end)
 
-	game:BindToClose(function()
-		ServerList.removeServer(serverListMap)
-		if CHOOSE_HOST_SERVER and ServerList.isHostServer then
-			print("Need to choose new host server!")
-			-- Do this by making each server check the memory store when it starts to see if its the first one
-			 -- If it is the first, then is the host
-			 -- If it isn't the first, then when a host server closes send a message to other servers, and get them to check if they are next in line to be the host
-		end
-	end)
-else
-	local serverListMap = SortedMaps.getSortedMap("ServerList")
-	task.spawn(function()
-		SortedMaps.flush(serverListMap)
-	end)
+		game:BindToClose(function()
+			ServerList.removeServer(serverListMap)
+			if CHOOSE_HOST_SERVER and ServerList.isHostServer then
+				print("Need to choose new host server!")
+				-- Do this by making each server check the memory store when it starts to see if its the first one
+				-- If it is the first, then is the host
+				-- If it isn't the first, then when a host server closes send a message to other servers, and get them to check if they are next in line to be the host
+			end
+		end)
+	else
+		local serverListMap = SortedMaps.getSortedMap("ServerList")
+		task.spawn(function()
+			SortedMaps.flush(serverListMap)
+		end)
+	end
 end
 
 return ServerList
