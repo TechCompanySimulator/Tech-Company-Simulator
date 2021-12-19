@@ -76,6 +76,9 @@ if SAVE_SERVER_LIST then
 		ServerList.removeServer(serverListMap)
 		if CHOOSE_HOST_SERVER and ServerList.isHostServer then
 			print("Need to choose new host server!")
+			-- Do this by making each server check the memory store when it starts to see if its the first one
+			 -- If it is the first, then is the host
+			 -- If it isn't the first, then when a host server closes send a message to other servers, and get them to check if they are next in line to be the host
 		end
 	end)
 else
