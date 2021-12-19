@@ -16,6 +16,8 @@ local UserInterface = Roact.createElement(RoactRodux.StoreProvider, {
 	MainInterface = Roact.createElement(MainInterface),
 })
 
-Roact.mount(UserInterface, Player:WaitForChild("PlayerGui"))
+function UserInterface:initiate()
+	Roact.mount(UserInterface, Player:WaitForChild("PlayerGui"))
+end
 
 return UserInterface
