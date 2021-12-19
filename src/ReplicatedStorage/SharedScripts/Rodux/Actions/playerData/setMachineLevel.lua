@@ -4,10 +4,11 @@ local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = require("makeActionCreator")
 
-return makeActionCreator("setMachineLevel", function(userId, machine, buildOption)
+return makeActionCreator("setMachineLevel", function(machine, upgradeType, upgradeLevel)
 	return {
-		userId = userId;
+		userId = machine.userId;
 		guid = machine.guid;
-		buildOption = buildOption;
+		upgradeType = upgradeType;
+		upgradeLevel = upgradeLevel;
 	}
 end)
