@@ -1,5 +1,6 @@
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TestService = game:GetService("TestService")
 
 if RunService:IsClient() then return {} end
 
@@ -33,14 +34,14 @@ function ServerList.appendServer(map)
 		ServerList.serverKey = serverKey
 		if isFirstKey and CHOOSE_HOST_SERVER then
 			ServerList.isHostServer = true
-			print("This server is the host")
+			TestService:Message("This server is the host")
 		end
 		local keyExists = true
 		local success = pcall(function()
 			map:UpdateAsync(serverKey, function(keyExists)
 				if keyExists then return nil end
 				keyExists = false
-				print("This is server number " .. tonumber(serverKey))
+				TestService:Message("This is server number " .. tonumber(serverKey))
 				return game.JobId
 			end, SERVER_KEY_LIFETIME)
 		end)
