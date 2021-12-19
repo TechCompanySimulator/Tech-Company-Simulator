@@ -17,6 +17,11 @@ local PlayerDataStore = DataStoreService:GetDataStore("PlayerDataStore")
 
 local PlayerDataManager = {}
 
+function PlayerDataManager:ResetData(userId)
+	RoduxStore:dispatch(addPlayerSession(userId, DefaultData))
+end
+
+
 function PlayerDataManager.PlayerAdded(player)
 	local userId = player.UserId
 	local playerDataIndex = "User_" .. userId
@@ -25,6 +30,7 @@ function PlayerDataManager.PlayerAdded(player)
 	if playersData then
 		RoduxStore:dispatch(addPlayerSession(userId, playersData))
 	end
+	PlayerDataManager:ResetData(userId)
 end
 
 function PlayerDataManager.PlayerRemoving(player)
