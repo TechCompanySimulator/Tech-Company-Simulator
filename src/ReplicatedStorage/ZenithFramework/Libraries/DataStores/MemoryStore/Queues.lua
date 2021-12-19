@@ -11,5 +11,4 @@ function Queues.createQueue(queueName)
 	Queues[queueName] = newQueue
 end
 
-print("hi")
 return Queues
