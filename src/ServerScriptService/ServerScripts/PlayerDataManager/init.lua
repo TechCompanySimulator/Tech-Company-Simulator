@@ -17,10 +17,31 @@ local PlayerDataStore = DataStoreService:GetDataStore("PlayerDataStore")
 
 local PlayerDataManager = {}
 
+-- Sets up the check for when the rodux store changes to update the players data, and sets up the playerAdded/playerRemoving functions
+function PlayerDataManager:begin()
+	task.spawn(function()
+		for _, player in pairs(Players:GetPlayers()) do
+			PlayerDataManager.PlayerAdded(player)
+		end
+	end)
+
+	Players.PlayerAdded:Connect(PlayerDataManager.PlayerAdded)
+	Players.PlayerRemoving:Connect(PlayerDataManager.PlayerRemoving)
+
+	RoduxStore.changed:connect(function(newState, oldState)
+		if not Table.deepCheckEquality(newState, oldState) then
+			for userId, data in pairs(newState.playerData) do
+				if not oldState.playerData[userId] or not Table.deepCheckEquality(oldState.playerData[userId], data) then
+					DataStore.setSessionData(PlayerDataStore, "User_" .. userId, data)
+				end
+			end
+		end
+	end)
+end
+
 function PlayerDataManager:ResetData(userId)
 	RoduxStore:dispatch(addPlayerSession(userId, DefaultData))
 end
-
 
 function PlayerDataManager.PlayerAdded(player)
 	local userId = player.UserId
@@ -38,24 +59,5 @@ function PlayerDataManager.PlayerRemoving(player)
 	DataStore.removeSessionData(PlayerDataStore, "User_" .. userId, true)
 	RoduxStore:dispatch(removePlayerSession(userId))
 end
-
-task.spawn(function()
-	for _, player in pairs(Players:GetPlayers()) do
-		PlayerDataManager.PlayerAdded(player)
-	end
-end)
-
-Players.PlayerAdded:Connect(PlayerDataManager.PlayerAdded)
-Players.PlayerRemoving:Connect(PlayerDataManager.PlayerRemoving)
-
-RoduxStore.changed:connect(function(newState, oldState)
-	if not Table.deepCheckEquality(newState, oldState) then
-		for userId, data in pairs(newState.playerData) do
-			if not oldState.playerData[userId] or not Table.deepCheckEquality(oldState.playerData[userId], data) then
-				DataStore.setSessionData(PlayerDataStore, "User_" .. userId, data)
-			end
-		end
-	end
-end)
 
 return PlayerDataManager
