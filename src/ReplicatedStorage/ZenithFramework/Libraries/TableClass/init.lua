@@ -3,9 +3,9 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Table = loadModule("Table")
+local Table = require("Table")
 
 local TableClass = {}
 
