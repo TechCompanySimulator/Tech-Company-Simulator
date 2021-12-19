@@ -21,6 +21,12 @@ function CharacterManager.playerAdded(player)
 	player.CharacterAdded:Connect(CharacterManager.characterAdded)
 end
 
-Players.PlayerAdded:Connect(CharacterManager.playerAdded)
+-- Connects the playerAdded function
+function CharacterManager:begin()
+	for _, player in pairs(Players:GetPlayers()) do
+		CharacterManager.playerAdded(player)
+	end
+	Players.PlayerAdded:Connect(CharacterManager.playerAdded)
+end
 
 return CharacterManager
