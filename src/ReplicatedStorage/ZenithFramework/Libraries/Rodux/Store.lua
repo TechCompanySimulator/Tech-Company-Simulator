@@ -1,5 +1,6 @@
 local RunService = game:GetService("RunService")
 
+local Table = require(game.ReplicatedStorage.ZenithFramework.Libraries.TableClass.Table)
 local Signal = require(script.Parent.Signal)
 local NoYield = require(script.Parent.NoYield)
 
@@ -212,6 +213,17 @@ function Store:flush()
 	end
 
 	self._lastState = state
+end
+
+function Store:waitForValue(...)
+	local value = Table.followPath(self:getState(), ...)
+
+	while not value do
+		local newState = self.changed:wait()
+		value = Table.followPath(newState, ...)
+	end
+
+	return value
 end
 
 return Store

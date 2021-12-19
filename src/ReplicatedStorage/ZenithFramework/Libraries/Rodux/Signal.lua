@@ -41,6 +41,7 @@ function Signal.new(store)
 		_store = store
 	}
 
+	self._bindableEvent = Instance.new("BindableEvent")
 	setmetatable(self, Signal)
 
 	return self
@@ -67,6 +68,7 @@ function Signal:connect(callback)
 	}
 
 	self._listeners = immutableAppend(self._listeners, listener)
+	self._bindableEvent:Fire()
 
 	local function disconnect()
 		if listener.disconnected then
@@ -99,6 +101,21 @@ function Signal:fire(...)
 			listener.callback(...)
 		end
 	end
+end
+
+function Signal:wait()
+	self._bindableEvent.Event:Wait()
+	assert(self._argData, "Missing arg data, likely due to :TweenSize/Position corrupting threadrefs.")
+	return unpack(self._argData, 1, self._argCount)
+end
+
+function Signal:destroy()
+	if self._bindableEvent then
+		self._bindableEvent:Destroy()
+		self._bindableEvent = nil
+	end
+
+	setmetatable(self, nil)
 end
 
 return Signal
