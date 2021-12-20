@@ -18,7 +18,7 @@ end
 function SortedMaps.getUniqueKey(map)
 	local exclusiveLowerBound = nil
 	local foundKey
-	local isFirstKey = false
+	local isFirstKey = true
 	while true do
 		local success, items = pcall(function()
 			return map:GetRangeAsync(Enum.SortDirection.Ascending, 100, exclusiveLowerBound)
@@ -26,6 +26,7 @@ function SortedMaps.getUniqueKey(map)
 		if success then
 			local prevKey = 0
 			for _, entry in ipairs(items) do
+				isFirstKey = false
 				if tonumber(entry.key) ~= prevKey + 1 then
 					foundKey = prevKey + 1
 					break
@@ -34,7 +35,6 @@ function SortedMaps.getUniqueKey(map)
 			end
 			if #items < 100 then
 				if not foundKey then
-					isFirstKey = true
 					foundKey = prevKey + 1
 				end
 				break
