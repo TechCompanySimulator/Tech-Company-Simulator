@@ -51,7 +51,6 @@ function PlayerDataManager.PlayerAdded(player)
 	if playersData then
 		RoduxStore:dispatch(addPlayerSession(userId, playersData))
 	end
-	PlayerDataManager:ResetData(userId)
 end
 
 function PlayerDataManager.PlayerRemoving(player)
