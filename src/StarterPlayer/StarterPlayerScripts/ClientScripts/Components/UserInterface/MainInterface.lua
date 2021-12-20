@@ -13,6 +13,7 @@ local MainInterface = Roact.Component:extend("MainInterface")
 local Components = {
 	LoadingScreen = loadModule("LoadingScreen");
 	MainMenu = loadModule("MainMenu");
+	Inventory = loadModule("Inventory")
 }
 
 local InterfaceStates = {
@@ -23,7 +24,7 @@ local InterfaceStates = {
 		"LoadingScreen";
 	};
 	gameplay = {
-
+		"Inventory";
 	};
 }
 
