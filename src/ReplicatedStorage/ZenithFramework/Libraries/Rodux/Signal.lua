@@ -68,7 +68,7 @@ function Signal:connect(callback)
 	}
 
 	self._listeners = immutableAppend(self._listeners, listener)
-	self._bindableEvent:Fire()
+
 
 	local function disconnect()
 		if listener.disconnected then
@@ -96,6 +96,8 @@ function Signal:connect(callback)
 end
 
 function Signal:fire(...)
+	self._bindableEvent:Fire()
+
 	for _, listener in ipairs(self._listeners) do
 		if not listener.disconnected then
 			listener.callback(...)
@@ -105,8 +107,6 @@ end
 
 function Signal:wait()
 	self._bindableEvent.Event:Wait()
-	assert(self._argData, "Missing arg data, likely due to :TweenSize/Position corrupting threadrefs.")
-	return unpack(self._argData, 1, self._argCount)
 end
 
 function Signal:destroy()

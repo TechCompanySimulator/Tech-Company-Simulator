@@ -77,7 +77,7 @@ function Store.new(reducer, initialState, middlewares, errorReporter)
 	self._connections = {}
 	self._binds = {}
 
-	self.changed = Signal.new(self)
+	self.changed = Signal.new()
 
 	setmetatable(self, Store)
 
@@ -245,8 +245,8 @@ function Store:waitForValue(...)
 	local value = Table.followPath(self:getState(), ...)
 
 	while not value do
-		local newState = self.changed:wait()
-		value = Table.followPath(newState, ...)
+		self.changed:wait()
+		value = Table.followPath(self:getState(), ...)
 	end
 
 	return value
