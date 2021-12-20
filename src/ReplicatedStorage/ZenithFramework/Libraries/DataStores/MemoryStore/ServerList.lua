@@ -1,14 +1,13 @@
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TestService = game:GetService("TestService")
 local MessagingService = game:GetService("MessagingService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 if RunService:IsClient() then return {} end
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local SortedMaps = loadModule("SortedMaps")
-local Time = loadModule("Time")
 
 local ServerList = {
 	_hostBinds = {}
@@ -19,7 +18,7 @@ local CHOOSE_HOST_SERVER = true
 local SERVER_KEY_LENGTH = 6
 local SERVER_KEY_LIFETIME = 2592000
 local SERVER_LIST_TOPIC = "ServerListEvent"
-local HOSE_CHECK_TIME = 600
+local HOST_CHECK_TIME = 600
 
 -- Creates a string number to represent the server in the sorted map server list
 function ServerList.createServerKeyString(key)
@@ -37,10 +36,6 @@ function ServerList:appendServer(map)
 	local serverNum, isFirstKey = SortedMaps.getUniqueKey(map)
 	local serverKey = self.createServerKeyString(serverNum)
 	if serverKey and tonumber(serverKey) <= 999999 then
-		self.serverKey = serverKey
-		if isFirstKey and CHOOSE_HOST_SERVER then
-			self:setAsHost()
-		end
 		local keyCheck = true
 		local success, result = pcall(function()
 			map:UpdateAsync(serverKey, function(keyExists)
@@ -53,6 +48,11 @@ function ServerList:appendServer(map)
 		if not success or keyCheck then
 			task.wait(1)
 			self:appendServer(map)
+		else
+			self.serverKey = serverKey
+			if isFirstKey and CHOOSE_HOST_SERVER then
+				self:setAsHost()
+			end
 		end
 	end
 end
@@ -73,19 +73,30 @@ end
 -- Binds a function to run if the server is set as the host
 function ServerList:bindHostFunction(callback)
 	if callback and typeof(callback) == "function" then
-		table.insert(self._hostBinds, callback)
+		local wasRun = false
+		if self.hostKey == self.serverKey and self.hostFunctionsComplete then
+			-- Need to run the function if the server was already set as the host
+			wasRun = true
+			task.spawn(callback)
+		end
+		table.insert(self._hostBinds, {
+			wasRun = wasRun;
+			callback = callback;
+		})
 	end
 end
 
 -- Runs all bound host functions if/when this server is set as the host
 function ServerList:setAsHost()
-	self.hostKey = self.serverKey
 	self.checkingHost = false
-	for _, callback in pairs(self._hostBinds) do
-		if callback and typeof(callback) == "function" then
-			task.spawn(callback)
+	self.hostKey = self.serverKey
+	for _, bind in pairs(self._hostBinds) do
+		if bind.callback and not bind.wasRun and typeof(bind.callback) == "function" then
+			bind.wasRun = true
+			task.spawn(bind.callback)
 		end
 	end
+	self.hostFunctionsComplete = true
 	TestService:Message("This server is now the host")
 end
 
@@ -96,7 +107,7 @@ function ServerList:hostCheck()
 	self.checkingHost = true
 	task.spawn(function()
 		while self.checkingHost do
-			Time:WaitRealTime(HOSE_CHECK_TIME)
+			task.wait(HOST_CHECK_TIME)
 			local serverList = SortedMaps.getSortedMap("ServerList"):GetRangeAsync(Enum.SortDirection.Ascending, 100)
 			if serverList[1] and self.hostKey ~= serverList[1].key then
 				self.hostKey = serverList[1].key
@@ -111,7 +122,7 @@ function ServerList:hostCheck()
 	end)
 end
 
-function ServerList:initiate()
+function ServerList:init()
 	task.spawn(function()
 		-- If we want to save a list of servers, append this server to the list of servers and connect the server closed function
 		if SAVE_SERVER_LIST then
