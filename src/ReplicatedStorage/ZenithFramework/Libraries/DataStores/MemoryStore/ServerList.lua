@@ -8,6 +8,7 @@ if RunService:IsClient() then return {} end
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local SortedMaps = loadModule("SortedMaps")
+local Time = loadModule("Time")
 
 local ServerList = {
 	_hostBinds = {}
@@ -18,6 +19,7 @@ local CHOOSE_HOST_SERVER = true
 local SERVER_KEY_LENGTH = 6
 local SERVER_KEY_LIFETIME = 2592000
 local SERVER_LIST_TOPIC = "ServerListEvent"
+local HOSE_CHECK_TIME = 600
 
 -- Creates a string number to represent the server in the sorted map server list
 function ServerList.createServerKeyString(key)
@@ -31,13 +33,13 @@ function ServerList.createServerKeyString(key)
 end
 
 -- Adds a server to the list of servers saved in the Memory Store
-function ServerList.appendServer(map)
+function ServerList:appendServer(map)
 	local serverNum, isFirstKey = SortedMaps.getUniqueKey(map)
-	local serverKey = ServerList.createServerKeyString(serverNum)
+	local serverKey = self.createServerKeyString(serverNum)
 	if serverKey and tonumber(serverKey) <= 999999 then
-		ServerList.serverKey = serverKey
+		self.serverKey = serverKey
 		if isFirstKey and CHOOSE_HOST_SERVER then
-			ServerList:setAsHost()
+			self:setAsHost()
 		end
 		local keyCheck = true
 		local success, result = pcall(function()
@@ -49,22 +51,21 @@ function ServerList.appendServer(map)
 			end, SERVER_KEY_LIFETIME)
 		end)
 		if not success or keyCheck then
-			print("Appending again")
 			task.wait(1)
-			ServerList.appendServer()
+			self:appendServer(map)
 		end
 	end
 end
 
 -- Removes a server from the list of servers saved in the Memory Store
-function ServerList.removeServer(map)
-	if ServerList.serverKey and map then
+function ServerList:removeServer(map)
+	if self.serverKey and map then
 		local success = pcall(function()
-			map:RemoveAsync(ServerList.serverKey)
+			map:RemoveAsync(self.serverKey)
 		end)
 		if not success then
 			task.wait(5)
-			ServerList.removeServer(map)
+			self:removeServer(map)
 		end
 	end
 end
@@ -78,7 +79,8 @@ end
 
 -- Runs all bound host functions if/when this server is set as the host
 function ServerList:setAsHost()
-	ServerList.isHostServer = true
+	self.hostKey = self.serverKey
+	self.checkingHost = false
 	for _, callback in pairs(self._hostBinds) do
 		if callback and typeof(callback) == "function" then
 			task.spawn(callback)
@@ -87,32 +89,68 @@ function ServerList:setAsHost()
 	TestService:Message("This server is now the host")
 end
 
+-- Loops through the server list to make sure this server is up to date with the host
+-- If not up to date, sends a message to ensure all other server including the hose are up to date
+-- This is just for extra protection, so every server is always checking and if for some reason a message fails it the host will hopefully be found after the next check
+function ServerList:hostCheck()
+	self.checkingHost = true
+	task.spawn(function()
+		while self.checkingHost do
+			Time:WaitRealTime(HOSE_CHECK_TIME)
+			local serverList = SortedMaps.getSortedMap("ServerList"):GetRangeAsync(Enum.SortDirection.Ascending, 100)
+			if serverList[1] and self.hostKey ~= serverList[1].key then
+				self.hostKey = serverList[1].key
+				local publishSuccess, publishResult = pcall(function()
+					MessagingService:PublishAsync(SERVER_LIST_TOPIC, "HostCheck")
+				end)
+				if not publishSuccess then
+					print(publishResult)
+				end
+			end
+		end
+	end)
+end
+
 function ServerList:initiate()
 	task.spawn(function()
 		-- If we want to save a list of servers, append this server to the list of servers and connect the server closed function
 		if SAVE_SERVER_LIST then
 			local serverListMap = SortedMaps.getSortedMap("ServerList")
-			ServerList.appendServer(serverListMap)
+			self:appendServer(serverListMap)
 
 			-- Subscribe to the server list topic, and when the host shuts down, check if this server is next in line to be the host
 			local subscribeSuccess, subscribeConnection = pcall(function()
 				return MessagingService:SubscribeAsync(SERVER_LIST_TOPIC, function(message)
-					if message and message.Data and ServerList.serverKey and message.Data == "HostShutdown" then
-						local serverList = SortedMaps.getSortedMap("ServerList"):GetRangeAsync(Enum.SortDirection.Ascending, 100)
-						if self.serverKey == serverList[1].key then
-							self:setAsHost()
+					if message and message.Data and self.serverKey then 
+						if message.Data == "HostShutdown" then
+							local serverList = SortedMaps.getSortedMap("ServerList"):GetRangeAsync(Enum.SortDirection.Ascending, 100)
+							if serverList[1] and self.serverKey == serverList[1].key then
+								self:setAsHost()
+							end
+						elseif message.Data == "HostCheck" then
+							local serverList = SortedMaps.getSortedMap("ServerList"):GetRangeAsync(Enum.SortDirection.Ascending, 100)
+							if serverList[1] then
+								self.hostKey = serverList[1].key
+								if self.serverKey == serverList[1].key then
+									self:setAsHost()
+								end
+							end
 						end
 					end
 				end)
 			end)
 
+			if self.hostKey ~= self.serverKey then
+				self:hostCheck()
+			end
+
 			game:BindToClose(function()
-				ServerList.removeServer(serverListMap)
+				self:removeServer(serverListMap)
 				if subscribeSuccess then
 					subscribeConnection:Disconnect()
 				end
 				-- If this is the host server, publish a message to all servers that the host has shut down
-				if CHOOSE_HOST_SERVER and ServerList.isHostServer then
+				if CHOOSE_HOST_SERVER and self.hostKey == self.serverKey then
 					local publishSuccess, publishResult = pcall(function()
 						MessagingService:PublishAsync(SERVER_LIST_TOPIC, "HostShutdown")
 					end)
