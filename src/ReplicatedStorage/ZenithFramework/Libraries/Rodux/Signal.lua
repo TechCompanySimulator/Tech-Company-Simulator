@@ -41,6 +41,7 @@ function Signal.new(store)
 		_store = store
 	}
 
+	self._bindableEvent = Instance.new("BindableEvent")
 	setmetatable(self, Signal)
 
 	return self
@@ -68,6 +69,7 @@ function Signal:connect(callback)
 
 	self._listeners = immutableAppend(self._listeners, listener)
 
+
 	local function disconnect()
 		if listener.disconnected then
 			error((
@@ -94,11 +96,26 @@ function Signal:connect(callback)
 end
 
 function Signal:fire(...)
+	self._bindableEvent:Fire()
+
 	for _, listener in ipairs(self._listeners) do
 		if not listener.disconnected then
 			listener.callback(...)
 		end
 	end
+end
+
+function Signal:wait()
+	self._bindableEvent.Event:Wait()
+end
+
+function Signal:destroy()
+	if self._bindableEvent then
+		self._bindableEvent:Destroy()
+		self._bindableEvent = nil
+	end
+
+	setmetatable(self, nil)
 end
 
 return Signal
