@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
