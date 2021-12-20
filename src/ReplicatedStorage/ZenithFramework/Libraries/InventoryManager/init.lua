@@ -7,7 +7,6 @@ local RoduxStore = loadModule("RoduxStore")
 local Table = loadModule("Table")
 
 local addInventoryItem = loadModule("addInventoryItem")
-local removeInventoryItem = loadModule("removeInventoryItem")
 local changeInventoryItem = loadModule("changeInventoryItem")
 
 local InventoryManager = {}
@@ -60,23 +59,23 @@ end
 
 if RunService:IsServer() then
 	-- Adds an item to the players inventory, returning a boolean of whether it succeeded or not
-	function InventoryManager.addItem(userId, category, item)
+	function InventoryManager.addItem(userId, category, item, inventoryName)
 		if InventoryManager.isInventoryFull(userId) then return false end
-		RoduxStore:dispatch(addInventoryItem(userId, category, item))
+		RoduxStore:dispatch(addInventoryItem(userId, inventoryName or "Inventory", category, item))
 		return true
 	end
 
 	-- Adds an item to the players inventory, returning a boolean of whether it succeeded or not
-	function InventoryManager.removeItem(userId, category, item)
+	function InventoryManager.removeItem(userId, category, item, inventoryName)
 		if not InventoryManager.hasItem(userId, category, item) then return false end
-		RoduxStore:dispatch(removeInventoryItem(userId, category, item))
+		RoduxStore:dispatch(changeInventoryItem(userId, inventoryName or "Inventory", category, item, Table.None))
 		return true
 	end
 
 	-- Replaces an item in the inventory with the new item table (can be used for upgrading items etc)
-	function InventoryManager.replaceItem(userId, category, item, newItem)
+	function InventoryManager.replaceItem(userId, category, item, newItem, inventoryName)
 		if not InventoryManager.hasItem(userId, category, item) then return false end
-		RoduxStore:dispatch(changeInventoryItem(userId, category, item, newItem))
+		RoduxStore:dispatch(changeInventoryItem(userId, inventoryName or "Inventory", category, item, newItem))
 		return true
 	end
 end

@@ -45,9 +45,10 @@ return Rodux.createReducer({}, {
 	addInventoryItem = function(state, action)
 		local newState = Table.clone(state)
 		local userId = action.userId
+		local inventoryName = action.inventoryName
 		local category = action.category
 		local item = action.item
-		if userId and category and item then
+		if userId and inventoryName and category and item then
 			local currentData = newState[tostring(userId)] or {}
 			local currentInventory = currentData.Inventory or {}
 			local currentCategoryData = currentInventory[category] or {}
@@ -72,49 +73,17 @@ return Rodux.createReducer({}, {
 		end
 		return state
 	end,
-
-	removeInventoryItem = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		local category = action.category
-		local item = action.item
-		if userId and category and item then
-			local currentData = newState[tostring(userId)] or {}
-			local currentInventory = currentData.Inventory or {}
-			local currentCategoryData = currentInventory[category] or {}
-
-			local removeId 
-			for id, invItem in pairs(currentCategoryData) do
-				if Table.deepCheckEquality(item, invItem) then 
-					removeId = id
-					break 
-				end
-			end
-
-			if not removeId then return state end
-
-			currentData.Inventory = Table.merge(currentInventory, {
-				[category] = Table.merge(currentCategoryData, {
-					[tostring(removeId)] = Table.None
-				})
-			})
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
-	end,
-
+	
 	changeInventoryItem = function(state, action)
 		local newState = Table.clone(state)
 		local userId = action.userId
+		local inventoryName = action.inventoryName
 		local category = action.category
 		local item = action.item
 		local newItem = action.newItem
-		if userId and category and item and newItem then
+		if userId and inventoryName and category and item and newItem then
 			local currentData = newState[tostring(userId)] or {}
-			local currentInventory = currentData.Inventory or {}
+			local currentInventory = currentData[inventoryName] or {}
 			local currentCategoryData = currentInventory[category] or {}
 
 			local changeId 
@@ -131,6 +100,10 @@ return Rodux.createReducer({}, {
 				[category] = Table.merge(currentCategoryData, {
 					[tostring(changeId)] = newItem
 				})
+			})
+
+			return Table.merge(newState, {
+				[tostring(userId)] = currentData;
 			})
 		end
 		return state
