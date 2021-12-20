@@ -17,19 +17,18 @@ local BASE_INVENTORY_CAPACITY = 5
 
 -- Returns the inventory table to be read from
 function InventoryManager.getInventory(userId)
-	local playerData = RoduxStore:getState().playerData[tostring(userId)]
-	return playerData and playerData.Inventory or {}
+	local inventory = RoduxStore:waitForValue("playerData", tostring(userId), "Inventory")
+	return inventory
 end
 
 -- Returns the number of items in the inventory
 function InventoryManager.getContentSize(userId)
-	local inventory = RoduxStore:getState().playerData[tostring(userId)].Inventory or {}
-	return Table.length(inventory)
+	return Table.length(InventoryManager.getInventory(userId))
 end
 
 -- Returns the current max amount of items the player can have in their inventory
 function InventoryManager.getCapacity(userId)
-	local playerData = RoduxStore:getState().playerData[tostring(userId)]
+	local playerData = RoduxStore:waitForValue("playerData", tostring(userId))
 	return (playerData and playerData.InvCapacity) or BASE_INVENTORY_CAPACITY
 end
 
