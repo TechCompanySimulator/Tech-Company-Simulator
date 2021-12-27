@@ -19,12 +19,12 @@ function SortedMaps.getUniqueKey(map)
 	local exclusiveLowerBound = nil
 	local foundKey
 	local isFirstKey = true
+	local prevKey = 0
 	while true do
 		local success, items = pcall(function()
 			return map:GetRangeAsync(Enum.SortDirection.Ascending, 100, exclusiveLowerBound)
 		end)
 		if success then
-			local prevKey = 0
 			for _, entry in ipairs(items) do
 				isFirstKey = false
 				if tonumber(entry.key) ~= prevKey + 1 then
@@ -60,10 +60,11 @@ function SortedMaps.flush(map)
 				removedItems = true
 			end
 		end
-		if #items < 100 and removedItems then break end
+		if #items < 100 and (removedItems or #items == 0) then break end
 		if removedItems then
 			exclusiveLowerBound = items[#items].key
 		end
+		task.wait()
 	end
 end
 
