@@ -20,6 +20,8 @@ local DATA_WAIT_INTERVAL = 30
 
 -- Returns the stored session data, and creates a table if it doesn't exist yet
 function DataStore.getStoredData(dataStore)
+	assert(typeof(dataStore) == "Instance" and dataStore.ClassName and dataStore.ClassName == "DataStore", "DataStore argument must be a DataStore instance")
+
 	if not DataStore.Data[dataStore] then
 		DataStore.Data[dataStore] = {}
 		DataStore.DataCache[dataStore] = {}
@@ -70,20 +72,13 @@ function DataStore.getData(dataStore, index, initialData, initialUserIds, initia
 
 	local data = DataStore.getStoredData(dataStore)
 	if data[index] then return data[index] end
-	local success, savedData, keyInfo = pcall(function()
-		local storedData, keyInfo = dataStore:GetAsync(index)
-		if not storedData and initialData then
-			DataStore.setDataAsync(dataStore, index, initialData, initialUserIds, initialMetaData)
-			return initialData, keyInfo
-		end
-		return storedData, keyInfo
-	end)
-	if success then
-		data[index] = savedData
-		return savedData
-	else
-		warn("Failed to get data from DataStore: " , dataStore , " with index: " , index , " due to error: " , savedData)
+	local storedData, keyInfo = DataStore.getDataAsync(dataStore, index)
+	if not storedData and initialData then
+		DataStore.setDataAsync(dataStore, index, initialData, initialUserIds, initialMetaData)
+		return initialData, keyInfo
 	end
+	data[index] = storedData
+	return storedData, keyInfo
 end
 
 -- Waits for the data and repeatedly tries the getData function until it gets the data
@@ -101,6 +96,22 @@ function DataStore.waitForData(dataStore, index)
 	end
 
 	return data[index]
+end
+
+-- Returns the data saved in the given datastore, along with the keyInfo of the index
+function DataStore.getDataAsync(dataStore, index)
+	assert(typeof(dataStore) == "Instance" and dataStore.ClassName and dataStore.ClassName == "DataStore", "DataStore argument must be a DataStore instance")
+	assert(typeof(index) == "string", "index argument must be a string")
+
+	local success, savedData, keyInfo = pcall(function()
+		local storedData, keyInfo = dataStore:GetAsync(index)
+		return storedData, keyInfo
+	end)
+	if success then 
+		return savedData, keyInfo
+	else
+		warn("Failed to get data from DataStore: " , dataStore , " with index: " , index , " due to error: " , savedData)
+	end
 end
 
 -- Completely overwrites the data in the given data store with the given index, saves it in the Data table and returns it
@@ -238,7 +249,7 @@ function DataStore.removeDataAsync(dataStore, index)
 		return dataStore:RemoveAsync(index)
 	end)
 	if success then
-		warn("Remove index: " .. index .. " from dataStore: " , dataStore , " successfully")
+		warn("Removed index: " .. index .. " from dataStore: " , dataStore , " successfully")
 	else
 		warn("Failed to remove index: " .. index .. " from dataStore: " , dataStore)
 	end
