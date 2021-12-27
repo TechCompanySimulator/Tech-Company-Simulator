@@ -11,20 +11,32 @@ local CONFIG = loadModule("CONFIG")
 
 if CONFIG.RUN_FRAMEWORK_TESTS then
 	local tests = (RunService:IsServer() and Zenith.Tests.Server) or Zenith.Tests.Client
+	local area = (RunService:IsServer() and "server") or "client"
+	warn("Framework shared tests started")
 	local sharedResults = TestEZ.TestBootstrap:run(Zenith.Tests.Shared:GetChildren())
+	warn("Framework shared tests complete")
+
+	warn("Framework " .. area .. " tests started")
 	local results = TestEZ.TestBootstrap:run(tests:GetChildren())
+	warn("Framework " .. area .. " tests complete")
 end
 
 if CONFIG.RUN_SHARED_TESTS then
+	warn("Shared tests started")
 	local results = TestEZ.TestBootstrap:run(ReplicatedStorage.SharedTests:GetChildren())
+	warn("Shared tests Complete")
 end
 
 if CONFIG.RUN_SERVER_TESTS and RunService:IsServer() then
+	warn("Server tests started")
 	local results = TestEZ.TestBootstrap:run(game.ServerScriptService.ServerTests:GetChildren())
+	warn("Server tests Complete")
 end
 
 if CONFIG.RUN_CLIENT_TESTS and RunService:IsClient() then
+	warn("Client tests started")
 	local results = TestEZ.TestBootstrap:run(Players.LocalPlayer.PlayerScripts.ClientTests:GetChildren())
+	warn("Client tests Complete")
 end
 
 return {}
