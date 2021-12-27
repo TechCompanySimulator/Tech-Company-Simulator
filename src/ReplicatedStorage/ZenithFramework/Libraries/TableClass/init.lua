@@ -32,7 +32,7 @@ local Metatable = {
 function TableClass.new(initTab)
 	assert(typeof(initTab == "table"), "Argument needs to be a table")
 
-	local startTable = initTab or {}
+	local startTable = Table.clone(initTab) or {}
 	local self = setmetatable(startTable, Metatable)
 
 	return self
