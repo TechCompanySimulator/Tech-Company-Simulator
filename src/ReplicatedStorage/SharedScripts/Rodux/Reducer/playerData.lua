@@ -28,6 +28,22 @@ return Rodux.createReducer({}, {
 		return state
 	end;
 
+	addPlayerData = function(state, action)
+		local newState = Table.clone(state)
+		local userId = action.userId
+		local newIndex = action.newIndex
+		local value = action.value
+		if userId and newIndex and value then
+			local currentData = newState[tostring(userId)] or {}
+			currentData[newIndex] = value
+
+			return Table.merge(newState, {
+				[tostring(userId)] = currentData;
+			})
+		end
+		return state
+	end;
+
 	setPlayerLevel = function(state, action)
 		local newState = Table.clone(state)
 		local userId = action.userId
