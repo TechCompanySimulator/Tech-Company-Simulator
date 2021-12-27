@@ -2,7 +2,7 @@ local CONFIG = {
 	RUN_SERVER_TESTS = false;
 	RUN_CLIENT_TESTS = false;
 	RUN_SHARED_TESTS = false;
-	RESET_PLAYER_DATA = false;
+	RESET_PLAYER_DATA = true;
 
 	SET_ALL_TRUE = false;
 }
