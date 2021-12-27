@@ -1,28 +1,30 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 return function()
-	FOCUS()
-
 	local InventoryManager = loadModule("InventoryManager")
-	local DataStore = loadModule("DataStore")
 	local RoduxStore = loadModule("RoduxStore")
 
+	local isServer = RunService:IsServer()
+
 	-- Wait for a player to join and set up players inventory data
-	local player 
-	while not Players:GetPlayers()[1] do
-		task.wait(0.1)
+	local player = RunService:IsClient() and Players.LocalPlayer
+	if not player then
+		while not Players:GetPlayers()[1] do
+			task.wait(0.1)
+		end
+		player = Players:GetPlayers()[1]
 	end
-	player = Players:GetPlayers()[1]
 	local userId = player.UserId
 
 	local invName = "Inventory"
 
 	local playerData = RoduxStore:waitForValue("playerData", tostring(userId))
 
-	if playerData and not playerData.Inventory then
+	if isServer and playerData and not playerData.Inventory then
 		local addPlayerData = loadModule("addPlayerData")
 		RoduxStore:dispatch(addPlayerData(userId, invName, {}))
 	end
@@ -35,16 +37,27 @@ return function()
 				playersInventory = InventoryManager.getInventory(userId, invName)
 			end).never.to.throw()
 			expect(playersInventory).to.be.ok()
-		end)
-
-		it("should add items to the players inventory", function()
-			expect(function()
-				InventoryManager.addItem(userId, invName, "Tools", {
+			if RunService:IsClient() then
+				while not InventoryManager.hasItem(userId, invName, "Tools", {
 					name = "Hammer";
 					level = 1;
-				})
-			end).never.to.throw()
+				}) do
+					print("Waiting")
+					task.wait(0.1)
+				end
+			end
 		end)
+
+		if isServer then
+			it("should add items to the players inventory", function()
+				expect(function()
+					InventoryManager.addItem(userId, invName, "Tools", {
+						name = "Hammer";
+						level = 1;
+					})
+				end).never.to.throw()
+			end)
+		end
 
 		it("should get the content size of the inventory", function()
 			local contentSize
@@ -112,37 +125,48 @@ return function()
 			end).to.throw()
 		end)
 
-		it("should change an items data in the players inventory", function()
-			expect(function()
-				InventoryManager.replaceItem(userId, invName, "Tools", {
+		if isServer then
+			it("should change an items data in the players inventory", function()
+				expect(function()
+					InventoryManager.replaceItem(userId, invName, "Tools", {
+						name = "Hammer";
+						level = 1;
+					}, {
+						name = "Hammer";
+						level = 2;
+					})
+				end).never.to.throw()
+				expect(InventoryManager.hasItem(userId, invName, "Tools", {
 					name = "Hammer";
 					level = 1;
-				}, {
+				})).to.equal(false)
+				expect(InventoryManager.hasItem(userId, invName, "Tools", {
 					name = "Hammer";
 					level = 2;
-				})
-			end).never.to.throw()
-			expect(InventoryManager.hasItem(userId, invName, "Tools", {
-				name = "Hammer";
-				level = 1;
-			})).to.equal(false)
-			expect(InventoryManager.hasItem(userId, invName, "Tools", {
-				name = "Hammer";
-				level = 2;
-			})).to.equal(true)
-		end)
+				})).to.equal(true)
+			end)
 
-		it("should remove an item from the players inventory", function()
-			expect(function()
-				InventoryManager.removeItem(userId, invName, "Tools", {
+			it("should remove an item from the players inventory", function()
+				expect(function()
+					InventoryManager.removeItem(userId, invName, "Tools", {
+						name = "Hammer";
+						level = 2;
+					})
+				end).never.to.throw()
+				expect(InventoryManager.hasItem(userId, invName, "Tools", {
 					name = "Hammer";
 					level = 2;
-				})
-			end).never.to.throw()
-			expect(InventoryManager.hasItem(userId, invName, "Tools", {
-				name = "Hammer";
-				level = 2;
-			})).to.equal(false)
-		end)
+				})).to.equal(false)
+				if not InventoryManager.hasItem(userId, invName, "Tools", {
+					name = "Hammer";
+					level = 1;
+				}) then
+					InventoryManager.addItem(userId, invName, "Tools", {
+						name = "Hammer";
+						level = 1;
+					})
+				end
+			end)
+		end
 	end)
 end
