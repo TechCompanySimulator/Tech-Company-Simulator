@@ -1,6 +1,7 @@
 local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
@@ -8,6 +9,7 @@ local DataStore = loadModule("DataStore")
 local DefaultData = loadModule("DefaultData")
 local Table = loadModule("Table")
 local RoduxStore = loadModule("RoduxStore")
+local CONFIG = loadModule("CONFIG")
 
 local addPlayerSession = loadModule("addPlayerSession")
 local removePlayerSession = loadModule("removePlayerSession")
@@ -48,8 +50,10 @@ function PlayerDataManager.PlayerAdded(player)
 	local playerDataIndex = "User_" .. userId
 	local playersData = DataStore.getData(PlayerDataStore, playerDataIndex, Table.clone(DefaultData))
 
-	if playersData then
+	if (not CONFIG.RESET_PLAYER_DATA or not RunService:IsStudio()) and playersData then
 		RoduxStore:dispatch(addPlayerSession(userId, playersData))
+	elseif CONFIG.RESET_PLAYER_DATA and RunService:IsStudio() then
+		PlayerDataManager:ResetData(userId)
 	end
 end
 
