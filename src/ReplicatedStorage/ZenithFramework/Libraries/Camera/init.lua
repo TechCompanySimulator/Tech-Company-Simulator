@@ -28,7 +28,6 @@ function Cam:fixedPoint(pos, rotation, lookAt)
 			newCF = CFrame.new(pos.X, pos.Y, pos.Z, r00, r01, r02, r10, r11, r12, r20, r21, r22)
 		end
 		Camera.CFrame = newCF
-		print(Camera.CFrame.Rotation)
 	end
 end
 
