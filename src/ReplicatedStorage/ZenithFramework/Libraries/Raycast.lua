@@ -10,8 +10,18 @@ local Table = loadModule("Table")
 
 local Raycast = {}
 
+local function assertArgs(filterInstances, filterType, origin, direction, length)
+	assert(not filterInstances or typeof(filterInstances) == "table", "Filter instances argument needs to be a table")
+	assert(typeof(filterType) == "string", "Filter type argument needs to be a string")
+	assert(typeof(origin) == "Vector3", "Origin argument needs to be a Vector3")
+	assert(typeof(direction) == "Vector3", "Direction argument needs to be a Vector3")
+	assert(typeof(length) == "number", "Length argument needs to be a number")
+end
+
 -- Returns a raycast result with the given arguments
 function Raycast.new(filterInstances, filterType, origin, direction, length)
+	assertArgs(filterInstances, filterType, origin, direction, length)
+
 	local raycastParams = RaycastParams.new()
 	raycastParams.FilterDescendantsInstances = filterInstances
 	raycastParams.FilterType = Enum.RaycastFilterType[filterType]
@@ -21,6 +31,8 @@ end
 
 -- Returns a table of all of the parts hit by a ray or nil if no parts are hit
 function Raycast.getAllHitParts(filterInstances, filterType, origin, direction, length)
+	assertArgs(filterInstances, filterType, origin, direction, length)
+
 	local hitParts = {}
 
 	local function getHitParts(thisOrigin, thisLength)
@@ -40,6 +52,8 @@ end
 
 -- Returns the first model hit by the ray or nil
 function Raycast.getFirstHitModel(filterInstances, filterType, origin, direction, length)
+	assertArgs(filterInstances, filterType, origin, direction, length)
+
 	local function getHitModel(thisOrigin, thisLength)
 		local hit = Raycast.new(filterInstances, filterType, thisOrigin, direction, thisLength)
 		if hit and hit.Instance and hit.Instance:FindFirstAncestorOfClass("Model") then
@@ -56,6 +70,8 @@ end
 
 -- Returns a table of all of the models hit by a ray or nil if no parts are hit
 function Raycast.getAllHitModels(filterInstances, filterType, origin, direction, length)
+	assertArgs(filterInstances, filterType, origin, direction, length)
+
 	local hitModels = {}
 	local hitParts = Raycast.getAllHitParts(filterInstances, filterType, origin, direction, length)
 	for _, part in pairs(hitParts) do
@@ -69,8 +85,11 @@ end
 
 -- Returns a table of all of the players hit by a ray or nil if no parts are hit
 function Raycast.getAllHitPlayers(filterInstances, filterType, origin, direction, length)
+	assertArgs(filterInstances, filterType, origin, direction, length)
+
 	local hitPlayers = {}
 	local hitParts = Raycast.getAllHitParts(filterInstances, filterType, origin, direction, length)
+	if not hitParts then return end
 	for _, part in pairs(hitParts) do
 		local hitModel = part:FindFirstAncestorOfClass("Model")
 		if hitModel and hitModel:FindFirstChild("Humanoid") and hitModel:FindFirstChild("Humanoid"):IsA("Humanoid") then
@@ -83,8 +102,12 @@ function Raycast.getAllHitPlayers(filterInstances, filterType, origin, direction
 	return (#hitPlayers > 0 and hitPlayers) or nil
 end
 
--- Casts a ray and shows it's path using a part
+-- Casts a ray and shows it's path using a part, returning this part
 function Raycast.showRayAsPart(origin, direction, length, parent)
+	assert(typeof(origin) == "Vector3", "Origin argument needs to be a Vector3")
+	assert(typeof(direction) == "Vector3", "Direction argument needs to be a Vector3")
+	assert(typeof(length) == "number", "Length argument needs to be a number")
+
 	local newRaycastPart = Instance.new("Part", parent)
 	newRaycastPart.Anchored = true
 	newRaycastPart.CanCollide = false
@@ -92,6 +115,7 @@ function Raycast.showRayAsPart(origin, direction, length, parent)
 	newRaycastPart.Color = Color3.fromRGB(255, 0, 0)
 	local endPos = origin + direction * length
 	newRaycastPart.CFrame = CFrame.new(origin, endPos) * CFrame.new(0, 0, -length / 2)
+	return newRaycastPart
 end
 
 return Raycast
