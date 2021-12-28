@@ -10,9 +10,23 @@ local Maid = loadModule("Maid")
 
 local MainInterface = Roact.Component:extend("MainInterface")
 
-local Components = {}
+local Components = {
+	LoadingScreen = loadModule("LoadingScreen");
+	MainMenu = loadModule("MainMenu");
+	Inventory = loadModule("Inventory")
+}
 
-local InterfaceStates = {}
+local InterfaceStates = {
+	mainMenu = {
+		"MainMenu";
+	};
+	loadingScreen = {
+		"LoadingScreen";
+	};
+	gameplay = {
+		"Inventory";
+	};
+}
 
 function MainInterface:init()
 	self.maid = Maid.new()
@@ -34,6 +48,8 @@ function MainInterface:init()
 			self:setState(state)
 		end
 	end))
+
+	self:setState("loadingScreen")
 end
 
 function MainInterface:setState(state)
