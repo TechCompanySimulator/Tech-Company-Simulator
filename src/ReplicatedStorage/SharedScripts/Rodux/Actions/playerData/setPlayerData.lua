@@ -4,8 +4,10 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = loadModule("makeActionCreator")
 
-return makeActionCreator("removePlayerSession", function(userId)
+return makeActionCreator("setPlayerData", function(userId, newIndex, value)
 	return {
-		userId = userId
+		userId = userId,
+		newIndex = newIndex,
+		value = value
 	}
 end)

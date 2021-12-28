@@ -11,9 +11,7 @@ local Table = loadModule("Table")
 local RoduxStore = loadModule("RoduxStore")
 local CONFIG = loadModule("CONFIG")
 
-local addPlayerSession = loadModule("addPlayerSession")
-local removePlayerSession = loadModule("removePlayerSession")
-local setPlayerLevel = loadModule("setPlayerLevel")
+local setPlayerSession = loadModule("setPlayerSession")
 
 local PlayerDataStore = DataStoreService:GetDataStore("PlayerDataStore")
 
@@ -42,7 +40,7 @@ function PlayerDataManager:initiate()
 end
 
 function PlayerDataManager:ResetData(userId)
-	RoduxStore:dispatch(addPlayerSession(userId, DefaultData))
+	RoduxStore:dispatch(setPlayerSession(userId, DefaultData))
 end
 
 function PlayerDataManager.PlayerAdded(player)
@@ -51,7 +49,7 @@ function PlayerDataManager.PlayerAdded(player)
 	local playersData = DataStore.getData(PlayerDataStore, playerDataIndex, Table.clone(DefaultData))
 
 	if (not CONFIG.RESET_PLAYER_DATA or not RunService:IsStudio()) and playersData then
-		RoduxStore:dispatch(addPlayerSession(userId, playersData))
+		RoduxStore:dispatch(setPlayerSession(userId, playersData))
 	elseif CONFIG.RESET_PLAYER_DATA and RunService:IsStudio() then
 		PlayerDataManager:ResetData(userId)
 	end
@@ -60,7 +58,7 @@ end
 function PlayerDataManager.PlayerRemoving(player)
 	local userId = player.UserId
 	DataStore.removeSessionData(PlayerDataStore, "User_" .. userId, true)
-	RoduxStore:dispatch(removePlayerSession(userId))
+	RoduxStore:dispatch(setPlayerSession(userId, Table.None))
 end
 
 return PlayerDataManager

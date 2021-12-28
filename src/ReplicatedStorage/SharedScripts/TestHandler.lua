@@ -29,21 +29,21 @@ if CONFIG.RUN_SHARED_TESTS then
 	RanTests = true
 	warn("Shared tests started")
 	TestEZ.TestBootstrap:run(ReplicatedStorage.SharedTests:GetChildren())
-	warn("Shared tests Complete")
+	warn("Shared tests complete")
 end
 
 if CONFIG.RUN_SERVER_TESTS and RunService:IsServer() then
 	RanTests = true
 	warn("Server tests started")
 	TestEZ.TestBootstrap:run(game.ServerScriptService.ServerTests:GetChildren())
-	warn("Server tests Complete")
+	warn("Server tests complete")
 end
 
 if CONFIG.RUN_CLIENT_TESTS and RunService:IsClient() then
 	RanTests = true
 	warn("Client tests started")
 	TestEZ.TestBootstrap:run(Players.LocalPlayer.PlayerScripts.ClientTests:GetChildren())
-	warn("Client tests Complete")
+	warn("Client tests complete")
 end
 
 if RanTests then

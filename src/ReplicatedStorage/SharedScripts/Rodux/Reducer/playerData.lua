@@ -6,7 +6,7 @@ local Rodux = loadModule("Rodux")
 local Table = loadModule("Table")
 
 return Rodux.createReducer({}, {
-	addPlayerSession = function(state, action)
+	setPlayerSession = function(state, action)
 		local newState = Table.clone(state)
 		local userId = action.userId
 		if userId then
@@ -17,18 +17,7 @@ return Rodux.createReducer({}, {
 		return state
 	end;
 
-	removePlayerSession = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			return Table.merge(newState, {
-				[tostring(userId)] = Table.None
-			})
-		end
-		return state
-	end;
-
-	addPlayerData = function(state, action)
+	setPlayerData = function(state, action)
 		local newState = Table.clone(state)
 		local userId = action.userId
 		local newIndex = action.newIndex
@@ -44,20 +33,6 @@ return Rodux.createReducer({}, {
 		return state
 	end;
 
-	setPlayerLevel = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)] or {}
-			currentData.Level = action.newLevel
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
-	end,
-
 	addInventoryItem = function(state, action)
 		local newState = Table.clone(state)
 		local userId = action.userId
@@ -66,7 +41,7 @@ return Rodux.createReducer({}, {
 		local item = action.item
 		if userId and inventoryName and category and item then
 			local currentData = newState[tostring(userId)] or {}
-			local currentInventory = currentData.Inventory or {}
+			local currentInventory = currentData[inventoryName] or {}
 			local currentCategoryData = currentInventory[category] or {}
 
 			local uniqueId = 1
@@ -81,7 +56,7 @@ return Rodux.createReducer({}, {
 				})
 			})
 
-			currentData.Inventory = newInventory
+			currentData[inventoryName] = newInventory
 
 			return Table.merge(newState, {
 				[tostring(userId)] = currentData;
@@ -112,7 +87,7 @@ return Rodux.createReducer({}, {
 
 			if not changeId then return state end
 
-			currentData.Inventory = Table.merge(currentInventory, {
+			currentData[inventoryName] = Table.merge(currentInventory, {
 				[category] = Table.merge(currentCategoryData, {
 					[tostring(changeId)] = newItem
 				})

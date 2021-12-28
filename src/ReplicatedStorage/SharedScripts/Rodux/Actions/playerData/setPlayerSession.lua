@@ -4,9 +4,9 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = loadModule("makeActionCreator")
 
-return makeActionCreator("setPlayerLevel", function(userId, newLevel)
+return makeActionCreator("setPlayerSession", function(userId, data)
 	return {
 		userId = userId,
-		newLevel = newLevel,
+		data = data,
 	}
 end)
