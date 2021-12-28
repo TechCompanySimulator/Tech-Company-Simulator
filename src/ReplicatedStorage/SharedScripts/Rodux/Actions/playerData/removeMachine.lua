@@ -4,8 +4,9 @@ local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = require("makeActionCreator")
 
-return makeActionCreator("removePlayerSession", function(userId)
+return makeActionCreator("removeMachine", function(userId, machine)
 	return {
-		userId = userId
+		userId = userId;
+		guid = machine.guid;
 	}
 end)

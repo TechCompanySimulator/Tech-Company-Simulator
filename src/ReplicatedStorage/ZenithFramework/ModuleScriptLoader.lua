@@ -13,6 +13,9 @@ local CLIENT_MODULES_PATH = StarterPlayer.StarterPlayerScripts.ClientScripts
 
 local LoadedSignal = Instance.new("BindableEvent")
 
+local Promise = require(ReplicatedStorage.ZenithFramework.Libraries.Promise)
+local Roact = ReplicatedStorage.ZenithFramework.Libraries.Roact
+
 local ModuleScriptLoader = {}
 ModuleScriptLoader.__index = ModuleScriptLoader
 
@@ -42,13 +45,26 @@ end
 -- Loads all the module scripts in _modules
 function ModuleScriptLoader:LoadAll()
 	local loadedModules = {}
-	for moduleName, module in pairs(self._modules) do
-		if module:GetAttribute("AutoLoad") == nil or module:GetAttribute("AutoLoad") then
-			loadedModules[moduleName] = require(module)
+	Promise.new(function(resolve)
+		for moduleName, module in pairs(self._modules) do
+			-- Don't load Roact components due to them being locked by metatables
+			if module ~= Roact and not module:IsDescendantOf(Roact) and (module:GetAttribute("AutoLoad") == nil or module:GetAttribute("AutoLoad")) then
+				local loadedModule = require(module)
+				if typeof(loadedModule) == "table" and loadedModule.initiate and typeof(loadedModule.initiate) == "function" then
+					loadedModule:initiate()
+				end
+				loadedModules[moduleName] = loadedModule
+			end
 		end
-	end
-	local env = RunService:IsServer() and "Server" or "Client"
-	TestService:Message(env .. " loaded all modules successfully!")
+
+		resolve()
+	end):andThen(function()
+		local env = RunService:IsServer() and "Server" or "Client"
+		TestService:Message(env .. " loaded all modules successfully!")
+	end):catch(function(err)
+		warn("Failed to load all modules: " , err)
+	end)
+
 	return loadedModules
 end
 

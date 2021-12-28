@@ -4,9 +4,10 @@ local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = require("makeActionCreator")
 
-return makeActionCreator("setPlayerLevel", function(userId, newLevel)
+return makeActionCreator("setMachineAutomation", function(machine, isEnabled)
 	return {
-		userId = userId,
-		newLevel = newLevel,
+		userId = machine.userId;
+		guid = machine.guid;
+		automationEnabled = isEnabled;
 	}
 end)

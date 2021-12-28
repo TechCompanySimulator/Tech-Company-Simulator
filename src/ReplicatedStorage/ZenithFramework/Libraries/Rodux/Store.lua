@@ -1,5 +1,7 @@
+local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 
+local Table = require(game.ReplicatedStorage.ZenithFramework.Libraries.TableClass.Table)
 local Signal = require(script.Parent.Signal)
 local NoYield = require(script.Parent.NoYield)
 
@@ -73,8 +75,9 @@ function Store.new(reducer, initialState, middlewares, errorReporter)
 
 	self._mutatedSinceFlush = false
 	self._connections = {}
+	self._binds = {}
 
-	self.changed = Signal.new(self)
+	self.changed = Signal.new()
 
 	setmetatable(self, Store)
 
@@ -212,6 +215,64 @@ function Store:flush()
 	end
 
 	self._lastState = state
+end
+
+function Store:_connectChanges()
+	self._bindValues = self.changed:connect(function(newState, oldState)
+		for _, bind in pairs(self._binds) do
+			local newValue = Table.followPath(newState, unpack(bind.path))
+			local oldValue = Table.followPath(oldState, unpack(bind.path))
+
+			local isEqual = true
+
+			if typeof(newValue) == "table" and typeof(oldValue) == "table" then
+				isEqual = Table.deepCheckEquality(newValue, oldValue)
+			elseif typeof(newValue) ~= "table" and typeof(oldValue) ~= "table" then
+				if newValue ~= oldValue then
+					isEqual = false
+				end
+			else
+				isEqual = false
+			end
+			if not isEqual then
+				coroutine.wrap(bind.callback)(newValue,oldValue)
+			end
+		end
+	end)
+end
+
+function Store:waitForValue(...)
+	local value = Table.followPath(self:getState(), ...)
+
+	while not value do
+		self.changed:wait()
+		value = Table.followPath(self:getState(), ...)
+	end
+
+	return value
+end
+
+function Store:bindToValueChanged(callback,...)
+	if not self._bindValues then
+		self:_connectChanges()
+	end
+
+	local path = {...}
+	local uniqueId = HttpService:GenerateGUID(false)
+	self._binds[uniqueId] = {
+		callback = callback;
+		path = path;
+	}
+	return uniqueId
+end
+
+function Store:unbindFromValueChanged(uniqueId)
+	self._binds[uniqueId] = nil
+
+	if Table.length(self._binds) == 0 then
+		self._bindValues:Disconnect()
+		self._bindValues = nil
+	end
 end
 
 return Store

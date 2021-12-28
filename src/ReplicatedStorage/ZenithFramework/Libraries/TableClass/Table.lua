@@ -34,13 +34,13 @@ end
 function Table.contains(tab, value)
 	assert(typeof(tab) == "table", "First argument not a table")
 
-	if typeof(value) ~= "table" then
-		return table.find(tab, value)
-	else
-		for _, val in pairs(tab) do
-			if typeof(val) == "table" and Table.deepCheckEquality(val, value) then
-				return true
-			end
+	local isTable = typeof(value) == "table"
+
+	for _, val in pairs(tab) do
+		if (not isTable and typeof(val) ~= "table" and val == value) 
+			or (isTable and typeof(val) == "table" and Table.deepCheckEquality(val, value))
+		 then
+			return true
 		end
 	end
 
@@ -98,7 +98,7 @@ function Table.removeListDuplicates(tab)
 	local checkTable = {}
 	for index, value in pairs(tab) do
 		if not checkTable[value] then
-			checkTable[value] = true
+			checkTable[value] = value
 		else
 			table.remove(tab, index)
 		end
@@ -113,6 +113,7 @@ function Table.merge(...)
 
 	for i = 1, select("#", ...) do
 		local tab = select(i, ...)
+		assert(assert(typeof(tab == "table"), "All arguments need to be tables"))
 
 		for index, val in pairs(tab) do
 			if val == Table.None then
@@ -124,6 +125,20 @@ function Table.merge(...)
 	end
 
 	return newTab
+end
+
+-- Follows the path of descendants starting from tab and returns the endpoint
+function Table.followPath(tab,...)
+	local path = {...}
+	local location = tab
+	for _, waypoint in ipairs(path) do
+		if typeof(location) == "table" then
+			location = location[waypoint]
+		else
+			return nil
+		end
+	end
+	return location
 end
 
 return Table

@@ -1,9 +1,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local CollisionGroups = require("CollisionGroups")
+local CollisionGroups = loadModule("CollisionGroups")
 
 local CharacterManager = {}
 
@@ -21,6 +21,12 @@ function CharacterManager.playerAdded(player)
 	player.CharacterAdded:Connect(CharacterManager.characterAdded)
 end
 
-Players.PlayerAdded:Connect(CharacterManager.playerAdded)
+-- Connects the playerAdded function
+function CharacterManager:initiate()
+	for _, player in pairs(Players:GetPlayers()) do
+		CharacterManager.playerAdded(player)
+	end
+	Players.PlayerAdded:Connect(CharacterManager.playerAdded)
+end
 
 return CharacterManager

@@ -3,9 +3,9 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Table = require("Table")
+local Table = loadModule("Table")
 
 local TableClass = {}
 
@@ -32,7 +32,7 @@ local Metatable = {
 function TableClass.new(initTab)
 	assert(typeof(initTab == "table"), "Argument needs to be a table")
 
-	local startTable = initTab or {}
+	local startTable = Table.clone(initTab) or {}
 	local self = setmetatable(startTable, Metatable)
 
 	return self

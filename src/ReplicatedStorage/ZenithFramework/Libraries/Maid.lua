@@ -13,7 +13,7 @@ function Maid.new()
 	return self
 end
 
--- Stores a task connection in the maid
+-- Stores a task in the maid
 function Maid:GiveTask(task)
 	table.insert(self.connections, task)
 end
@@ -25,6 +25,7 @@ function Maid:DoCleaning()
 			task:Disconnect()
 		end
 	end
+	self.connections = {}
 end
 
 return Maid

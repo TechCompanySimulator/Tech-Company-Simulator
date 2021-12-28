@@ -4,9 +4,10 @@ local require = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = require("makeActionCreator")
 
-return makeActionCreator("addPlayerSession", function(userId, data)
+return makeActionCreator("setMachineOption", function(machine, buildOption)
 	return {
-		userId = userId,
-		data = data,
+		userId = machine.userId;
+		machine = machine;
+		buildOption = buildOption;
 	}
 end)
