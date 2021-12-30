@@ -46,6 +46,43 @@ function SortedMaps.getUniqueKey(map)
 	return foundKey, isFirstKey
 end
 
+-- Updates a key in the given sorted map with correct error handling
+function SortedMaps.createNewKey(map, key, value, keyLifetime)
+	local success, result = pcall(function()
+		local success = false
+		map:UpdateAsync(key, function(keyExists)
+			if keyExists then return nil end
+			success = true
+			return value
+		end, keyLifetime)
+		return success
+	end)
+
+	if success and result then
+		return true
+	elseif success and not result then
+		return false
+	elseif not success then
+		task.wait(2)
+		SortedMaps.createNewKey(map, key, value, keyLifetime)
+	end
+end
+
+-- Iterates through all the keys in the given map and prints them
+function SortedMaps.printAllKeys(map)
+	local exclusiveLowerBound = nil
+	while true do
+		local items = map:GetRangeAsync(Enum.SortDirection.Ascending, 100, exclusiveLowerBound)
+		for _, entry in ipairs(items) do
+			print(entry.key)
+		end
+		if #items < 100 then
+			break
+		end
+		exclusiveLowerBound = items[#items].key
+	end
+end
+
 -- Flushes all the memory out of a map
 function SortedMaps.flush(map)
 	local exclusiveLowerBound = nil
