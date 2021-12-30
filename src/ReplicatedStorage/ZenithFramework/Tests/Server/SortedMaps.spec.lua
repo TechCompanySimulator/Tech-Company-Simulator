@@ -16,12 +16,11 @@ return function()
 		end)
 
 		it("should get the first unique key in the sorted map, and return it, along with if it is the first key or not", function()
-			local foundKey, isFirstKey
+			local foundKey
 			expect(function()
-				foundKey, isFirstKey = SortedMaps.getUniqueKey(TestMap)
+				foundKey = SortedMaps.getUniqueKey(TestMap)
 			end).never.to.throw()
 			expect(foundKey).to.equal(1)
-			expect(isFirstKey).to.equal(true)
 		end)
 
 		it("should create a new key in a sorted map, cancelling the update if the key already exists", function()
