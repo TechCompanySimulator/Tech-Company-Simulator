@@ -18,7 +18,6 @@ end
 function SortedMaps.getUniqueKey(map)
 	local exclusiveLowerBound = nil
 	local foundKey
-	local isFirstKey = true
 	local prevKey = 0
 	while true do
 		local success, items = pcall(function()
@@ -26,7 +25,6 @@ function SortedMaps.getUniqueKey(map)
 		end)
 		if success then
 			for _, entry in ipairs(items) do
-				isFirstKey = false
 				if tonumber(entry.key) ~= prevKey + 1 then
 					foundKey = prevKey + 1
 					break
@@ -43,7 +41,7 @@ function SortedMaps.getUniqueKey(map)
 		end
 		task.wait()
 	end
-	return foundKey, isFirstKey
+	return foundKey
 end
 
 -- Updates a key in the given sorted map with correct error handling
@@ -59,7 +57,7 @@ function SortedMaps.createNewKey(map, key, value, keyLifetime)
 	end)
 
 	if success and result then
-		return true
+		return result
 	elseif success and not result then
 		return false
 	elseif not success then
