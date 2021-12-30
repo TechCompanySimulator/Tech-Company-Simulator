@@ -16,6 +16,8 @@ local SERVER_KEY_LIFETIME = 2592000
 
 -- Creates a string number to represent the server in the sorted map server list
 function ServerList.createServerKeyString(key)
+	assert(typeof(key) == "number", "Key argument must be a number")
+
 	local keyLen = string.len(tostring(key))
 	if keyLen < SERVER_KEY_LENGTH then
 		for _ = 1, SERVER_KEY_LENGTH - keyLen do
@@ -30,16 +32,8 @@ function ServerList:appendServer(map)
 	local serverNum = SortedMaps.getUniqueKey(map)
 	local serverKey = self.createServerKeyString(serverNum)
 	if serverKey and tonumber(serverKey) <= 999999 then
-		local keyCheck = true
-		local success, result = pcall(function()
-			map:UpdateAsync(serverKey, function(keyExists)
-				if keyExists then return nil end
-				keyCheck = false
-				TestService:Message("This is server number " .. tonumber(serverKey))
-				return game.JobId
-			end, SERVER_KEY_LIFETIME)
-		end)
-		if not success or keyCheck then
+		local setSuccessfully = SortedMaps.createNewKey(map, serverKey, not RunService:IsStudio() and game.JobId or "Worked!", SERVER_KEY_LIFETIME)
+		if not setSuccessfully then
 			task.wait(1)
 			self:appendServer(map)
 		else
@@ -52,7 +46,7 @@ end
 function ServerList:removeServer(map)
 	if self.serverKey and map then
 		local success = pcall(function()
-			map:RemoveAsync(self.serverKey)
+			return map:RemoveAsync(self.serverKey)
 		end)
 		if not success then
 			task.wait(5)
