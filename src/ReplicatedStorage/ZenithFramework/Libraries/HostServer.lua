@@ -64,18 +64,8 @@ end
 -- Attempts to set this server as the host server and runs all bound host functions if/when this server is set as the host
 function HostServer:attemptHostSet()
 	local hostServerMap = SortedMaps.getSortedMap(HOST_SERVER_MAP)
-
-	local success, result = pcall(function()
-		local success = false
-		hostServerMap:UpdateAsync("HostServer", function(keyExists)
-			if keyExists then return nil end
-			success = true
-			return game.JobId
-		end, SERVER_KEY_LIFETIME)
-		return success
-	end)
-
-	if success and result then
+	local setSuccessfully = SortedMaps.createNewKey(hostServerMap, "HostServer", not RunService:IsStudio() and game.JobId or "Worked!", SERVER_KEY_LIFETIME)
+	if setSuccessfully then
 		self.isHost = true
 		if not self.hasFunctionality then
 			BindedHostFunctionEvent.Event:Wait()
@@ -86,9 +76,6 @@ function HostServer:attemptHostSet()
 			end
 		end
 		TestService:Message("This server is now the host")
-	elseif not success then
-		task.wait(2)
-		self:attemptHostSet()
 	end
 end
 
