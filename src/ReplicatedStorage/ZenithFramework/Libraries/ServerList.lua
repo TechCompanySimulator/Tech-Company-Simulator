@@ -1,4 +1,3 @@
-local TestService = game:GetService("TestService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -32,7 +31,7 @@ function ServerList:appendServer(map)
 	local serverNum = SortedMaps.getUniqueKey(map)
 	local serverKey = self.createServerKeyString(serverNum)
 	if serverKey and tonumber(serverKey) <= 999999 then
-		local setSuccessfully = SortedMaps.createNewKey(map, serverKey, not RunService:IsStudio() and game.JobId or "Worked!", SERVER_KEY_LIFETIME)
+		local setSuccessfully = SortedMaps.createNewKey(map, serverKey, ((not RunService:IsStudio() and game.JobId) or "Worked!"), SERVER_KEY_LIFETIME)
 		if not setSuccessfully then
 			task.wait(1)
 			self:appendServer(map)
@@ -55,7 +54,7 @@ function ServerList:removeServer(map)
 	end
 end
 
-function ServerList:init()
+function ServerList:initiate()
 	task.spawn(function()
 		-- If we want to save a list of servers, append this server to the list of servers and connect the server closed function
 		if SAVE_SERVER_LIST then
