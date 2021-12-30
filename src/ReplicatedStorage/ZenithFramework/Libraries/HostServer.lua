@@ -23,10 +23,12 @@ local HOST_SERVER_TOPIC = "HostServerTopic"
 local SERVER_KEY_LIFETIME = 2592000
 
 -- Function runs when this module is loaded
-function HostServer:init()
+function HostServer:initiate()
 	if CHOOSE_HOST_SERVER then
-		self:attemptHostSet()
-
+		task.spawn(function()
+			self:attemptHostSet()
+		end)
+		
 		-- Subscribe to the server list topic, and when the host shuts down, check if this server is next in line to be the host
 		MessagingService:SubscribeAsync(HOST_SERVER_TOPIC, function(message)
 			if message and message.Data and self.serverKey then 
@@ -39,6 +41,18 @@ function HostServer:init()
 		game:BindToClose(function()
 			-- If this is the host server, publish a message to all servers that the host has shut down
 			if not RunService:IsStudio() and self.isHost then
+				local hostServerMap = SortedMaps.getSortedMap(HOST_SERVER_MAP)
+				-- Remove the host server from the memory store
+				local function removeHost()
+					local success = pcall(function()
+						return hostServerMap:RemoveAsync("HostServer")
+					end)
+					if not success then
+						task.wait(1)
+						removeHost()
+					end
+				end
+
 				local publishSuccess, publishResult = pcall(function()
 					MessagingService:PublishAsync(HOST_SERVER_TOPIC, "HostShutdown")
 				end)
@@ -53,7 +67,7 @@ end
 -- Binds a function to run if the server is set as the host
 function HostServer:bindHostFunction(callback)
 	if callback and typeof(callback) == "function" then
-		table.insert(self._hostBinds, {
+		table.insert(self._binds, {
 			callback = callback;
 		})
 		self.hasFunctionality = true
@@ -64,13 +78,13 @@ end
 -- Attempts to set this server as the host server and runs all bound host functions if/when this server is set as the host
 function HostServer:attemptHostSet()
 	local hostServerMap = SortedMaps.getSortedMap(HOST_SERVER_MAP)
-	local setSuccessfully = SortedMaps.createNewKey(hostServerMap, "HostServer", not RunService:IsStudio() and game.JobId or "Worked!", SERVER_KEY_LIFETIME)
+	local setSuccessfully = SortedMaps.createNewKey(hostServerMap, "HostServer", ((not RunService:IsStudio() and game.JobId) or "Worked!"), SERVER_KEY_LIFETIME)
 	if setSuccessfully then
 		self.isHost = true
 		if not self.hasFunctionality then
 			BindedHostFunctionEvent.Event:Wait()
 		end
-		for _, bind in pairs(self._hostBinds) do
+		for _, bind in pairs(self._binds) do
 			if bind.callback and typeof(bind.callback) == "function" then
 				task.spawn(bind.callback)
 			end
@@ -81,8 +95,9 @@ end
 
 -- Runs a while loop to repeatedly check if there is a host server and set a new host if there isn't 
 function HostServer:hostCheck()
+	self.hostCheckRunning = true
 	task.spawn(function()
-		while true do
+		while self.hostCheckRunning do
 			task.wait(30)
 			self:attemptHostSet()
 		end
