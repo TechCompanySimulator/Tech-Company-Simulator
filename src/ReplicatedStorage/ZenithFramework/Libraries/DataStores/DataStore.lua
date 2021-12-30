@@ -197,9 +197,9 @@ function DataStore.restorePreviousVersion(dataStore, index, minDate, maxDate)
 			end)
 			-- Restore current value by overwriting with the closest version
 			if success then
-				local userIds = info:GetUserIds()
+				local userIds = info and info:GetUserIds()
 				local setOptions = Instance.new("DataStoreSetOptions")
-				setOptions:SetMetadata(info:GetMetadata())
+				setOptions:SetMetadata(info and info:GetMetadata())
 				DataStore.setDataAsync(dataStore, index, value, userIds, setOptions)
 			end
 		else
@@ -263,8 +263,8 @@ function DataStore.saveAllData()
 				DataStore.incrementDataAsync(dataStore, index, value)
 			else
 				DataStore.updateDataAsync(dataStore, index, function(currentData, keyInfo)
-					local userIDs = keyInfo:GetUserIds()
-					local metadata = keyInfo:GetMetadata()
+					local userIDs = keyInfo and keyInfo:GetUserIds()
+					local metadata = keyInfo and keyInfo:GetMetadata()
 					return value, userIDs, metadata
 				end)
 			end
