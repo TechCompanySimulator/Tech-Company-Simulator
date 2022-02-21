@@ -7,11 +7,16 @@ local RoduxStore = loadModule("RoduxStore")
 
 local setPlayerData = loadModule("setPlayerData")
 
-local CurrencyManager = {}
+local CurrencyManager = {
+	validCurrencies = {
+		"Coins";
+		"Gems";
+	};
+}
 
 -- Adds the amount of currency the players currency saved in their data
 function CurrencyManager:transact(player, currency, amount)
-	if RunService:IsServer() and typeof(currency) == "string" and typeof(amount) == "number" then
+	if RunService:IsServer() and typeof(currency) == "string" and typeof(amount) == "number" and table.find(CurrencyManager.validCurrencies, currency) then
 		local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
 		local currentAmount = playerData[currency] or 0
 		local canTransact = amount >= 0 or CurrencyManager.hasEnoughCurrency(player, currency, amount)

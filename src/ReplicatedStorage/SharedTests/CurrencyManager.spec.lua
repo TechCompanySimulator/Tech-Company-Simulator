@@ -36,6 +36,9 @@ return function()
 				expect(test3).to.equal(true)
 				playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
 				expect(playerData.Coins).to.equal(90)
+
+				local test4 = CurrencyManager:transact(player, "Fail", -10)
+				expect(test4).never.to.be.ok()
 			end
 		end)
 
