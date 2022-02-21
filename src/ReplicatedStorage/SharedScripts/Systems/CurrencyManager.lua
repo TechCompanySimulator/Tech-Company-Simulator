@@ -31,7 +31,7 @@ end
 -- Returns true or false depending on if they have enough of the given currency or not
 function CurrencyManager.hasEnoughCurrency(player, currency, amount)
 	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
-	return typeof(playerData[currency]) == "number" and playerData[currency] >= amount
+	return typeof(playerData[currency]) == "number" and playerData[currency] >= math.abs(amount)
 end
 
 return CurrencyManager
