@@ -134,6 +134,25 @@ return function()
 			expect(Table.followPath(proxyTab1, "Hello", "Test100")).never.to.be.ok()
 		end)
 
+		it("should create the given path with a given start point and end point", function()
+			local start = {}
+			local endVal = 40
+			local path = {"Test1", "Test2"}
+			expect(function()
+				Table.createPath(start, endVal, table.unpack(path))
+			end).never.to.throw()
+
+			local location = start
+			for _, waypoint in ipairs(path) do
+				if typeof(location) == "table" then
+					location = location[waypoint]
+				else
+					return nil
+				end
+			end
+			expect(location).to.equal(endVal)
+		end)
+
 		it("should create a new table class and run metamethods on it successfully", function()
 			local newTab1, newTab2, newTab3
 			expect(function()
