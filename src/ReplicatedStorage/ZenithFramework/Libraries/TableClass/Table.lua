@@ -128,7 +128,9 @@ function Table.merge(...)
 end
 
 -- Follows the path of descendants starting from tab and returns the endpoint
-function Table.followPath(tab,...)
+function Table.followPath(tab, ...)
+	assert(typeof(tab) == "table", "Table argument must be a table")
+
 	local path = {...}
 	local location = tab
 	for _, waypoint in ipairs(path) do
@@ -139,6 +141,22 @@ function Table.followPath(tab,...)
 		end
 	end
 	return location
+end
+
+-- Follows the given path, creating it if it doesn't exist, and returning the endpoint
+function Table.createPath(start, endVal, ...)
+	assert(typeof(start) == "table", "Start argument must be a table")
+
+	local path = {...}
+	local currentStage = start
+	for i, pathName in ipairs(path) do
+		currentStage[pathName] = currentStage[pathName] or {}
+		if i == #path then
+			currentStage[pathName] = if typeof(endVal) == "table" then Table.merge(currentStage[pathName], endVal) else {}
+		end
+		currentStage = currentStage[pathName]
+	end
+	return currentStage
 end
 
 return Table
