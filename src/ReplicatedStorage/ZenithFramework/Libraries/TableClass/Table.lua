@@ -152,7 +152,7 @@ function Table.createPath(start, endVal, ...)
 	for i, pathName in ipairs(path) do
 		currentStage[pathName] = currentStage[pathName] or {}
 		if i == #path then
-			currentStage[pathName] = if typeof(endVal) == "table" then Table.merge(currentStage[pathName], endVal) else {}
+			currentStage[pathName] = if typeof(endVal) == "table" then Table.merge(currentStage[pathName], endVal) elseif endVal ~= nil then endVal else {}
 		end
 		currentStage = currentStage[pathName]
 	end
