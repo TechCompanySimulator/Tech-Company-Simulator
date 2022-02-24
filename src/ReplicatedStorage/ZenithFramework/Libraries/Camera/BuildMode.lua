@@ -16,7 +16,8 @@ local buildModeCam = {
 	moving = false;
 	rotating = false;
 	moveSpeed = 0.5;
-	rotateSpeed = 0.5;
+	rotateSpeed = 0.8;
+	currentOffset = Vector2.new(0, 0);
 }
 
 local inputs = {
@@ -94,7 +95,9 @@ local function rotateCam(self)
 		RunService:UnbindFromRenderStep("BuildModeCamRotate")
 	end
 
-	Camera.CFrame *= CFrame.Angles(0, math.rad(buildModeCam.rotationVector * buildModeCam.rotateSpeed), 0)
+	local angle = CFrame.Angles(0, math.rad(buildModeCam.rotationVector * buildModeCam.rotateSpeed), 0)
+	local rotCF = angle:ToObjectSpace(Camera.CFrame)
+	Camera.CFrame = CFrame.fromMatrix(Camera.CFrame.Position, rotCF.XVector, rotCF.YVector, rotCF.ZVector)
 end
 
 
