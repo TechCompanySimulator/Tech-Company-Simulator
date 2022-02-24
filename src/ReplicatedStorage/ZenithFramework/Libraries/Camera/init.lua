@@ -1,9 +1,7 @@
 local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
 
 if RunService:IsServer() then return {} end
 
-local Player = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local Cam = {
@@ -29,7 +27,10 @@ end
 
 -- Returns the camera to the player, with an optional argument to tween, and a tween duration
 function Cam:returnToPlayer(tween, tweenDuration)
-	Camera.CFrame = self.prevCamCFrame
+	if self.prevCamCFrame then
+		Camera.CFrame = self.prevCamCFrame
+		self.prevCamCFrame = nil
+	end
 	Camera.CameraType = Enum.CameraType.Custom
 	self.currentType = "Normal"
 end
