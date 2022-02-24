@@ -1,24 +1,21 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+if RunService:IsServer() then return {} end
 
 local Player = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local UserInput = loadModule("UserInput")
-local Maid = loadModule("Maid")
+local Controls = require(Player.PlayerScripts:WaitForChild("PlayerModule")):GetControls()
 
-local buildModeCam = {
-	moveVector = Vector2.new(0, 0);
-	rotationVector = 0;
-	moving = false;
-	rotating = false;
-	moveSpeed = 0.5;
-	rotateSpeed = 0.8;
-	currentOffset = Vector2.new(0, 0);
-}
+local camTypeChanged = getDataStream("CamTypeChanged", "BindableEvent")
+
+local buildModeCam = {}
 
 local inputs = {
 	movement = {
@@ -69,16 +66,40 @@ local inputs = {
 		[Enum.KeyCode.Q] = {
 			inputType = Enum.UserInputType.Keyboard;
 			direction = "RotateRight";
-			vector = 1;
+			vector = -1;
 		};
 		[Enum.KeyCode.E] = {
 			inputType = Enum.UserInputType.Keyboard;
 			direction = "RotateLeft";
-			vector = -1;
+			vector = 1;
 		};
 	};
 }
 
+-- Reset the values back to default and account for any keys which area already pressed
+local function resetValues()
+	local forwardVector = UserInputService:IsKeyDown(Enum.KeyCode.W) and 1 or 0
+	local leftVector = UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0
+	local backwardVector = UserInputService:IsKeyDown(Enum.KeyCode.S) and -1 or 0
+	local rightVector = UserInputService:IsKeyDown(Enum.KeyCode.D) and 1 or 0
+
+	local rotateRight = UserInputService:IsKeyDown(Enum.KeyCode.Q) and -1 or 0
+	local rotateLeft = UserInputService:IsKeyDown(Enum.KeyCode.E) and 1 or 0
+
+	buildModeCam = {
+		moveVector = Vector2.new(leftVector + rightVector, forwardVector + backwardVector);
+		rotationVector = rotateRight + rotateLeft;
+		moving = false;
+		rotating = false;
+		moveSpeed = 0.5;
+		rotateSpeed = 0.8;
+		zoomSpeed = 2;
+		maxZoom = 50;
+		currentOffset = Vector2.new(20, 20);
+	}
+end
+
+-- Move camera, taking into account the current offset and always look at the origin
 local function moveCam(self)
 	if self.currentType ~= "BuildMode" then
 		RunService:UnbindFromRenderStep("BuildModeCamMove")
@@ -87,20 +108,38 @@ local function moveCam(self)
 	local rightVector = Vector3.new(Camera.CFrame.RightVector.X, 0, Camera.CFrame.RightVector.Z) * buildModeCam.moveVector.X
 	local forwardVector = Vector3.new(Camera.CFrame.LookVector.X, 0, Camera.CFrame.LookVector.Z) * buildModeCam.moveVector.Y
 	local totalVector = rightVector + forwardVector
-	Camera.CFrame += (totalVector.Unit * buildModeCam.moveSpeed)
+	local unitVector = totalVector.Magnitude ~= 0 and totalVector.Unit or totalVector
+	buildModeCam.origin += (unitVector * buildModeCam.moveSpeed)
+	local newCF = buildModeCam.origin * CFrame.new(0, buildModeCam.currentOffset.Y, -buildModeCam.currentOffset.X) * CFrame.new(0, -1, -6)
+	Camera.CFrame = CFrame.new(newCF.Position, buildModeCam.origin.Position)
 end
-
+-- Rotate cameras origin
 local function rotateCam(self)
 	if self.currentType ~= "BuildMode" then
 		RunService:UnbindFromRenderStep("BuildModeCamRotate")
 	end
 
-	local angle = CFrame.Angles(0, math.rad(buildModeCam.rotationVector * buildModeCam.rotateSpeed), 0)
-	local rotCF = angle:ToObjectSpace(Camera.CFrame)
-	Camera.CFrame = CFrame.fromMatrix(Camera.CFrame.Position, rotCF.XVector, rotCF.YVector, rotCF.ZVector)
+	buildModeCam.origin *= CFrame.Angles(0, math.rad(buildModeCam.rotationVector * buildModeCam.rotateSpeed), 0)
+	if not buildModeCam.moving then
+		moveCam(self)
+	end
+end
+-- Set cameras offset and move the camera if not already moving
+local function zoomCam(self, input)
+	local direction = input.Position.Z > 0 and -1 or 1
+	local currentOffset = buildModeCam.currentOffset
+	local newX = currentOffset.X + direction * buildModeCam.zoomSpeed
+	local newY = currentOffset.Y + direction * buildModeCam.zoomSpeed
+	buildModeCam.currentOffset = Vector2.new(math.clamp(newX, 1, buildModeCam.maxZoom), math.clamp(newY, 1, buildModeCam.maxZoom))
+	if not buildModeCam.moving then
+		moveCam(self)
+	end
+	if not buildModeCam.rotating then
+		rotateCam(self)
+	end
 end
 
-
+-- Bind camera movement to render stepped
 local function bindCamMovement(self)
 	RunService:BindToRenderStep("BuildModeCamMove", 200, function()
 		moveCam(self)
@@ -113,7 +152,7 @@ local function bindCamRotation(self)
 	end)
 end
 
-
+-- If the camera is moving, bind the input, if not then unbind it
 local function checkMovementVector(self)
 	if buildModeCam.moveVector ~= Vector2.new(0, 0) and not buildModeCam.moving then
 		buildModeCam.moving = true
@@ -128,41 +167,86 @@ local function checkRotationVector(self)
 	if buildModeCam.rotationVector ~= 0 and not buildModeCam.rotating then
 		buildModeCam.rotating = true
 		bindCamRotation(self)
-	elseif buildModeCam.moveVector == 0 and buildModeCam.rotating then
+	elseif buildModeCam.rotationVector == 0 and buildModeCam.rotating then
 		buildModeCam.rotating = false
 		RunService:UnbindFromRenderStep("BuildModeCamRotate")
 	end
 end
 
-
+-- Connect / disconnect camera movement inputs
 local function connectInputs(self)
 	-- Connect movement inputs
 	for keycode, info in pairs(inputs.movement) do
-		UserInput.connectInput(info.inputType, keycode, "MoveCam" .. info.direction, function()
-			buildModeCam.moveVector += info.vector
-			checkMovementVector(self)
-		end, function()
-			buildModeCam.moveVector -= info.vector
-			checkMovementVector(self)
-		end)
+		UserInput.connectInput(info.inputType, keycode, "MoveCam" .. info.direction, {
+			beganFunc = function()
+				buildModeCam.moveVector += info.vector
+				checkMovementVector(self)
+			end;
+			endedFunc = function()
+				buildModeCam.moveVector -= info.vector
+				checkMovementVector(self)
+			end;
+		})
 	end
 
 	-- Connect rotation inputs
 	for keycode, info in pairs(inputs.rotation) do
-		UserInput.connectInput(info.inputType, keycode, "Cam" .. info.direction, function()
-			buildModeCam.rotationVector += info.vector
-			checkRotationVector(self)
-		end, function()
-			buildModeCam.rotationVector -= info.vector
-			checkRotationVector(self)
-		end)
+		UserInput.connectInput(info.inputType, keycode, "Cam" .. info.direction,  {
+			beganFunc = function()
+				buildModeCam.rotationVector += info.vector
+				checkRotationVector(self)
+			end;
+			endedFunc = function()
+				buildModeCam.rotationVector -= info.vector
+				checkRotationVector(self)
+			end;
+		})
 	end
+
+	-- Connect scroll wheel inputs
+	UserInput.connectInput(Enum.UserInputType.MouseWheel, nil, "Zoom", {
+		changedFunc = function(input)
+			zoomCam(self, input)
+		end;
+	})
+end
+
+local function disconnectInputs(self)
+	-- Disconnect movement inputs
+	for _, info in pairs(inputs.movement) do
+		UserInput.disconnectInput(info.inputType, "MoveCam" .. info.direction)
+	end
+
+	-- Disconnect rotation inputs
+	for _, info in pairs(inputs.rotation) do
+		UserInput.disconnectInput(info.inputType, "Cam" .. info.direction)
+	end
+
+	-- Disconnect scroll wheel inputs
+	UserInput.disconnectInput(Enum.UserInputType.MouseWheel, "Zoom")
+
+	RunService:UnbindFromRenderStep("BuildModeCamMove")
+	RunService:UnbindFromRenderStep("BuildModeCamRotate")
 end
 
 return function(self, startCFrame)
+	Controls:Disable()
+	resetValues()
 	Camera.CameraType = Enum.CameraType.Scriptable
 	if startCFrame then
-		Camera.CFrame = startCFrame
+		buildModeCam.origin = startCFrame
+		moveCam(self)
+		rotateCam(self)
 	end
 	connectInputs(self)
+
+	local camTypeChangedConnection
+	camTypeChangedConnection = camTypeChanged.Event:Connect(function(newType)
+		if newType ~= "BuildMode" then
+			camTypeChangedConnection:Disconnect()
+			camTypeChangedConnection = nil
+			disconnectInputs(self)
+			Controls:Enable()
+		end
+	end)
 end
