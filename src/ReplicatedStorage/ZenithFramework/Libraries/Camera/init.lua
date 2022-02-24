@@ -1,11 +1,16 @@
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 if RunService:IsServer() then return {} end
 
 local Camera = workspace.CurrentCamera
 
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+
+local camTypeChanged = getDataStream("CamTypeChanged", "BindableEvent")
+
 local Cam = {
-	currentType = "Normal";
+	currentType = "Default";
 }
 
 -- Compile all of the camera modes into this module
@@ -15,15 +20,18 @@ end
 
 -- Sets a unique custom camera type if it exists
 function Cam:setCameraType(camType: string, ...)
-	if self.currentType ~= camType and camType == "Normal" then
+	if self.currentType ~= camType and camType == "Default" then
 		self:returnToPlayer()
 		return
 	end
 	if self[camType] then 
-		self[camType](self, ...)
 		self.currentType = camType
+		self[camType](self, ...)
+		camTypeChanged:Fire(camType)
 	end
 end
+
+Cam:setCameraType("BuildMode", CFrame.new(0, 2, 0))
 
 -- Returns the camera to the player, with an optional argument to tween, and a tween duration
 function Cam:returnToPlayer(tween, tweenDuration)
@@ -32,7 +40,8 @@ function Cam:returnToPlayer(tween, tweenDuration)
 		self.prevCamCFrame = nil
 	end
 	Camera.CameraType = Enum.CameraType.Custom
-	self.currentType = "Normal"
+	self.currentType = "Default"
+	camTypeChanged:Fire("Default")
 end
 
 return Cam
