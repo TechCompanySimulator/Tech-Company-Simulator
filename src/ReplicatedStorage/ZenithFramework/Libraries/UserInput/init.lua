@@ -15,25 +15,35 @@ for _, module in pairs(script:GetChildren()) do
 end
 
 -- Connects a certain input and runs a function when this input starts / ends
-function UserInput.connectInput(inputType, keycode, inputId, beganFunc, endedFunc)
+function UserInput.connectInput(inputType, keycode, inputId, functions)
 	if not UserInput[inputType] then
 		UserInput[inputType] = {}
 	end
 
-	if typeof(beganFunc) == "function" then
-		UserInput[inputType][inputId .. "Began"] = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-			if not gameProcessed and input.UserInputType == inputType and input.KeyCode == keycode then
-				beganFunc()
-			end
-		end)
-	end
+	if typeof(functions) == "table" then
+		if typeof(functions.beganFunc) == "function" then
+			UserInput[inputType][inputId .. "Began"] = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+				if not gameProcessed and input.UserInputType == inputType and (not keycode or input.KeyCode == keycode) then
+					functions.beganFunc(input)
+				end
+			end)
+		end
 
-	if typeof(endedFunc) == "function" then
-		UserInput[inputType][inputId .. "Ended"] = UserInputService.InputEnded:Connect(function(input, gameProcessed)
-			if not gameProcessed and input.UserInputType == inputType and input.KeyCode == keycode then
-				endedFunc()
-			end
-		end)
+		if typeof(functions.changedFunc) == "function" then
+			UserInput[inputType][inputId .. "Changed"] = UserInputService.InputChanged:Connect(function(input, gameProcessed)
+				if not gameProcessed and input.UserInputType == inputType and (not keycode or input.KeyCode == keycode) then
+					functions.changedFunc(input)
+				end
+			end)
+		end
+
+		if typeof(functions.endedFunc) == "function" then
+			UserInput[inputType][inputId .. "Ended"] = UserInputService.InputEnded:Connect(function(input, gameProcessed)
+				if not gameProcessed and input.UserInputType == inputType and (not keycode or input.KeyCode == keycode) then
+					functions.endedFunc(input)
+				end
+			end)
+		end
 	end
 end
 
@@ -43,6 +53,11 @@ function UserInput.disconnectInput(inputType, inputId)
 		if UserInput[inputType][inputId .. "Began"] then
 			UserInput[inputType][inputId .. "Began"]:Disconnect()
 			UserInput[inputType][inputId .. "Began"] = nil
+		end
+
+		if UserInput[inputType][inputId .. "Changed"] then
+			UserInput[inputType][inputId .. "Changed"]:Disconnect()
+			UserInput[inputType][inputId .. "Changed"] = nil
 		end
 
 		if UserInput[inputType][inputId .. "Ended"] then
