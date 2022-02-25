@@ -1,3 +1,5 @@
+-- Build mode camera where you can move around with WASD and the camera is angled down by 45 degrees. Can also rotate the camera with the keys E and Q and zoom in / out
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -207,6 +209,26 @@ local function connectInputs(self)
 	UserInput.connectInput(Enum.UserInputType.MouseWheel, nil, "Zoom", {
 		changedFunc = function(input)
 			zoomCam(self, input)
+		end;
+	})
+
+	-- Connect right mouse button rotation
+	UserInput.connectInput(Enum.UserInputType.MouseButton2, nil, "RightMouseButton", {
+		beganFunc = function(originalInput)
+			local prevPos = originalInput.Position
+			UserInput.connectInput(Enum.UserInputType.MouseMovement, nil, "MouseMovement", {
+				changedFunc = function(input)
+					local mousePos = input.Position
+					buildModeCam.origin *= CFrame.Angles(0, math.rad(prevPos.X - mousePos.X) * 0.1, 0)
+					if not buildModeCam.moving then
+						moveCam(self)
+					end
+					prevPos = mousePos
+				end
+			})
+		end;
+		endedFunc = function()
+			UserInput.disconnectInput(Enum.UserInputType.MouseMovement, "MouseMovement")
 		end;
 	})
 end
