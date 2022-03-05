@@ -77,6 +77,7 @@ function PlayerDataManager.playerRemoving(player)
 	DataStore.removeSessionData(PlayerDataStore, "User_" .. userId, true)
 	RoduxStore:dispatch(setPlayerSession(userId, Table.None))
 	PlayerDataManager.loadedData[tostring(player.UserId)] = nil
+	PlayerDataManager.leftBools[tostring(player.UserId)] = nil
 end
 
 return PlayerDataManager
