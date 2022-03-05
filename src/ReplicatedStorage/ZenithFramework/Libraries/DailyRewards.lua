@@ -2,8 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-if RunService:IsClient() then return {} end
-
 local require, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local RoduxStore = require("RoduxStore")
@@ -12,20 +10,23 @@ local Table = require("Table")
 
 local setPlayerData = require("setPlayerData")
 
-local playerLeftEvent = getDataStream("PlayerLeft", "BindableEvent")
+local dailyRewardsEvent = getDataStream("DailyRewardsEvent", "RemoteEvent")
+
+local playerLeftEvent 
+if RunService:IsServer() then
+	playerLeftEvent = getDataStream("PlayerLeft", "BindableEvent")
+end
 
 local DailyRewards = {
-	timer = 86400;
-	leftBools = {};
+	baseTime = DateTime.fromUniversalTime(
+		2022, 
+		3, 
+		1
+	);
+	timer = 20;
 }
 
---[[
-	POTENTIAL CHANGES:
-	- Make it so that it finds the number of boundaries it has passed from a certain unix timestamp (use DateTime to make this exact so I can choose the time it resets daily)
-	- Use this number of boundaries to find where the previous boundary is
-	- Can then use this found boundary to work out if we are in the next boundary or not
-	- Makes it easier to change it from a day to smaller or larger times
-]]
+if RunService:IsClient() then return DailyRewards end
 
 -- Create a new streak for the player, saving the previous time interval unix timestamp and the login time
 function DailyRewards.newStreak(player, loginTime, timeBoundary)
@@ -48,49 +49,64 @@ function DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, num
 	RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
 end
 
+-- Gets the previous time boundary for the given time
+function DailyRewards.getTimeBoundary(time)
+	local timeDiff = time - DailyRewards.baseTime.UnixTimestamp
+	local timer = DailyRewards.timer
+	local numBoundaries = timeDiff / timer
+	local remainder = numBoundaries - math.floor(numBoundaries)
+	return time - remainder * timer
+end
+
+-- When timer is over on client, server is fired to add the streak
+function DailyRewards.serverEvent(player)
+	local timeNow = DateTime.now().UnixTimestamp
+	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
+	local timeBoundary = DailyRewards.getTimeBoundary(timeNow)
+	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + DailyRewards.timer) then
+		DailyRewards.addStreak(player, playerData, timeNow, timeBoundary, 1)
+	else
+		-- Add this just incase the client fires the server slightly too early
+		task.wait(3)
+		timeBoundary = DailyRewards.getTimeBoundary(DateTime.now().UnixTimestamp)
+		if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + DailyRewards.timer) then
+			DailyRewards.addStreak(player, playerData, timeNow, timeBoundary, 1)
+		end
+	end
+end
+
 -- When player joins, need to check the time and see if they are eligible for a reward
 function DailyRewards.playerAdded(player)
-	local loginTime = DateTime.now()
-	local universalTime = loginTime:ToUniversalTime()
+	local loginTime = DateTime.now().UnixTimestamp
 	PlayerDataManager:waitForLoadedData(player)
 	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
-	local timeBoundary = DateTime.fromUniversalTime( 
-		universalTime.Year, 
-		universalTime.Month, 
-		universalTime.Day
-	).UnixTimestamp
-
-	local loginUnix = loginTime.UnixTimestamp
-	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + DailyRewards.timer) then
-		DailyRewards.addStreak(player, playerData, loginUnix, timeBoundary, 1)
+	local timeBoundary = DailyRewards.getTimeBoundary(loginTime)
+	local timer = DailyRewards.timer
+	
+	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + timer) then
+		DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, 1)
 	elseif not playerData.DailyRewards 
 		or not playerData.DailyRewards.streak 
 		or playerData.DailyRewards.streak == 0 
-		or (loginUnix > (playerData.DailyRewards.timeBoundary + DailyRewards.timer) 
-			and timeBoundary ~= (playerData.DailyRewards.timeBoundary + DailyRewards.timer) 
+		or (loginTime > (playerData.DailyRewards.timeBoundary + timer) 
+			and timeBoundary ~= (playerData.DailyRewards.timeBoundary + timer) 
 		) 
 	then
-		DailyRewards.newStreak(player, loginUnix, timeBoundary)
+		DailyRewards.newStreak(player, loginTime, timeBoundary)
 	end
 end
 
 -- When a player leaves, need to check to see if they stayed long enough to receive more login streaks
 function DailyRewards.playerRemoving(player)
-	local leaveTime = DateTime.now()
-	local universalTime = leaveTime:ToUniversalTime()
-	local timeBoundary = DateTime.fromUniversalTime( 
-		universalTime.Year, 
-		universalTime.Month, 
-		universalTime.Day
-	).UnixTimestamp
+	local leaveTime = DateTime.now().UnixTimestamp
+	local timeBoundary = DailyRewards.getTimeBoundary(leaveTime)
 	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
 	if playerData.DailyRewards and playerData.DailyRewards.timeBoundary ~= timeBoundary then
 		local numBoundariesPassed = 0
-		while timeBoundary ~= playerData.DailyRewards.timeBoundary do
-			timeBoundary += DailyRewards.timer
-			numBoundariesPassed += 1
-		end
-		DailyRewards.addStreak(player, playerData, leaveTime.UnixTimestamp, timeBoundary, numBoundariesPassed)
+		local prevTimeBoundary = playerData.DailyRewards.timeBoundary
+		local timeDiff = timeBoundary - prevTimeBoundary
+		numBoundariesPassed += math.floor(timeDiff / DailyRewards.timer)
+		DailyRewards.addStreak(player, playerData, leaveTime, timeBoundary, numBoundariesPassed)
 	end
 	PlayerDataManager.leftBools[tostring(player.UserId)] = true
 	playerLeftEvent:Fire()
@@ -103,6 +119,7 @@ for _, player in pairs(Players:GetPlayers()) do
 	end)
 end
 
+dailyRewardsEvent.OnServerEvent:Connect(DailyRewards.serverEvent)
 Players.PlayerAdded:Connect(DailyRewards.playerAdded)
 Players.PlayerRemoving:Connect(DailyRewards.playerRemoving)
 
