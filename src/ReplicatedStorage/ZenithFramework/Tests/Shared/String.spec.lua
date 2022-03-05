@@ -67,5 +67,35 @@ return function()
 				String.upperFirstLetter(5)
 			end).to.throw()
 		end)
+
+		it("should convert a number from seconds to 'mm:ss' format", function()
+			local result1
+			expect(function()
+				result1 = String.convertToMS(120)
+			end).never.to.throw()
+			expect(result1).to.equal("02:00")
+			local result2 = String.convertToMS(196)
+			expect(result2).to.equal("03:16")
+		end)
+
+		it("should convert a number from seconds to 'hh:mm' format", function()
+			local result1
+			expect(function()
+				result1 = String.convertToHM(5413)
+			end).never.to.throw()
+			expect(result1).to.equal("01:30")
+			local result2 = String.convertToHM(54130)
+			expect(result2).to.equal("15:02")
+		end)
+
+		it("should convert a number from seconds to 'hh:mm:ss' format", function()
+			local result1
+			expect(function()
+				result1 = String.convertToHMS(5413)
+			end).never.to.throw()
+			expect(result1).to.equal("01:30:13")
+			local result2 = String.convertToHMS(54130)
+			expect(result2).to.equal("15:02:10")
+		end)
 	end)
 end

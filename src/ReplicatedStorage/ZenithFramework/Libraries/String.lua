@@ -50,4 +50,54 @@ function String.upperFirstLetter(str)
 	return string.upper(str:sub(1, 1)) .. str:sub(2)
 end
 
+-- Returns the time in minute format (minutes:seconds)
+function String.convertToMS(seconds)
+	local minutes = math.floor(seconds / 60)
+	seconds = math.floor(seconds % 60)
+	if minutes < 10 and seconds >= 10 then
+		return "0"..minutes..":"..seconds
+	elseif minutes >= 10 and seconds < 10 then
+		return minutes..":0"..seconds
+	elseif minutes < 10 and seconds < 10 then
+		return "0"..minutes..":0"..seconds
+	else
+		return minutes..":"..seconds
+	end
+end
+
+-- Returns the time in short hour format (hours:minutes)
+function String.convertToHM(seconds)
+	local hours = math.floor(seconds / 3600)
+	local minutes = math.floor((seconds % 3600) / 60)
+	local hoursText = hours
+	local minutesText = minutes
+	if hours < 10 then
+		hoursText = "0" .. hours
+	end
+	if minutes < 10 then
+		minutesText = "0" .. minutes
+	end
+	return hoursText .. ":" .. minutesText
+end
+
+-- Returns the time in hour format (hours:minutes:seconds)
+function String.convertToHMS(seconds)
+	local hours = math.floor(seconds / 3600)
+	local minutes = math.floor((seconds % 3600) / 60)
+	seconds = math.floor(seconds % 60)
+	local hoursText = hours
+	local minutesText = minutes
+	local secondsText = seconds
+	if hours < 10 then
+		hoursText = "0" .. hours
+	end
+	if minutes < 10 then
+		minutesText = "0" .. minutes
+	end
+	if seconds < 10 then
+		secondsText = "0" .. seconds
+	end
+	return hoursText .. ":" .. minutesText .. ":" .. secondsText
+end
+
 return String
