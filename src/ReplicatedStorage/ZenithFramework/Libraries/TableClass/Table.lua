@@ -107,6 +107,22 @@ function Table.removeListDuplicates(tab)
 	return tab
 end
 
+-- Returns the amount of duplicates the given table has of the given value
+function Table.getNumDuplicates(tab, val)
+	local numDuplicates = 0
+
+	for _, value in pairs(tab) do
+		if typeof(val) == "table" and typeof(value) == "table" then
+			if Table.deepCheckEquality(val, value) then
+				numDuplicates += 1
+			end
+		elseif value == val then
+			numDuplicates += 1
+		end
+	end
+	return numDuplicates
+end
+
 -- Merges the given tables into a new table, where keys specified in later tables will overwrite keys in previous tables
 function Table.merge(...)
 	local newTab = {}

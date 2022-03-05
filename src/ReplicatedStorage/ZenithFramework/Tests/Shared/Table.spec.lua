@@ -153,6 +153,18 @@ return function()
 			expect(location).to.equal(endVal)
 		end)
 
+		it("should return the number of duplicates a table has of a certain value", function()
+			local testTab1 = {1;1;2;3;4;1;1;2;}
+			local result1
+			expect(function()
+				result1 = Table.getNumDuplicates(testTab1, 1)
+			end).never.to.throw()
+			expect(result1).to.equal(4)
+			local testTab2 = {{1;1;};{1;1;};{1;2;};{1;1;};{1;1;};}
+			local result2 = Table.getNumDuplicates(testTab2, {1;1;})
+			expect(result2).to.equal(4)
+		end)
+
 		it("should create a new table class and run metamethods on it successfully", function()
 			local newTab1, newTab2, newTab3
 			expect(function()
