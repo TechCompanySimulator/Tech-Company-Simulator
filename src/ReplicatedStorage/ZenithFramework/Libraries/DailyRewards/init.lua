@@ -7,6 +7,8 @@ local require, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFram
 local RoduxStore = require("RoduxStore")
 local PlayerDataManager = require("PlayerDataManager")
 local Table = require("Table")
+local DailyRewardsConfig = require("DailyRewardsConfig")
+local CurrencyManager = require("CurrencyManager")
 
 local setPlayerData = require("setPlayerData")
 
@@ -23,10 +25,30 @@ local DailyRewards = {
 		3, 
 		1
 	);
-	timer = 20;
+	timer = 5;
 }
 
+-- Calculate the reward based on the current login streak you're on
+function DailyRewards.calculateReward(streak)
+	local streakLength = #DailyRewardsConfig.rewards
+	local streakNum = streak % streakLength
+	local numCycles = math.floor(streak / streakLength)
+	if streakNum == 0 then 
+		numCycles = math.floor((streak - 1) / streakLength)
+		streakNum = 5
+	end
+	local multiplier = DailyRewardsConfig.multiplier ^ numCycles
+	local reward = DailyRewardsConfig.rewards[streakNum]
+	return reward.currency, math.floor(reward.amount * multiplier)
+end
+
 if RunService:IsClient() then return DailyRewards end
+
+-- Awards the reward to the player
+function DailyRewards.awardReward(player, streak)
+	local currency, amount = DailyRewards.calculateReward(streak)
+	CurrencyManager:transact(player, currency, amount)
+end
 
 -- Create a new streak for the player, saving the previous time interval unix timestamp and the login time
 function DailyRewards.newStreak(player, loginTime, timeBoundary)
@@ -36,17 +58,20 @@ function DailyRewards.newStreak(player, loginTime, timeBoundary)
 		streak = 1;
 	}
 	RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
+	DailyRewards.awardReward(player, 1)
 end
 
 -- Checks if we can continue the streak or reset the streak back to 1
 function DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, numStreaks)
 	local currentTable = playerData.DailyRewards
+	local newStreak = currentTable.streak + numStreaks
 	local saveTable = Table.merge(currentTable, {
 		timeBoundary = timeBoundary;
 		loginTime = loginTime;
-		streak = currentTable.streak + numStreaks;
+		streak = newStreak;
 	})
 	RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
+	DailyRewards.awardReward(player, newStreak)
 end
 
 -- Gets the previous time boundary for the given time
