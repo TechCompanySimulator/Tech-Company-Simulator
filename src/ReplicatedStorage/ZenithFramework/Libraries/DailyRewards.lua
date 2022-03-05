@@ -14,10 +14,17 @@ local setPlayerData = require("setPlayerData")
 local playerLeftEvent = getDataStream("PlayerLeft", "BindableEvent")
 
 local DailyRewards = {
-	timeBoundary = "00:00";
 	timer = 86400;
 	leftBools = {};
 }
+
+--[[
+	POTENTIAL CHANGES:
+	- Make it so that it finds the number of boundaries it has passed from a certain unix timestamp
+	- Use this number of boundaries to find where the previous boundary is
+	- Can then use this found boundary to work out if we are in the next boundary or not
+	- Makes it easier to change it from a day to smaller or larger times
+]]
 
 -- Create a new streak for the player, saving the previous time interval unix timestamp and the login time
 function DailyRewards.newStreak(player, loginTime, timeBoundary)
@@ -30,12 +37,12 @@ function DailyRewards.newStreak(player, loginTime, timeBoundary)
 end
 
 -- Checks if we can continue the streak or reset the streak back to 1
-function DailyRewards.continueStreak(player, playerData, loginTime, timeBoundary)
+function DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, numStreaks)
 	local currentTable = playerData.DailyRewards
 	local saveTable = {
 		timeBoundary = timeBoundary;
 		loginTime = loginTime;
-		streak = currentTable.streak + 1;
+		streak = currentTable.streak + numStreaks;
 	}
 	RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
 end
@@ -54,7 +61,7 @@ function DailyRewards.playerAdded(player)
 
 	local loginUnix = loginTime.UnixTimestamp
 	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + DailyRewards.timer) then
-		DailyRewards.continueStreak(player, playerData, loginUnix, timeBoundary)
+		DailyRewards.addStreak(player, playerData, loginUnix, timeBoundary, 1)
 	elseif not playerData.DailyRewards 
 		or not playerData.DailyRewards.streak 
 		or playerData.DailyRewards.streak == 0 
@@ -82,13 +89,7 @@ function DailyRewards.playerRemoving(player)
 			timeBoundary += DailyRewards.timer
 			numBoundariesPassed += 1
 		end
-		local currentTable = playerData.DailyRewards
-		local saveTable = {
-			timeBoundary = timeBoundary;
-			loginTime = leaveTime.UnixTimestamp;
-			streak = currentTable.streak + numBoundariesPassed;
-		}
-		RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
+		DailyRewards.addStreak(player, playerData, leaveTime.UnixTimestamp, timeBoundary, numBoundariesPassed)
 	end
 	PlayerDataManager.leftBools[tostring(player.UserId)] = true
 	playerLeftEvent:Fire()
