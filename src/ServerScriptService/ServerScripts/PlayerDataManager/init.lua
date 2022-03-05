@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local DataStore = loadModule("DataStore")
 local DefaultData = loadModule("DefaultData")
@@ -13,20 +13,25 @@ local CONFIG = loadModule("CONFIG")
 
 local setPlayerSession = loadModule("setPlayerSession")
 
+local playerLeftEvent = getDataStream("PlayerLeft", "BindableEvent")
+
 local PlayerDataStore = DataStoreService:GetDataStore("PlayerDataStore")
 
-local PlayerDataManager = {}
+local PlayerDataManager = {
+	loadedData = {};
+	leftBools = {};
+}
 
 -- Sets up the check for when the rodux store changes to update the players data, and sets up the playerAdded/playerRemoving functions
 function PlayerDataManager:initiate()
 	task.spawn(function()
 		for _, player in pairs(Players:GetPlayers()) do
-			PlayerDataManager.PlayerAdded(player)
+			PlayerDataManager.playerAdded(player)
 		end
 	end)
 
-	Players.PlayerAdded:Connect(PlayerDataManager.PlayerAdded)
-	Players.PlayerRemoving:Connect(PlayerDataManager.PlayerRemoving)
+	Players.PlayerAdded:Connect(PlayerDataManager.playerAdded)
+	Players.PlayerRemoving:Connect(PlayerDataManager.playerRemoving)
 
 	RoduxStore.changed:connect(function(newState, oldState)
 		if not Table.deepCheckEquality(newState, oldState) then
@@ -39,11 +44,18 @@ function PlayerDataManager:initiate()
 	end)
 end
 
-function PlayerDataManager:ResetData(userId)
+function PlayerDataManager:resetData(userId)
 	RoduxStore:dispatch(setPlayerSession(userId, DefaultData))
 end
 
-function PlayerDataManager.PlayerAdded(player)
+-- Yields until the players data has been sorted
+function PlayerDataManager:waitForLoadedData(player)
+	while not PlayerDataManager.loadedData[tostring(player.UserId)] do
+		task.wait()
+	end
+end
+
+function PlayerDataManager.playerAdded(player)
 	local userId = player.UserId
 	local playerDataIndex = "User_" .. userId
 	local playersData = DataStore.getData(PlayerDataStore, playerDataIndex, Table.clone(DefaultData))
@@ -51,14 +63,20 @@ function PlayerDataManager.PlayerAdded(player)
 	if (not CONFIG.RESET_PLAYER_DATA or not RunService:IsStudio()) and playersData then
 		RoduxStore:dispatch(setPlayerSession(userId, playersData))
 	elseif CONFIG.RESET_PLAYER_DATA and RunService:IsStudio() then
-		PlayerDataManager:ResetData(userId)
+		PlayerDataManager:resetData(userId)
 	end
+	RoduxStore:waitForValue("playerData", tostring(player.UserId))
+	PlayerDataManager.loadedData[tostring(player.UserId)] = true
 end
 
-function PlayerDataManager.PlayerRemoving(player)
+function PlayerDataManager.playerRemoving(player)
+	if not PlayerDataManager.leftBools[tostring(player.UserId)] then
+		playerLeftEvent.Event:Wait()
+	end
 	local userId = player.UserId
 	DataStore.removeSessionData(PlayerDataStore, "User_" .. userId, true)
 	RoduxStore:dispatch(setPlayerSession(userId, Table.None))
+	PlayerDataManager.loadedData[tostring(player.UserId)] = nil
 end
 
 return PlayerDataManager
