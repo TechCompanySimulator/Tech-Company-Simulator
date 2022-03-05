@@ -8,6 +8,7 @@ local require, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFram
 
 local RoduxStore = require("RoduxStore")
 local PlayerDataManager = require("PlayerDataManager")
+local Table = require("Table")
 
 local setPlayerData = require("setPlayerData")
 
@@ -20,7 +21,7 @@ local DailyRewards = {
 
 --[[
 	POTENTIAL CHANGES:
-	- Make it so that it finds the number of boundaries it has passed from a certain unix timestamp
+	- Make it so that it finds the number of boundaries it has passed from a certain unix timestamp (use DateTime to make this exact so I can choose the time it resets daily)
 	- Use this number of boundaries to find where the previous boundary is
 	- Can then use this found boundary to work out if we are in the next boundary or not
 	- Makes it easier to change it from a day to smaller or larger times
@@ -39,11 +40,11 @@ end
 -- Checks if we can continue the streak or reset the streak back to 1
 function DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, numStreaks)
 	local currentTable = playerData.DailyRewards
-	local saveTable = {
+	local saveTable = Table.merge(currentTable, {
 		timeBoundary = timeBoundary;
 		loginTime = loginTime;
 		streak = currentTable.streak + numStreaks;
-	}
+	})
 	RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
 end
 
