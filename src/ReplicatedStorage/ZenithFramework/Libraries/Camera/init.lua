@@ -31,8 +31,6 @@ function Cam:setCameraType(camType: string, ...)
 	end
 end
 
-Cam:setCameraType("BuildMode", CFrame.new(0, 2, 0))
-
 -- Returns the camera to the player, with an optional argument to tween, and a tween duration
 function Cam:returnToPlayer(tween, tweenDuration)
 	if self.prevCamCFrame then
