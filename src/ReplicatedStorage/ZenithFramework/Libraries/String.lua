@@ -12,13 +12,19 @@ function String.removeSpaces(str)
 	return newString
 end
 
--- Removes all punctation in a string, uncluding special characters like @
+-- Removes all punctation in a string, including special characters like @
 function String.removePunc(str)
 	assert(typeof(str) == "string", "Argument needs to be a string")
 
 	local newString, numRemovals = string.gsub(str, "%p", "")
 
 	return newString
+end
+
+-- Returns the numeric characters contained in a string
+function String.getNumericCharacters(str)
+	local number = string.gsub(str, "%D", "")
+	return tonumber(number)
 end
 
 -- Returns a table of start and end indexes of a pattern within a string
@@ -49,5 +55,21 @@ function String.upperFirstLetter(str)
 
 	return string.upper(str:sub(1, 1)) .. str:sub(2)
 end
+
+-- Converts a string to a vector or CFrame
+function String.convertToVector(str)
+	local tab = string.split(str,", ")
+
+	if #tab == 12 then
+		return CFrame.new(table.unpack(tab))
+	elseif #tab == 3 then
+		return Vector3.new(table.unpack(tab))
+	elseif #tab == 2 then
+		return Vector2.new(table.unpack(tab))
+	else
+		warn("Incompatible string - must convert to a Vector2, Vector3 or CFrame, seperated by commas")
+	end
+end
+
 
 return String
