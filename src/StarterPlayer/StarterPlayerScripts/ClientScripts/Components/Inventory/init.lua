@@ -57,89 +57,11 @@ function Inventory:render()
 			}))
 		end
 	end
-
+	
 	return Roact.createElement("ScreenGui", {
 		Name = "InventoryTest";
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
 	}, {
-		Frame = Roact.createElement("Frame", {
-			AnchorPoint = Vector2.new(0.5, 0.5);
-			Position = UDim2.new(0.5, 0, 0.5, 0);
-			Size = UDim2.new(0.557, 0, 0.576, 0);
-			BackgroundColor3 = Color3.new(1, 1, 1);
-		}, {
-			UICorner = UICorner(0.05, 0);
-	
-			Title = Roact.createElement("TextLabel", {
-				FontSize = Enum.FontSize.Size14;
-				TextColor3 = Color3.new(0, 0, 0);
-				Text = "Inventory";
-				Font = Enum.Font.SourceSansBold;
-				BackgroundTransparency = 1;
-				Position = UDim2.new(0.361, 0, 0, 0);
-				Name = "Title";
-				Size = UDim2.new(0.276, 0, 0.1, 0);
-				TextScaled = true;
-				BackgroundColor3 = Color3.new(1, 1, 1);
-			});
-	
-			CategoryButtons = multipleCategories and Roact.createElement("ScrollingFrame", {
-				ScrollBarImageColor3 = Color3.new(0, 0, 0);
-				Active = true;
-				Name = "CategoryButtons";
-				Size = UDim2.new(0.967, 0, 0.079, 0);
-				BackgroundTransparency = 1;
-				Position = UDim2.new(0.012, 0, 0.1, 0);
-				HorizontalScrollBarInset = Enum.ScrollBarInset.ScrollBar;
-				BackgroundColor3 = Color3.new(1, 1, 1);
-				BorderSizePixel = 0;
-				CanvasSize = self.categoryCanvasSize;
-			}, {
-				UIListLayout = Roact.createElement("UIListLayout", {
-					VerticalAlignment = Enum.VerticalAlignment.Center;
-					FillDirection = Enum.FillDirection.Horizontal;
-					SortOrder = Enum.SortOrder.LayoutOrder;
-					[Roact.Change.AbsoluteContentSize] = function(ui)
-						self.setCategoryCanvasSize(UDim2.new(0, ui.AbsoluteContentSize.X, 0, 0))
-					end
-				});
-	
-				Buttons = Roact.createFragment(categoryButtons);
-			});
-	
-			ItemsFrame = Roact.createElement("ScrollingFrame", {
-				ScrollBarImageColor3 = Color3.new(0, 0, 0);
-				Active = true;
-				AnchorPoint = Vector2.new(0.5, 1);
-				Name = "ItemsFrame";
-				Position = UDim2.new(0.5, 0, 1, 0);
-				Size = UDim2.new(1, 0, 0.82, 0);
-				BorderSizePixel = 0;
-				BackgroundColor3 = Color3.new(1, 1, 1);
-				CanvasSize = self.canvasSize;
-			}, {
-				UIPadding = Roact.createElement("UIPadding", {
-					PaddingTop = UDim.new(0.02, 0);
-					PaddingBottom = UDim.new(0.02, 0);
-					PaddingRight = UDim.new(0.05, 0);
-					PaddingLeft = UDim.new(0.05, 0);
-				});
-	
-				UIGridLayout = Roact.createElement("UIGridLayout", {
-					SortOrder = Enum.SortOrder.LayoutOrder;
-					CellSize = UDim2.new(0, itemTileSize, 0, itemTileSize);
-					CellPadding = UDim2.new(0.03, 0, 0.03, 0);
-					HorizontalAlignment = Enum.HorizontalAlignment.Center;
-					[Roact.Change.AbsoluteContentSize] = function(ui)
-						self.setCanvasSize(UDim2.new(0, 0, 0, ui.AbsoluteContentSize.Y + itemTileSize / 3))
-					end
-				}, {
-					UIAspectRatioConstraint = Roact.createElement("UIAspectRatioConstraint");
-				});
-
-				ItemTile = Roact.createFragment(itemTiles);
-			});
-		});
 	})
 end
 
