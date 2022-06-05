@@ -11,9 +11,10 @@ local Maid = loadModule("Maid")
 local MainInterface = Roact.Component:extend("MainInterface")
 
 local Components = {
+	Inventory = loadModule("Inventory");
 	LoadingScreen = loadModule("LoadingScreen");
+	MachineUI = loadModule("MachineUI");
 	MainMenu = loadModule("MainMenu");
-	Inventory = loadModule("Inventory")
 }
 
 local InterfaceStates = {
@@ -25,6 +26,7 @@ local InterfaceStates = {
 	};
 	gameplay = {
 		"Inventory";
+		"MachineUI";
 	};
 }
 
