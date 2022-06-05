@@ -141,4 +141,26 @@ function Table.followPath(tab,...)
 	return location
 end
 
+-- Converts a table to UTF form so they can be stored in a dataStore
+function Table.convertToUTF(currentTab)
+	local tab = setmetatable(Table.clone(currentTab), nil)
+
+	for i, v in pairs(tab) do
+		if type(v) == "vector" or type(v) == "userdata" then
+			if typeof(v) == "Instance" or
+				not pcall(function()
+					tostring(v)
+				end)
+			then
+				tab[i] = nil
+			else
+				tab[i] = tostring(v)
+			end
+		end
+	end
+
+	return tab
+end
+
+
 return Table
