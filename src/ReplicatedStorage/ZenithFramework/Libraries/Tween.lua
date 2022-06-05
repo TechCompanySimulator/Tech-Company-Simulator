@@ -48,7 +48,7 @@ function Tween.new(startValue : any, endValue : any, tweenInfo : TweenInfo, call
 	self.reverses = tweenInfo.Reverses
 end
 
-function Tween:play(newThread)
+function Tween:play(newThread : boolean)
 	if newThread then
 		task.spawn(function()
 			self:_runTween()
