@@ -8,12 +8,12 @@ local ProximityManager = {}
 ProximityManager.__index = ProximityManager
 ProximityManager.enabled = {}
 
-function ProximityManager:Enable(groupName)
+function ProximityManager:enable(groupName)
 	ProximityManager.enabled[groupName] = nil
 	ProximityManager._update()
 end
 
-function ProximityManager:Disable(groupName)
+function ProximityManager:disable(groupName)
 	ProximityManager.enabled[groupName] = false
 	ProximityManager._update()
 end
