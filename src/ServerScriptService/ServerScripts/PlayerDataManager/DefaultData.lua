@@ -6,6 +6,11 @@ local DefaultData = {
 	Warehouses = {};
 	Machines = {};
 	Inventory = {};
+	ResearchLevels = {
+		Phone = 1;
+		PC = 1;
+		Monitor = 1;
+	};
 }
 
 return DefaultData
