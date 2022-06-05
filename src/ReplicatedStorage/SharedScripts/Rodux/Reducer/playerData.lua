@@ -105,7 +105,9 @@ return Rodux.createReducer({}, {
 		local userId = action.userId
 		if userId then
 			local currentData = newState[tostring(userId)]
-			currentData.Machines[action.guid] = action.machine
+
+			-- Ensures the table only contains allowed values
+			currentData.Machines[action.guid] = Table.convertToUTF(action.machine)
 
 			return Table.merge(newState, {
 				[tostring(userId)] = currentData;
@@ -128,51 +130,18 @@ return Rodux.createReducer({}, {
 		return state
 	end;
 
-	setMachineLevel = function(state, action)
+	editMachineValues = function(state, action)
 		local newState = Table.clone(state)
 		local userId = action.userId
 		if userId then
 			local currentData = newState[tostring(userId)]
 			if not currentData.Machines[action.guid] then return state end
 
-			currentData.Machines[action.guid][action.upgradeType .. "Level"] = action.level
+			currentData.Machines[action.guid][action.valueType] = action.value
 
 			return Table.merge(newState, {
 				[tostring(userId)] = currentData;
 			})
 		end
-		return state
-	end;
-
-	setMachineOption = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)]
-			if not currentData.Machines[action.guid] then return state end
-
-			currentData.Machines[action.guid].buildOption = action.buildOption
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
-	end;
-
-	setMachineAutomation = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)]
-			if not currentData.Machines[action.guid] then return state end
-
-			currentData.Machines[action.guid].automation = action.automationEnabled
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
 	end;
 })
