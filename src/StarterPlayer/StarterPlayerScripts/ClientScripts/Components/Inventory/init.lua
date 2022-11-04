@@ -62,7 +62,9 @@ function Inventory:render()
 	return Roact.createElement("ScreenGui", {
 		Name = "InventoryTest";
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
-		Enabled = self.state.enabled;
+		Enabled = self.props.visible:map(function(visible)
+			return visible and self.state.enabled
+		end);
 	}, {
 		Frame = Roact.createElement("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5);
