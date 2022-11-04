@@ -29,21 +29,21 @@ function ModuleScriptLoader.new(loadLocation)
 		SERVER_MODULES_PATH = ServerScriptService.ServerScripts
 	end
 
-	self:AddModules(loadLocation)
-	self:AddModules("Shared")
+	self:addModules(loadLocation)
+	self:addModules("Shared")
 
 	return self
 end
 
 -- Yields until all of the modules have been loaded
-function ModuleScriptLoader:WaitForLoad()
+function ModuleScriptLoader:waitForLoad()
 	if not self.modulesLoaded then
 		LoadedSignal:Wait()
 	end
 end
 
 -- Loads all the module scripts in _modules
-function ModuleScriptLoader:LoadAll()
+function ModuleScriptLoader:loadAll()
 	local loadedModules = {}
 	Promise.new(function(resolve)
 		for moduleName, module in pairs(self._modules) do
@@ -69,16 +69,15 @@ function ModuleScriptLoader:LoadAll()
 end
 
 -- Looks for the module in the table and returns it if found
-function ModuleScriptLoader:RequireModule(moduleName)
+function ModuleScriptLoader:requireModule(moduleName)
 	assert(type(moduleName) == "string")
-
 	if self._modules[moduleName] then
 		return require(self._modules[moduleName])
 	end
 end
 
 -- Adds modules from the given location to the ._modules table
-function ModuleScriptLoader:AddModules(location)
+function ModuleScriptLoader:addModules(location)
 	assert(type(location) == "string" and self["get" .. location .. "Modules"])
 
 	for _, module in pairs(self["get" .. location .. "Modules"]()) do
@@ -128,7 +127,7 @@ end
 
 -- When the loader is called, requires the given module name and returns it
 function ModuleScriptLoader:__call(moduleName)
-	return self:RequireModule(moduleName)
+	return self:requireModule(moduleName)
 end
 
 return ModuleScriptLoader

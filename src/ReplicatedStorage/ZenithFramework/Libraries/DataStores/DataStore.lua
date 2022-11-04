@@ -259,15 +259,15 @@ end
 function DataStore.saveAllData()
 	for dataStore, data in pairs(DataStore.DataCache) do
 		for index, value in pairs(data) do
-			if typeof(value) == "number" then
+			--[[if typeof(value) == "number" then
 				DataStore.incrementDataAsync(dataStore, index, value)
-			else
+			else]]
 				DataStore.updateDataAsync(dataStore, index, function(currentData, keyInfo)
 					local userIDs = keyInfo:GetUserIds()
 					local metadata = keyInfo:GetMetadata()
 					return value, userIDs, metadata
 				end)
-			end
+			--end
 		end
 	end
 end

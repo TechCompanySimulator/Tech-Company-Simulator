@@ -50,6 +50,23 @@ function String.upperFirstLetter(str)
 	return string.upper(str:sub(1, 1)) .. str:sub(2)
 end
 
+-- Returns the time in minute format (minutes:seconds:milliseconds)
+function String.convertToMSms(milliseconds)
+	local seconds = math.floor(milliseconds / 1000)
+	local minutes = math.floor(seconds / 60)
+	seconds = math.floor(seconds % 60)
+	milliseconds = string.sub(tostring(milliseconds - (seconds * 1000)), 1, 1)
+	if minutes < 10 and seconds >= 10 then
+		return "0"..minutes..":"..seconds.."."..milliseconds
+	elseif minutes >= 10 and seconds < 10 then
+		return minutes..":0"..seconds.."."..milliseconds
+	elseif minutes < 10 and seconds < 10 then
+		return "0"..minutes..":0"..seconds.."."..milliseconds
+	else
+		return minutes..":"..seconds.."."..milliseconds
+	end
+end
+
 -- Returns the time in minute format (minutes:seconds)
 function String.convertToMS(seconds)
 	local minutes = math.floor(seconds / 60)

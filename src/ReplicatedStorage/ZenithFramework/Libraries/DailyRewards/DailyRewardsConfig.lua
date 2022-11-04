@@ -1,4 +1,10 @@
 return {
+	baseTime = DateTime.fromUniversalTime(
+		2022, 
+		3, 
+		1
+	);
+	timer = 86400;
 	multiplier = 1.1;
 	rewards = {
 		{
