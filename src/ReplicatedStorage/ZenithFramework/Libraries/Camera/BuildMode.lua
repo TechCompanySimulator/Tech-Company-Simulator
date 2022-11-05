@@ -24,7 +24,7 @@ local inputs = {
 		[Enum.KeyCode.W] = {
 			inputType = Enum.UserInputType.Keyboard;
 			direction = "Forward";
-			vector = Vector2.new(0, 1);
+			vector = Vector2.new(0, -1);
 		};
 		[Enum.KeyCode.A] = {
 			inputType = Enum.UserInputType.Keyboard;
@@ -34,7 +34,7 @@ local inputs = {
 		[Enum.KeyCode.S] = {
 			inputType = Enum.UserInputType.Keyboard;
 			direction = "Back";
-			vector = Vector2.new(0, -1);
+			vector = Vector2.new(0, 1);
 		};
 		[Enum.KeyCode.D] = {
 			inputType = Enum.UserInputType.Keyboard;
@@ -78,11 +78,18 @@ local inputs = {
 	};
 }
 
+local camPart = Instance.new("Part")
+camPart.Anchored = true
+camPart.Size = Vector3.new(1, 1, 1)
+camPart.Color = Color3.new(1, 0, 0)
+camPart.CanCollide = false
+camPart.Parent = workspace
+
 -- Reset the values back to default and account for any keys which area already pressed
 local function resetValues()
-	local forwardVector = UserInputService:IsKeyDown(Enum.KeyCode.W) and 1 or 0
+	local forwardVector = UserInputService:IsKeyDown(Enum.KeyCode.W) and -1 or 0
 	local leftVector = UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0
-	local backwardVector = UserInputService:IsKeyDown(Enum.KeyCode.S) and -1 or 0
+	local backwardVector = UserInputService:IsKeyDown(Enum.KeyCode.S) and 1 or 0
 	local rightVector = UserInputService:IsKeyDown(Enum.KeyCode.D) and 1 or 0
 
 	local rotateRight = UserInputService:IsKeyDown(Enum.KeyCode.Q) and -1 or 0
@@ -107,29 +114,56 @@ local function moveCam(self)
 		RunService:UnbindFromRenderStep("BuildModeCamMove")
 	end
 
-	local rightVector = Vector3.new(Camera.CFrame.RightVector.X, 0, Camera.CFrame.RightVector.Z) * buildModeCam.moveVector.X
-	local forwardVector = Vector3.new(Camera.CFrame.LookVector.X, 0, Camera.CFrame.LookVector.Z) * buildModeCam.moveVector.Y
-	local totalVector = rightVector + forwardVector
-	local unitVector = totalVector.Magnitude ~= 0 and totalVector.Unit or totalVector
-	local multiplier = 1
-	-- Add in here checks for direction, and cancel movement in certain direction if we are gonna go out of bounds
+	--[[
+		ALTERNATIVE: 
+		- Check for if the next iteration will go past the bound
+		- If it will, use the cross product to get the part of this vector which goes into the vector of the bound
+		- Use this vector on the movement rather than the full vector
+		- To do this, we can just edit the moveVector to be the unit vector of the bound we are colliding with
+	]]
+
+	local unitVector = Vector3.new(buildModeCam.moveVector.X, 0, buildModeCam.moveVector.Y)
+	print(buildModeCam.origin)
+	buildModeCam.origin *= CFrame.new(unitVector * buildModeCam.moveSpeed)
+	print(buildModeCam.origin)
+	local X, _, Z, r00, r01, r02, r10, r11, r12, r20, r21, r22 = buildModeCam.origin:GetComponents()
 	if buildModeCam.plotSize then
-		local newOrigin = buildModeCam.origin + (unitVector * buildModeCam.moveSpeed)
-		local newOriginObjSpace = buildModeCam.startCF:ToObjectSpace(CFrame.new(newOrigin.X, 0, newOrigin.Z))
-		local xComponent = unitVector.X
-		local zComponent = unitVector.Z
-		if newOriginObjSpace.X > buildModeCam.xUpperBound or newOriginObjSpace.X < buildModeCam.xLowerBound then
-			xComponent = 0
+		--[[local objSpaceX = buildModeCam.startCF:ToObjectSpace(buildModeCam.origin).X
+		local objSpaceZ = buildModeCam.startCF:ToObjectSpace(buildModeCam.origin).Z
+		local x, z = X, Z
+
+		 This represents the amount we are pointing towards the X or Z axis compared to the other, where 1 is we are pointing completely towards Z and -1 is completely towards X
+		local dir
+		if math.abs(buildModeCam.origin.LookVector.X) < math.abs(buildModeCam.origin.LookVector.Z) then
+			dir = buildModeCam.origin.LookVector.X / buildModeCam.origin.LookVector.Z
+		elseif math.abs(buildModeCam.origin.LookVector.Z) < math.abs(buildModeCam.origin.LookVector.X) then
+			dir = buildModeCam.origin.LookVector.Z / buildModeCam.origin.LookVector.X
+		else
+			dir = 1
 		end
-		if newOriginObjSpace.Z > buildModeCam.zUpperBound or newOriginObjSpace.Z < buildModeCam.zLowerBound then
-			zComponent = 0
+		
+		if objSpaceX < buildModeCam.xLowerBound then 
+			x = buildModeCam.xLowerPos
+		elseif objSpaceX > buildModeCam.xUpperBound then 
+			x = buildModeCam.xUpperPos
 		end
-		unitVector = Vector3.new(xComponent, 0, zComponent)
+		if objSpaceZ < buildModeCam.zLowerBound then 
+			z = buildModeCam.zLowerPos
+		elseif objSpaceZ > buildModeCam.zUpperBound then 
+			z = buildModeCam.zUpperPos
+		end]]
+		local objSpace = buildModeCam.startCF:ToObjectSpace(buildModeCam.origin)
+		--local _, _, _, R00, R01, R02, R10, R11, R12, R20, R21, R22 = objSpace:GetComponents()
+		-- ADD SOMETHING TO DO WITH DIR / THE ROTATION OF THE ORIGIN TO EFFECT THE LOCAL BOUNDS
+		local localXLower = buildModeCam.startCF * CFrame.new(0, 0, objSpace.Z) * CFrame.new(-buildModeCam.plotSize / 2, 0, 0)
+		local localXUpper = buildModeCam.startCF * CFrame.new(0, 0, objSpace.Z) * CFrame.new(buildModeCam.plotSize / 2, 0, 0)
+		local localZLower = buildModeCam.startCF * CFrame.new(objSpace.X, 0, 0) * CFrame.new(0, 0, -buildModeCam.plotSize / 2)
+		local localZUpper = buildModeCam.startCF * CFrame.new(objSpace.X, 0, 0) * CFrame.new(0, 0, buildModeCam.plotSize / 2)
+		buildModeCam.origin = CFrame.new(math.clamp(X, localXLower.X, localXUpper.X), 0, math.clamp(Z, localZLower.Z, localZUpper.Z), r00, r01, r02, r10, r11, r12, r20, r21, r22)
 	end
-	
-	buildModeCam.origin += (unitVector * buildModeCam.moveSpeed * multiplier)
-	local newCF = buildModeCam.origin * CFrame.new(0, buildModeCam.currentOffset.Y, -buildModeCam.currentOffset.X) * CFrame.new(0, -1, -6)
-	Camera.CFrame = CFrame.new(newCF.Position, buildModeCam.origin.Position)
+	camPart.CFrame = buildModeCam.origin
+	local offsetCF = buildModeCam.origin * CFrame.new(0, buildModeCam.currentOffset.Y, buildModeCam.currentOffset.X) * CFrame.new(0, -1, 6)
+	Camera.CFrame = CFrame.new(offsetCF.Position, buildModeCam.origin.Position)
 end
 -- Rotate cameras origin
 local function rotateCam(self)
@@ -279,13 +313,43 @@ return function(self, startCFrame, plotLength)
 	end
 	buildModeCam.plotSize = plotLength
 	if plotLength then
-		buildModeCam.xLowerBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.startCF * CFrame.new(-buildModeCam.plotSize / 2, 0, 0)).X
-		buildModeCam.xUpperBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.startCF * CFrame.new(buildModeCam.plotSize / 2, 0, 0)).X
-		buildModeCam.zLowerBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.startCF * CFrame.new(0, 0, -buildModeCam.plotSize / 2)).Z
-		buildModeCam.zUpperBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.startCF * CFrame.new(0, 0, buildModeCam.plotSize / 2)).Z
+		buildModeCam.xLowerPos = buildModeCam.startCF * CFrame.new(-buildModeCam.plotSize / 2, 0, 0)
+		buildModeCam.xUpperPos = buildModeCam.startCF * CFrame.new(buildModeCam.plotSize / 2, 0, 0)
+		buildModeCam.zLowerPos = buildModeCam.startCF * CFrame.new(0, 0, -buildModeCam.plotSize / 2)
+		buildModeCam.zUpperPos = buildModeCam.startCF * CFrame.new(0, 0, buildModeCam.plotSize / 2)
+
+		buildModeCam.xLowerBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.xLowerPos).X
+		buildModeCam.xUpperBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.xUpperPos).X
+		buildModeCam.zLowerBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.zLowerPos).Z
+		buildModeCam.zUpperBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.zUpperPos).Z
 	end
-	print(buildModeCam)
 	connectInputs(self)
+
+	-- FOR TESTING
+	local xLowPart = Instance.new("Part", workspace)
+	xLowPart.Anchored = true
+	xLowPart.Size = Vector3.new(1, 1, plotLength)
+	xLowPart.CFrame = buildModeCam.startCF * CFrame.new(-buildModeCam.plotSize / 2, 0, 0)
+	xLowPart.CanCollide = false
+
+	local xUpPart = Instance.new("Part", workspace)
+	xUpPart.Anchored = true
+	xUpPart.Size = Vector3.new(1, 1, plotLength)
+	xUpPart.CFrame = buildModeCam.startCF * CFrame.new(buildModeCam.plotSize / 2, 0, 0)
+	xUpPart.CanCollide = false
+
+	local zLowPart = Instance.new("Part", workspace)
+	zLowPart.Anchored = true
+	zLowPart.Size = Vector3.new(plotLength, 1, 1)
+	zLowPart.CFrame = buildModeCam.startCF * CFrame.new(0, 0, -buildModeCam.plotSize / 2)
+	zLowPart.CanCollide = false
+
+	local xUpPart = Instance.new("Part", workspace)
+	xUpPart.Anchored = true
+	xUpPart.Size = Vector3.new(plotLength, 1, 1)
+	xUpPart.CFrame = buildModeCam.startCF * CFrame.new(0, 0, buildModeCam.plotSize / 2)
+	xUpPart.CanCollide = false
+	----------------------------
 
 	local camTypeChangedConnection
 	camTypeChangedConnection = camTypeChanged.Event:Connect(function(newType)
