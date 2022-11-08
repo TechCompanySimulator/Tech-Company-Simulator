@@ -98,6 +98,7 @@ local function resetValues()
 		zoomSpeed = 2;
 		maxZoom = 50;
 		currentOffset = Vector2.new(20, 20);
+		prevOrigin = nil;
 	}
 end
 
@@ -127,12 +128,21 @@ local function moveCam(self)
 		if objSpace.Z < buildModeCam.zLowerBound or objSpace.Z > buildModeCam.zUpperBound then
 			additionalVectorZ = -zComp * zVec
 		end
-		
-		-- Add all the vectors together
-		buildModeCam.origin += (moveVector.Unit + additionalVectorX + additionalVectorZ) * buildModeCam.moveSpeed
+
+		local finalVector = (moveVector.Unit + additionalVectorX + additionalVectorZ) * buildModeCam.moveSpeed
+		-- Make sure the new point doesn't exceed the square bound
+		local newOrigin = buildModeCam.origin + finalVector
+		if (newOrigin.Position - buildModeCam.startCF.Position).Magnitude < ((buildModeCam.plotSize * math.sqrt(2)) / 2) then
+			-- Add all the vectors together
+			buildModeCam.origin = newOrigin
+		end
+
+		-- Add something here to try and stop the jittering in the corners / edges when at an angle
 	end
 	local offsetCF = buildModeCam.origin * CFrame.new(0, buildModeCam.currentOffset.Y, buildModeCam.currentOffset.X) * CFrame.new(0, -1, 6)
 	Camera.CFrame = CFrame.new(offsetCF.Position, buildModeCam.origin.Position)
+	buildModeCam.prevOrigin = buildModeCam.origin
+	print(buildModeCam.origin.Position - buildModeCam.startCF.Position, ((buildModeCam.plotSize * math.sqrt(2)) / 2))
 end
 -- Rotate cameras origin
 local function rotateCam(self)
@@ -162,13 +172,13 @@ end
 
 -- Bind camera movement to render stepped
 local function bindCamMovement(self)
-	RunService:BindToRenderStep("BuildModeCamMove", 200, function()
+	RunService:BindToRenderStep("BuildModeCamMove", 0, function()
 		moveCam(self)
 	end)
 end
 
 local function bindCamRotation(self)
-	RunService:BindToRenderStep("BuildModeCamRotate", 200, function()
+	RunService:BindToRenderStep("BuildModeCamRotate", 0, function()
 		rotateCam(self)
 	end)
 end
@@ -277,10 +287,10 @@ return function(self, startCFrame, plotLength)
 	if startCFrame then
 		buildModeCam.startCF = startCFrame
 		buildModeCam.origin = startCFrame
+		buildModeCam.plotSize = plotLength
 		moveCam(self)
 		rotateCam(self)
 	end
-	buildModeCam.plotSize = plotLength
 	if plotLength then
 		buildModeCam.xLowerPos = buildModeCam.startCF * CFrame.new(-buildModeCam.plotSize / 2, 0, 0)
 		buildModeCam.xUpperPos = buildModeCam.startCF * CFrame.new(buildModeCam.plotSize / 2, 0, 0)
