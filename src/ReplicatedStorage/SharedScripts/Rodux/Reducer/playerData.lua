@@ -2,177 +2,109 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
+local Llama = loadModule("Llama")
 local Rodux = loadModule("Rodux")
-local Table = loadModule("Table")
 
 return Rodux.createReducer({}, {
 	setPlayerSession = function(state, action)
-		local newState = Table.clone(state)
 		local userId = action.userId
+
 		if userId then
-			return Table.merge(newState, {
-				[tostring(userId)] = action.data
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = action.data;
 			})
+		else
+			return state
 		end
-		return state
 	end;
 
-	setPlayerData = function(state, action)
-		local newState = Table.clone(state)
+	setPlayerDataValue = function(state, action)
 		local userId = action.userId
 		local newIndex = action.newIndex
 		local value = action.value
-		if userId and newIndex and value then
-			local currentData = newState[tostring(userId)] or {}
-			currentData[newIndex] = value
 
-			return Table.merge(newState, {
+		if userId and newIndex and value then
+			local currentData = state[tostring(userId)] or {}
+
+			currentData = Llama.Dictionary.join(currentData, {
+				[newIndex] = value;
+			})
+
+			return Llama.Dictionary.join(state, {
 				[tostring(userId)] = currentData;
 			})
+		else
+			return state
 		end
-		return state
 	end;
 
 	addInventoryItem = function(state, action)
-		local newState = Table.clone(state)
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
 		local item = action.item
+
 		if userId and inventoryName and category and item then
-			local currentData = newState[tostring(userId)] or {}
+			local currentData = state[tostring(userId)] or {}
 			local currentInventory = currentData[inventoryName] or {}
 			local currentCategoryData = currentInventory[category] or {}
 
-			local uniqueId = 1
-			for id, _ in pairs(currentCategoryData) do
-				if tonumber(id) ~= uniqueId then break end
+			local uniqueId = 0
+			for id in pairs(currentCategoryData) do
 				uniqueId += 1
+
+				if tonumber(id) ~= uniqueId then break end
 			end
 
-			local newInventory = Table.merge(currentInventory, {
-				[category] = Table.merge(currentCategoryData, {
-					[tostring(uniqueId)] = item
-				})
+			local newInventory = Llama.Dictionary.join(currentInventory, {
+				[category] = Llama.Dictionary.join(currentCategoryData, {
+					[tostring(uniqueId)] = item;
+				});
 			})
 
-			currentData[inventoryName] = newInventory
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = Llama.Dictionary.join(currentData, {
+					[inventoryName] = newInventory;
+				});
 			})
+		else
+			return state
 		end
-		return state
-	end,
-	
+	end;
+
 	changeInventoryItem = function(state, action)
-		local newState = Table.clone(state)
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
 		local item = action.item
 		local newItem = action.newItem
+
 		if userId and inventoryName and category and item and newItem then
-			local currentData = newState[tostring(userId)] or {}
+			local currentData = state[tostring(userId)] or {}
 			local currentInventory = currentData[inventoryName] or {}
 			local currentCategoryData = currentInventory[category] or {}
 
-			local changeId 
+			local changeId
 			for id, invItem in pairs(currentCategoryData) do
-				if Table.deepCheckEquality(item, invItem) then 
+				if Llama.deepCheckEquality(item, invItem) then
 					changeId = id
-					break 
+					break
 				end
 			end
 
 			if not changeId then return state end
 
-			currentData[inventoryName] = Table.merge(currentInventory, {
-				[category] = Table.merge(currentCategoryData, {
-					[tostring(changeId)] = newItem
-				})
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = Llama.Dictionary.join(currentData, {
+					[inventoryName] = Llama.Dictionary.join(currentInventory, {
+						[category] = Llama.Dictionary.join(currentCategoryData, {
+							[tostring(changeId)] = newItem;
+						});
+					});
+				});
 			})
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
+		else
+			return state
 		end
-		return state
-	end;
-
-	addMachine = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)]
-			currentData.Machines[action.guid] = action.machine
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
-	end;
-
-	removeMachine = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)]
-			currentData.Machines[action.guid] = nil
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
-	end;
-
-	setMachineLevel = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)]
-			if not currentData.Machines[action.guid] then return state end
-
-			currentData.Machines[action.guid][action.upgradeType .. "Level"] = action.level
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
-	end;
-
-	setMachineOption = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)]
-			if not currentData.Machines[action.guid] then return state end
-
-			currentData.Machines[action.guid].buildOption = action.buildOption
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
-	end;
-
-	setMachineAutomation = function(state, action)
-		local newState = Table.clone(state)
-		local userId = action.userId
-		if userId then
-			local currentData = newState[tostring(userId)]
-			if not currentData.Machines[action.guid] then return state end
-
-			currentData.Machines[action.guid].automation = action.automationEnabled
-
-			return Table.merge(newState, {
-				[tostring(userId)] = currentData;
-			})
-		end
-		return state
 	end;
 })
