@@ -46,7 +46,7 @@ end
 function PlayerDataManager.PlayerAdded(player)
 	local userId = player.UserId
 	local playerDataIndex = "User_" .. userId
-	local playersData = DataStore.getData(PlayerDataStore, playerDataIndex, Llama.copyDeep(DefaultData))
+	local playersData = DataStore.getData(PlayerDataStore, playerDataIndex, Llama.Dictionary.copyDeep(DefaultData))
 
 	if (not CONFIG.RESET_PLAYER_DATA or not RunService:IsStudio()) and playersData then
 		RoduxStore:dispatch(setPlayerSession(userId, playersData))

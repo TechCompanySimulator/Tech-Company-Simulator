@@ -12,3 +12,5 @@ local function followPath(tab, ...)
 
 	return location
 end
+
+return followPath
