@@ -1,13 +1,14 @@
 
 local Llama = {
-	Dictionary = require(script.Dictionary),
-	List = require(script.List),
-	Set = require(script.Set),
+	Dictionary = require(script.Dictionary);
+	List = require(script.List);
+	Set = require(script.Set);
 
-	equalObjects = require(script.equalObjects),
-	isEmpty = require(script.isEmpty),
+	deepCheckEquality = require(script.deepCheckEquality);
+	equalObjects = require(script.equalObjects);
+	isEmpty = require(script.isEmpty);
 
-	None = require(script.None),
+	None = require(script.None);
 }
 
 return Llama
