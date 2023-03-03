@@ -4,11 +4,11 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
+local Llama = loadModule("Llama")
 local Roact = loadModule("Roact")
 local RoactRodux = loadModule("RoactRodux")
-local Table = loadModule("Table")
 
 local UICorner = loadModule("UICorner")
 local InventoryItemTile = loadModule("InventoryItemTile")
@@ -39,7 +39,7 @@ function Inventory:render()
 		end
 	end
 
-	local multipleCategories = Table.length(inventoryData) > 1
+	local multipleCategories = Llama.Dictionary.length(inventoryData) > 1
 	if multipleCategories then
 		for categoryName, _ in pairs(inventoryData) do
 			table.insert(categoryButtons, Roact.createElement("TextButton", {

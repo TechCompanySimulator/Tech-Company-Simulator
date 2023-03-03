@@ -3,15 +3,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 return function()
+	local Llama = loadModule("Llama")
 	local RoduxStore = loadModule("RoduxStore")
-	local Table = loadModule("Table")
 
 	local playerId = 1
 
-    describe("RoduxActions", function()
+	describe("RoduxActions", function()
 		it("should set a player session in the playerData table in Rodux", function()
 			local setPlayerSession = loadModule("setPlayerSession")
 			local data = {}
+
 			expect(function()
 				RoduxStore:dispatch(setPlayerSession(playerId, data))
 			end).never.to.throw()
@@ -19,9 +20,10 @@ return function()
 		end)
 
 		it("should set an index in the players data to a given value", function()
-			local setPlayerData = loadModule("setPlayerData")
+			local setPlayerDataValue = loadModule("setPlayerDataValue")
+
 			expect(function()
-				RoduxStore:dispatch(setPlayerData(playerId, "Level", 2))
+				RoduxStore:dispatch(setPlayerDataValue(playerId, "Level", 2))
 			end).never.to.throw()
 			expect(RoduxStore:getState().playerData[tostring(playerId)].Level).to.equal(2)
 		end)
@@ -38,7 +40,7 @@ return function()
 				RoduxStore:dispatch(addInventoryItem(playerId, "TestInventory", "Tools", newItem))
 			end).never.to.throw()
 			expect(RoduxStore:getState().playerData[tostring(playerId)].TestInventory.Tools).to.be.ok()
-			expect(Table.contains(RoduxStore:getState().playerData[tostring(playerId)].TestInventory.Tools, newItem)).to.be.ok()
+			expect(Llama.Dictionary.includes(RoduxStore:getState().playerData[tostring(playerId)].TestInventory.Tools, newItem)).to.equal(true)
 		end)
 
 		it("should change an inventory item in an inventory table in the players data", function()
@@ -52,10 +54,11 @@ return function()
 				name = "Hammer";
 				Level = 2;
 			}
+
 			expect(function()
 				RoduxStore:dispatch(changeInventoryItem(playerId, "TestInventory", "Tools", itemToChange, newItem))
 			end).never.to.throw()
-			expect(Table.contains(RoduxStore:getState().playerData[tostring(playerId)].TestInventory.Tools, newItem)).to.be.ok()
+			expect(Llama.Dictionary.includes(RoduxStore:getState().playerData[tostring(playerId)].TestInventory.Tools, newItem)).to.equal(true)
 		end)
 	end)
 end

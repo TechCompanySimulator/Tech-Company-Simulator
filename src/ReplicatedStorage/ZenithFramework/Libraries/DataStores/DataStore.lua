@@ -8,7 +8,7 @@ if RunService:IsClient() then return {} end
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 local Time = loadModule("Time")
 
 local DataStore = {}
@@ -36,8 +36,9 @@ function DataStore.setSessionData(dataStore, index, newData)
 
 	local data = DataStore.getStoredData(dataStore)
 	data[index] = (data[index] and data[index]) or {}
+
 	if typeof(newData) == "table" and typeof(data[index] == "table") then
-		data[index] = Table.merge(data[index], newData)
+		data[index] = Llama.Dictionary.join(data[index], newData)
 	else
 		data[index] = newData
 	end
@@ -51,14 +52,16 @@ function DataStore.removeSessionData(dataStore, index, saveData)
 	assert(typeof(index) == "string", "index argument must be a string")
 
 	local data = DataStore.getStoredData(dataStore)
+
 	if data and data[index] then
 		if saveData then
-			DataStore.updateDataAsync(dataStore, index, function(currentData, keyInfo)
+			DataStore.updateDataAsync(dataStore, index, function(_, keyInfo)
 				local userIDs = keyInfo:GetUserIds()
 				local metadata = keyInfo:GetMetadata()
 				return data[index], userIDs, metadata
 			end)
 		end
+
 		data[index] = nil
 		DataStore.DataCache[dataStore][index] = nil
 	end
@@ -72,11 +75,14 @@ function DataStore.getData(dataStore, index, initialData, initialUserIds, initia
 
 	local data = DataStore.getStoredData(dataStore)
 	if data[index] then return data[index] end
+
 	local storedData, keyInfo = DataStore.getDataAsync(dataStore, index)
+
 	if not storedData and initialData then
 		DataStore.setDataAsync(dataStore, index, initialData, initialUserIds, initialMetaData)
 		return initialData, keyInfo
 	end
+
 	data[index] = storedData
 	return storedData, keyInfo
 end
@@ -88,8 +94,10 @@ function DataStore.waitForData(dataStore, index)
 
 	local data = DataStore.getStoredData(dataStore)
 	if data[index] then return data[index] end
+
 	while not data[index] do
 		DataStore.getData(dataStore, index)
+
 		if not data[index] then
 			task.wait(DATA_WAIT_INTERVAL)
 		end
@@ -107,7 +115,8 @@ function DataStore.getDataAsync(dataStore, index)
 		local storedData, keyInfo = dataStore:GetAsync(index)
 		return storedData, keyInfo
 	end)
-	if success then 
+
+	if success then
 		return savedData, keyInfo
 	else
 		warn("Failed to get data from DataStore: " , dataStore , " with index: " , index , " due to error: " , savedData)
@@ -128,6 +137,7 @@ function DataStore.setDataAsync(dataStore, index, newData, userIds, metaData)
 	local success, errorMessage = pcall(function()
 		dataStore:SetAsync(index, newData, userIds, setOptions)
 	end)
+
 	if not success then
 		warn("Failed to save data to DataStore: " , dataStore , " with index: " , index , " due to error: " , errorMessage)
 	else
@@ -150,6 +160,7 @@ function DataStore.incrementDataAsync(dataStore, index, newValue, userIds, metaD
 	local success, errorMessage = pcall(function()
 		dataStore:IncrementAsync(index, newValue, userIds, incrementOptions)
 	end)
+
 	if not success then
 		warn("Failed to increment data to DataStore: " , dataStore , " with index: " , index , " due to error: " , errorMessage)
 	else
@@ -166,6 +177,7 @@ function DataStore.updateDataAsync(dataStore, index, updateFunction)
 	local success, errorMessage = pcall(function()
 		return dataStore:UpdateAsync(index, updateFunction)
 	end)
+
 	if not success then
 		warn("Failed to increment data to DataStore: " , dataStore , " with index: " , index , " due to error: " , errorMessage)
 	else
@@ -183,22 +195,27 @@ function DataStore.restorePreviousVersion(dataStore, index, minDate, maxDate)
 	if minDate and typeof(minDate) == "table" then
 		minDateTime = DateTime.fromUniversalTime(minDate.year or 0, minDate.month or 0, minDate.day or 0, minDate.hour or 0, minDate.min or 0).UnixTimestampMillis
 	end
+
 	local maxDateTime = DateTime.fromUniversalTime(maxDate.year, maxDate.month, maxDate.day, maxDate.hour or 0, maxDate.min or 0)
 	local listSuccess, pages = pcall(function()
 		return dataStore:ListVersionsAsync(index, Enum.SortDirection.Descending, minDateTime, maxDateTime.UnixTimestampMillis)
 	end)
+
 	if listSuccess then
 		local items = pages:GetCurrentPage()
 		if table.getn(items) > 0 then
 			-- Read the closest version
 			local closestEntry = items[1]
+
 			local success, value, info = pcall(function()
 				return dataStore:GetVersionAsync(index, closestEntry.Version)
 			end)
+
 			-- Restore current value by overwriting with the closest version
 			if success then
 				local userIds = info and info:GetUserIds()
 				local setOptions = Instance.new("DataStoreSetOptions")
+
 				setOptions:SetMetadata(info and info:GetMetadata())
 				DataStore.setDataAsync(dataStore, index, value, userIds, setOptions)
 			end
@@ -216,6 +233,7 @@ function DataStore.listKeys(dataStore)
 	local listSuccess, pages = pcall(function()
 		return dataStore:ListKeysAsync()
 	end)
+
 	if listSuccess then
 		return pages
 	end
@@ -227,14 +245,17 @@ function DataStore.getDataSize(dataStore, index)
 	assert(typeof(index) == "string", "index argument must be a string")
 
 	local data = DataStore.getStoredData(dataStore)
+
 	local success, encodedData = pcall(function()
-		local data = data[index] or DataStore.getData(dataStore, index)
-		if data then
-			return HttpService:JSONEncode(data)
+		local _data = data[index] or DataStore.getData(dataStore, index)
+
+		if _data then
+			return HttpService:JSONEncode(_data)
 		else
 			error("Data doesn't exist")
 		end
 	end)
+
 	if success then
 		return string.len(encodedData)
 	end
@@ -245,9 +266,10 @@ function DataStore.removeDataAsync(dataStore, index)
 	assert(typeof(dataStore) == "Instance" and dataStore.ClassName and dataStore.ClassName == "DataStore", "DataStore argument must be a DataStore instance")
 	assert(typeof(index) == "string", "index argument must be a string")
 
-	local success, removedValue = pcall(function()
+	local success = pcall(function()
 		return dataStore:RemoveAsync(index)
 	end)
+
 	if success then
 		warn("Removed index: " .. index .. " from dataStore: " , dataStore , " successfully")
 	else
@@ -265,6 +287,7 @@ function DataStore.saveAllData()
 				DataStore.updateDataAsync(dataStore, index, function(currentData, keyInfo)
 					local userIDs = keyInfo and keyInfo:GetUserIds()
 					local metadata = keyInfo and keyInfo:GetMetadata()
+
 					return value, userIDs, metadata
 				end)
 			end

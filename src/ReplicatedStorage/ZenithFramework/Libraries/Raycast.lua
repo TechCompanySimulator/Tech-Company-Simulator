@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 
 local Raycast = {}
 
@@ -37,11 +37,14 @@ function Raycast.getAllHitParts(filterInstances, filterType, origin, direction, 
 
 	local function getHitParts(thisOrigin, thisLength)
 		local hit = Raycast.new(filterInstances, filterType, thisOrigin, direction, thisLength)
-		if hit and hit.Instance and not Table.contains(hitParts, hit.Instance) then
+
+		if hit and hit.Instance and not Llama.List.includes(hitParts, hit.Instance) then
 			table.insert(hitParts, hit.Instance)
+
 			local hitPos = hit.Position
 			local dist = (hitPos - thisOrigin).Magnitude
 			thisLength -= dist
+
 			getHitParts(hitPos, thisLength)
 		end
 	end
@@ -56,12 +59,14 @@ function Raycast.getFirstHitModel(filterInstances, filterType, origin, direction
 
 	local function getHitModel(thisOrigin, thisLength)
 		local hit = Raycast.new(filterInstances, filterType, thisOrigin, direction, thisLength)
+
 		if hit and hit.Instance and hit.Instance:FindFirstAncestorOfClass("Model") then
 			return hit.Instance:FindFirstAncestorOfClass("Model")
 		elseif hit and hit.Instance then
 			local hitPos = hit.Position
 			local dist = (hitPos - thisOrigin).Magnitude
 			thisLength -= dist
+
 			getHitModel(hitPos, thisLength)
 		end
 	end
@@ -74,9 +79,11 @@ function Raycast.getAllHitModels(filterInstances, filterType, origin, direction,
 
 	local hitModels = {}
 	local hitParts = Raycast.getAllHitParts(filterInstances, filterType, origin, direction, length)
+
 	for _, part in pairs(hitParts) do
 		local hitModel = part:FindFirstAncestorOfClass("Model")
-		if hitModel and not Table.contains(hitModels, hitModel) then
+
+		if hitModel and not Llama.List.includes(hitModels, hitModel) then
 			table.insert(hitModels, hitModel)
 		end
 	end
@@ -90,15 +97,19 @@ function Raycast.getAllHitPlayers(filterInstances, filterType, origin, direction
 	local hitPlayers = {}
 	local hitParts = Raycast.getAllHitParts(filterInstances, filterType, origin, direction, length)
 	if not hitParts then return end
+
 	for _, part in pairs(hitParts) do
 		local hitModel = part:FindFirstAncestorOfClass("Model")
+
 		if hitModel and hitModel:FindFirstChild("Humanoid") and hitModel:FindFirstChild("Humanoid"):IsA("Humanoid") then
 			local player = Players:GetPlayerFromCharacter(hitModel)
-			if not Table.contains(hitPlayers, player) then
+
+			if not Llama.List.includes(hitPlayers, player) then
 				table.insert(hitPlayers, hitModel)
 			end
 		end
 	end
+
 	return (#hitPlayers > 0 and hitPlayers) or nil
 end
 
@@ -108,13 +119,15 @@ function Raycast.showRayAsPart(origin, direction, length, parent)
 	assert(typeof(direction) == "Vector3", "Direction argument needs to be a Vector3")
 	assert(typeof(length) == "number", "Length argument needs to be a number")
 
+	local endPos = origin + direction * length
+
 	local newRaycastPart = Instance.new("Part", parent)
 	newRaycastPart.Anchored = true
 	newRaycastPart.CanCollide = false
 	newRaycastPart.Size = Vector3.new(0.1, 0.1, length)
 	newRaycastPart.Color = Color3.fromRGB(255, 0, 0)
-	local endPos = origin + direction * length
 	newRaycastPart.CFrame = CFrame.new(origin, endPos) * CFrame.new(0, 0, -length / 2)
+
 	return newRaycastPart
 end
 
