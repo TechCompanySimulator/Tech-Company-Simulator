@@ -8,7 +8,7 @@ return function()
 
 	local playerId = 1
 
-    describe("RoduxActions", function()
+	describe("RoduxActions", function()
 		it("should set a player session in the playerData table in Rodux", function()
 			local setPlayerSession = loadModule("setPlayerSession")
 			local data = {}
