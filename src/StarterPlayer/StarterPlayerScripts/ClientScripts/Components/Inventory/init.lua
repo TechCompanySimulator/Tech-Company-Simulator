@@ -143,7 +143,6 @@ function Inventory:render()
 	})
 end
 
-Inventory = RoactRodux.connect(function(state, props)
 Inventory = RoactRodux.connect(function(state)
 	local playerData = state.playerData or {}
 	local playersData = playerData[tostring(Player.UserId)] or {}
