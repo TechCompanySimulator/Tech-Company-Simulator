@@ -32,8 +32,11 @@ return function()
 		end)
 
 		it("should assign a collision group to a part or model", function()
-			local newPart = Instance.new("Part", workspace)
-			local newModel = Instance.new("Model", workspace)
+			local newPart = Instance.new("Part")
+			local newModel = Instance.new("Model")
+
+			newPart.Parent = workspace
+			newModel.Parent = workspace
 
 			expect(function()
 				CollisionGroups.assignGroup(newPart, testName)

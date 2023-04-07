@@ -121,12 +121,13 @@ function Raycast.showRayAsPart(origin, direction, length, parent)
 
 	local endPos = origin + direction * length
 
-	local newRaycastPart = Instance.new("Part", parent)
+	local newRaycastPart = Instance.new("Part")
 	newRaycastPart.Anchored = true
 	newRaycastPart.CanCollide = false
 	newRaycastPart.Size = Vector3.new(0.1, 0.1, length)
 	newRaycastPart.Color = Color3.fromRGB(255, 0, 0)
 	newRaycastPart.CFrame = CFrame.new(origin, endPos) * CFrame.new(0, 0, -length / 2)
+	newRaycastPart.Parent = parent
 
 	return newRaycastPart
 end
