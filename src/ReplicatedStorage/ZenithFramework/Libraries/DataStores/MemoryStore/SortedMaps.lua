@@ -47,13 +47,15 @@ end
 -- Updates a key in the given sorted map with correct error handling
 function SortedMaps.createNewKey(map, key, value, keyLifetime)
 	local success, result = pcall(function()
-		local success = false
+		local _success = false
+
 		map:UpdateAsync(key, function(keyExists)
 			if keyExists then return nil end
-			success = true
+			_success = true
 			return value
 		end, keyLifetime)
-		return success
+
+		return _success
 	end)
 
 	if success and result then
