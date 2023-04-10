@@ -112,8 +112,9 @@ function DataStore.getDataAsync(dataStore, index)
 	assert(typeof(index) == "string", "index argument must be a string")
 
 	local success, savedData, keyInfo = pcall(function()
-		local storedData, keyInfo = dataStore:GetAsync(index)
-		return storedData, keyInfo
+		local storedData, _keyInfo = dataStore:GetAsync(index)
+
+		return storedData, _keyInfo
 	end)
 
 	if success then
