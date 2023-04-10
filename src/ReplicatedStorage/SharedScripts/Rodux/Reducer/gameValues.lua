@@ -2,9 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
+local GameValues = loadModule("GameValues")
 local Rodux = loadModule("Rodux")
-
-local GameValues = ReplicatedStorage:WaitForChild("SharedScripts"):WaitForChild("GameValues")
 
 local valuesTable = {}
 
