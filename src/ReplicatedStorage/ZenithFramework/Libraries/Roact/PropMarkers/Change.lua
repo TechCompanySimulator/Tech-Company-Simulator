@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 --[[
 	Change is used to generate special prop keys that can be used to connect to
 	GetPropertyChangedSignal.

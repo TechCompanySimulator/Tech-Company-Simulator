@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 --[[
 	A ref is nothing more than a binding with a special field 'current'
 	that maps to the getValue method of the binding

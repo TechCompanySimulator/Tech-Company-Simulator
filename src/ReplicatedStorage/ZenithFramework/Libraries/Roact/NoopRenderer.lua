@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 --[[
 	Reference renderer intended for use in tests as well as for documenting the
 	minimum required interface for a Roact renderer.

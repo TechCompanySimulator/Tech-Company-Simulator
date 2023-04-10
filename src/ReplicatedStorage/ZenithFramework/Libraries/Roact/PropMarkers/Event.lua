@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 --[[
 	Index into `Event` to get a prop key for attaching to an event on a Roblox
 	Instance.

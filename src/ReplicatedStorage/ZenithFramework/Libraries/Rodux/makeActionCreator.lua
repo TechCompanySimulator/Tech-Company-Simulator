@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 --[[
 	A helper function to define a Rodux action creator with an associated name.
 ]]
