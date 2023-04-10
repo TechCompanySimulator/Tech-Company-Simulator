@@ -1,0 +1,8 @@
+std = "roblox+testez"
+
+exclude = ["*.spec.lua"]
+
+[rules]
+
+global_usage = "allow"
+manual_table_clone = "allow"

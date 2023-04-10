@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")

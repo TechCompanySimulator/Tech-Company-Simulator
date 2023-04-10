@@ -37,7 +37,7 @@ function DataStore.setSessionData(dataStore, index, newData)
 	local data = DataStore.getStoredData(dataStore)
 	data[index] = (data[index] and data[index]) or {}
 
-	if typeof(newData) == "table" and typeof(data[index] == "table") then
+	if typeof(newData) == "table" and typeof(data[index]) == "table" then
 		data[index] = Llama.Dictionary.join(data[index], newData)
 	else
 		data[index] = newData
@@ -112,8 +112,9 @@ function DataStore.getDataAsync(dataStore, index)
 	assert(typeof(index) == "string", "index argument must be a string")
 
 	local success, savedData, keyInfo = pcall(function()
-		local storedData, keyInfo = dataStore:GetAsync(index)
-		return storedData, keyInfo
+		local storedData, _keyInfo = dataStore:GetAsync(index)
+
+		return storedData, _keyInfo
 	end)
 
 	if success then
@@ -203,7 +204,7 @@ function DataStore.restorePreviousVersion(dataStore, index, minDate, maxDate)
 
 	if listSuccess then
 		local items = pages:GetCurrentPage()
-		if table.getn(items) > 0 then
+		if #items > 0 then
 			-- Read the closest version
 			local closestEntry = items[1]
 
@@ -284,7 +285,7 @@ function DataStore.saveAllData()
 			if typeof(value) == "number" then
 				DataStore.incrementDataAsync(dataStore, index, value)
 			else
-				DataStore.updateDataAsync(dataStore, index, function(currentData, keyInfo)
+				DataStore.updateDataAsync(dataStore, index, function(_, keyInfo)
 					local userIDs = keyInfo and keyInfo:GetUserIds()
 					local metadata = keyInfo and keyInfo:GetMetadata()
 
