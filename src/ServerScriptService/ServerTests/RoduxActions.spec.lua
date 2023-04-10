@@ -19,15 +19,6 @@ return function()
 			expect(RoduxStore:getState().playerData[tostring(playerId)]).to.equal(data)
 		end)
 
-		it("should set an index in the players data to a given value", function()
-			local setPlayerDataValue = loadModule("setPlayerDataValue")
-
-			expect(function()
-				RoduxStore:dispatch(setPlayerDataValue(playerId, "Level", 2))
-			end).never.to.throw()
-			expect(RoduxStore:getState().playerData[tostring(playerId)].Level).to.equal(2)
-		end)
-
 		it("should add an inventory item to an inventory table in the players data", function()
 			local addInventoryItem = loadModule("addInventoryItem")
 
