@@ -38,6 +38,58 @@ return Rodux.createReducer({}, {
 		end
 	end;
 
+	transactPlayerCurrency = function(state, action)
+		local userId = action.userId
+		local currency = action.currency
+		local amount = action.amount
+
+		if userId and currency and amount then
+			local currentPlayerData = state[tostring(userId)] or {}
+			local currentAmount = currentPlayerData.Currencies[currency]
+
+			-- If the currency doesn't exist, then return the current state
+			if not currentAmount then
+				return state
+			end
+
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
+					Currencies = Llama.Dictionary.join(currentPlayerData.Currencies, {
+						[currency] = math.max(currentAmount + amount, 0);
+					});
+				});
+			})
+		else
+			return state
+		end
+	end;
+
+	setPlayerCurrency = function(state, action)
+		local userId = action.userId
+		local currency = action.currency
+		local amount = action.amount
+
+		if userId and currency and amount then
+			local currentPlayerData = state[tostring(userId)] or {}
+			local currentAmount = currentPlayerData.Currencies[currency]
+
+			-- If the currency doesn't exist, then return the current state
+			if not currentAmount then
+				return state
+			end
+
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
+					Currencies = Llama.Dictionary.join(currentPlayerData.Currencies, {
+						[currency] = math.max(amount, 0);
+					});
+				});
+			})
+		else
+			return state
+		end
+	end;
+
 	addInventoryItem = function(state, action)
 		local userId = action.userId
 		local inventoryName = action.inventoryName
