@@ -70,7 +70,7 @@ end
 
 -- Looks for the module in the table and returns it if found
 function ModuleScriptLoader:RequireModule(moduleName)
-	assert(type(moduleName) == "string")
+	assert(type(moduleName) == "string", "Module name must be a string")
 
 	if self._modules[moduleName] then
 		return require(self._modules[moduleName])
@@ -79,7 +79,8 @@ end
 
 -- Adds modules from the given location to the ._modules table
 function ModuleScriptLoader:AddModules(location)
-	assert(type(location) == "string" and self["get" .. location .. "Modules"])
+	assert(type(location) == "string", "Location argument must be a string")
+	assert(self["get" .. location .. "Modules"], "No location named " .. location .. " exists")
 
 	for _, module in pairs(self["get" .. location .. "Modules"]()) do
 		if not self._modules[module.Name] then
