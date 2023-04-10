@@ -3,7 +3,6 @@ local RunService = game:GetService("RunService")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Llama = loadModule("Llama")
 local RoduxStore = loadModule("RoduxStore")
 local transactPlayerCurrency = loadModule("transactPlayerCurrency")
 
