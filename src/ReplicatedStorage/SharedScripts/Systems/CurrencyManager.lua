@@ -4,39 +4,59 @@ local RunService = game:GetService("RunService")
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local RoduxStore = loadModule("RoduxStore")
+local transactPlayerCurrency = loadModule("transactPlayerCurrency")
 
-local setPlayerData = loadModule("setPlayerData")
-
-local CurrencyManager = {
-	validCurrencies = {
-		"Coins";
-		"Gems";
-	};
+local VALID_CURRENCIES = {
+	"Coins";
+	"Gems";
 }
 
--- Adds the amount of currency the players currency saved in their data
-function CurrencyManager:transact(player, currency, amount)
-	if RunService:IsServer() and typeof(currency) == "string" and typeof(amount) == "number" and table.find(CurrencyManager.validCurrencies, currency) then
-		local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
-		local currentAmount = playerData[currency] or 0
-		local canTransact = amount >= 0 or CurrencyManager.hasEnoughCurrency(player, currency, amount)
-		if canTransact then
-			RoduxStore:dispatch(setPlayerData(player.UserId, currency, currentAmount + amount))
+local CurrencyManager = {}
+
+function CurrencyManager:isValidCurrency(currency : string) : boolean
+	return table.find(VALID_CURRENCIES, currency) ~= nil
+end
+
+function CurrencyManager:getBalance(player : Player, currency : string) : number
+	if not CurrencyManager:isValidCurrency(currency) then
+		warn("Invalid currency: " .. currency)
+		return
+	end
+
+	local playerCurrency = RoduxStore:waitForValue("playerData", tostring(player.UserId), currency)
+
+	return playerCurrency
+end
+
+function CurrencyManager:hasAmount(player : Player, currency : string, amount : number) : boolean
+	local playerBalance = CurrencyManager:getBalance(player, currency)
+
+	if playerBalance then
+		return playerBalance >= amount
+	else
+		warn("Error getting player balance for currency: " .. currency)
+	end
+
+	return false
+end
+
+if RunService:IsServer() then
+	function CurrencyManager:transact(player : Player, currency : string, amount : number) : boolean
+		if not CurrencyManager:isValidCurrency(currency) then
+			warn("Invalid currency: " .. currency)
+			return false
+		end
+
+		local isExpense = math.sign(amount) == -1
+
+		if isExpense and not CurrencyManager:hasAmount(player, currency, math.abs(amount)) then
+			return false
+		else
+			RoduxStore:dispatch(transactPlayerCurrency(player, currency, amount))
+
 			return true
 		end
 	end
-end
-
--- Returns the amount of the given currency the player has
-function CurrencyManager.getCurrencyAmount(player, currency)
-	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
-	return typeof(currency) == "string" and playerData[currency]
-end
-
--- Returns true or false depending on if they have enough of the given currency or not
-function CurrencyManager.hasEnoughCurrency(player, currency, amount)
-	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
-	return typeof(playerData[currency]) == "number" and playerData[currency] >= math.abs(amount)
 end
 
 return CurrencyManager
