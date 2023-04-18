@@ -18,26 +18,6 @@ return Rodux.createReducer({}, {
 		end
 	end;
 
-	setPlayerDataValue = function(state, action)
-		local userId = action.userId
-		local newIndex = action.newIndex
-		local value = action.value
-
-		if userId and newIndex and value then
-			local currentData = state[tostring(userId)] or {}
-
-			currentData = Llama.Dictionary.join(currentData, {
-				[newIndex] = value;
-			})
-
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = currentData;
-			})
-		else
-			return state
-		end
-	end;
-
 	transactPlayerCurrency = function(state, action)
 		local userId = action.userId
 		local currency = action.currency
