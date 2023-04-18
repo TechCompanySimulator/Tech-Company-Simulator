@@ -19,10 +19,6 @@ local player = Players.LocalPlayer
 
 local interfaceStates = {
 	gameplay = {
-		MainMenu = {
-			hasToggle = true;
-			enabled = true;
-		};
 	};
 }
 
