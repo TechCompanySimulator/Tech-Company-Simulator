@@ -1,9 +1,27 @@
-local Roact = require(script.Parent.Parent.Roact)
-local getStore = require(script.Parent.getStore)
+--!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Roact = require(ReplicatedStorage.Packages.Roact)
+
 local shallowEqual = require(script.Parent.shallowEqual)
 local join = require(script.Parent.join)
+local StoreContext = require(script.Parent.StoreContext)
 
-local TempConfig = require(script.Parent.TempConfig)
+local types = require(script.Parent.types)
+
+type ThunkfulDispatchProp<State> = types.ThunkfulDispatchProp<State>
+type MapStateToProps<StoreState, Props, PartialProps> = types.MapStateToProps<StoreState, Props, PartialProps>
+type MapStateToPropsOrThunk<StoreState, Props, PartialProps> = types.MapStateToPropsOrThunk<
+	StoreState,
+	Props,
+	PartialProps
+>
+type ActionCreatorMap = types.ActionCreatorMap
+type MapDispatchToProps<StoreState, PartialProps> = types.MapDispatchToProps<StoreState, PartialProps>
+type MapDispatchToPropsOrActionCreator<StoreState, PartialProps> = types.MapDispatchToPropsOrActionCreator<
+	StoreState,
+	PartialProps
+>
 
 --[[
 	Formats a multi-line message with printf-style placeholders.
@@ -49,23 +67,36 @@ end
 		() -> (storeState, props) -> partialProps
 	mapDispatchToProps: (dispatch) -> partialProps
 ]]
-local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
-	local connectTrace = debug.traceback()
-
+local function connect<StoreState, Props, MappedStatePartialProps, MappedDispatchPartialProps>(
+	mapStateToPropsOrThunk: MapStateToPropsOrThunk<
+		StoreState,
+		Props,
+		MappedStatePartialProps
+	>?,
+	mapDispatchToProps: MapDispatchToPropsOrActionCreator<
+		StoreState,
+		MappedDispatchPartialProps
+	>?
+)
 	if mapStateToPropsOrThunk ~= nil then
 		assert(typeof(mapStateToPropsOrThunk) == "function", "mapStateToProps must be a function or nil!")
 	else
 		mapStateToPropsOrThunk = noop
 	end
 
+	local mapDispatchType = typeof(mapDispatchToProps)
 	if mapDispatchToProps ~= nil then
-		assert(typeof(mapDispatchToProps) == "function", "mapDispatchToProps must be a function or nil!")
+		assert(
+			mapDispatchType == "function" or mapDispatchType == "table",
+			"mapDispatchToProps must be a function, table, or nil!"
+		)
 	else
 		mapDispatchToProps = noop
 	end
 
 	return function(innerComponent)
 		if innerComponent == nil then
+			local connectTrace = debug.traceback()
 			local message = formatMessage({
 				"connect returns a function that must be passed a component.",
 				"Check the connection at:",
@@ -83,29 +114,13 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 
 		function Connection.getDerivedStateFromProps(nextProps, prevState)
 			if prevState.stateUpdater ~= nil then
-				return prevState.stateUpdater(nextProps, prevState)
+				return prevState.stateUpdater(nextProps.innerProps, prevState)
 			end
+			return nil
 		end
 
-		function Connection:createStoreConnection()
-			self.storeChangedConnection = self.store.changed:connect(function(storeState)
-				self:setState(function(prevState, props)
-					local mappedStoreState = prevState.mapStateToProps(storeState, props)
-
-					-- We run this check here so that we only check shallow
-					-- equality with the result of mapStateToProps, and not the
-					-- other props that could be passed through the connector.
-					if shallowEqual(mappedStoreState, prevState.mappedStoreState) then
-						return nil
-					end
-
-					return prevState.stateUpdater(props, prevState, mappedStoreState)
-				end)
-			end)
-		end
-
-		function Connection:init()
-			self.store = getStore(self)
+		function Connection:init(props)
+			self.store = props.store
 
 			if self.store == nil then
 				local message = formatMessage({
@@ -121,8 +136,9 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 
 			local storeState = self.store:getState()
 
-			local mapStateToProps = mapStateToPropsOrThunk
-			local mappedStoreState = mapStateToProps(storeState, self.props)
+			local mapStateToProps =
+				mapStateToPropsOrThunk :: MapStateToProps<StoreState, Props, MappedStatePartialProps>
+			local mappedStoreState = mapStateToProps(storeState, self.props.innerProps)
 
 			-- mapStateToPropsOrThunk can return a function instead of a state
 			-- value. In this variant, we keep that value as mapStateToProps
@@ -130,7 +146,7 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 			-- and enables connectors to keep instance-level state.
 			if typeof(mappedStoreState) == "function" then
 				mapStateToProps = mappedStoreState
-				mappedStoreState = mapStateToProps(storeState, self.props)
+				mappedStoreState = mapStateToProps(storeState, self.props.innerProps)
 			end
 
 			if mappedStoreState ~= nil and typeof(mappedStoreState) ~= "table" then
@@ -145,9 +161,26 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 				error(message)
 			end
 
-			local mappedStoreDispatch = mapDispatchToProps(function(...)
+			local function dispatch(...)
 				return self.store:dispatch(...)
-			end)
+			end
+
+			local mappedStoreDispatch: any
+			if mapDispatchType == "table" then
+				mappedStoreDispatch = {}
+
+				for key, actionCreator in pairs(mapDispatchToProps :: ActionCreatorMap) do
+					assert(typeof(actionCreator) == "function", "mapDispatchToProps must contain function values")
+
+					mappedStoreDispatch[key] = function(...)
+						dispatch(actionCreator(...))
+					end
+				end
+			elseif mapDispatchType == "function" then
+				mappedStoreDispatch = (mapDispatchToProps :: MapDispatchToProps<StoreState, MappedDispatchPartialProps>)(
+					(dispatch :: any) :: ThunkfulDispatchProp<StoreState>
+				)
+			end
 
 			local stateUpdater = makeStateUpdater(self.store)
 
@@ -169,32 +202,62 @@ local function connect(mapStateToPropsOrThunk, mapDispatchToProps)
 				propsForChild = nil,
 			}
 
-			local extraState = stateUpdater(self.props, self.state, mappedStoreState)
+			local extraState = stateUpdater(self.props.innerProps, self.state, mappedStoreState)
 
 			for key, value in pairs(extraState) do
 				self.state[key] = value
 			end
-
-			if TempConfig.newConnectionOrder then
-				self:createStoreConnection()
-			end
 		end
 
 		function Connection:didMount()
-			if not TempConfig.newConnectionOrder then
-				self:createStoreConnection()
+			local updateStateWithStore = function(storeState)
+				self:setState(function(prevState, props)
+					local mappedStoreState = prevState.mapStateToProps(storeState, props.innerProps)
+
+					-- We run this check here so that we only check shallow
+					-- equality with the result of mapStateToProps, and not the
+					-- other props that could be passed through the connector.
+					if shallowEqual(mappedStoreState, prevState.mappedStoreState) then
+						return nil
+					end
+
+					return prevState.stateUpdater(props.innerProps, prevState, mappedStoreState)
+				end)
 			end
+
+			-- Update store state on mount to catch missed state updates between
+			-- init and mount. State could be stale otherwise.
+			updateStateWithStore(self.store:getState())
+
+			-- Connect state updater to the Rodux store
+			self.storeChangedConnection = self.store.changed:connect(updateStateWithStore)
 		end
 
 		function Connection:willUnmount()
-			self.storeChangedConnection:disconnect()
+			if self.storeChangedConnection then
+				self.storeChangedConnection:disconnect()
+				self.storeChangedConnection = nil
+			end
 		end
 
 		function Connection:render()
 			return Roact.createElement(innerComponent, self.state.propsForChild)
 		end
 
-		return Connection
+		local ConnectedComponent = Roact.Component:extend(componentName)
+
+		function ConnectedComponent:render()
+			return Roact.createElement(StoreContext.Consumer, {
+				render = function(store)
+					return Roact.createElement(Connection, {
+						innerProps = self.props,
+						store = store,
+					})
+				end,
+			})
+		end
+
+		return ConnectedComponent
 	end
 end
 
