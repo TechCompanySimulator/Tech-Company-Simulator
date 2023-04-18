@@ -1,13 +1,15 @@
+--!strict
 local StoreProvider = require(script.StoreProvider)
+local StoreContext = require(script.StoreContext)
 local connect = require(script.connect)
-local getStore = require(script.getStore)
-local TempConfig = require(script.TempConfig)
+local types = require(script.types)
+
+export type DispatchProp = types.DispatchProp
+export type ThunkfulDispatchProp<State = any> = types.ThunkfulDispatchProp<State>
 
 return {
 	StoreProvider = StoreProvider,
+	StoreContext = StoreContext,
 	connect = connect,
-	UNSTABLE_getStore = getStore,
 	UNSTABLE_connect2 = connect,
-
-	TEMP_CONFIG = TempConfig,
 }

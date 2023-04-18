@@ -139,4 +139,25 @@ return Rodux.createReducer({}, {
 			return state
 		end
 	end;
+
+	updateDailyRewards = function(state, action)
+		local userId = action.userId
+
+		if userId then
+			local currentData = state[tostring(userId)] or {}
+			local currentDailyRewards = currentData.DailyRewards or {}
+
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = Llama.Dictionary.join(state[tostring(userId)], {
+					DailyRewards = Llama.Dictionary.join(currentDailyRewards, {
+						timeBoundary = action.timeBoundary;
+						loginTime = action.loginTime;
+						streak = action.streak;
+					});
+				});
+			})
+		else
+			return state
+		end
+	end;
 })

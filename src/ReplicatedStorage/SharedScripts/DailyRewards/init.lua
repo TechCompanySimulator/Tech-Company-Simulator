@@ -6,11 +6,10 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local RoduxStore = loadModule("RoduxStore")
 local PlayerDataManager = loadModule("PlayerDataManager")
-local Table = loadModule("Table")
 local DailyRewardsConfig = loadModule("DailyRewardsConfig")
 local CurrencyManager = loadModule("CurrencyManager")
 
-local setPlayerData = loadModule("setPlayerData")
+local updateDailyRewards = loadModule("updateDailyRewards")
 
 local dailyRewardsEvent = getDataStream("DailyRewardsEvent", "RemoteEvent")
 local playerDataLoaded = getDataStream("playerDataLoaded", "BindableEvent")
@@ -46,12 +45,7 @@ end
 
 -- Create a new streak for the player, saving the previous time interval unix timestamp and the login time
 function DailyRewards.newStreak(player, loginTime, timeBoundary)
-	local saveTable = {
-		timeBoundary = timeBoundary;
-		loginTime = loginTime;
-		streak = 1;
-	}
-	PlayerDataManager:updatePlayerData(player.UserId, setPlayerData, "DailyRewards", saveTable)
+	PlayerDataManager:updatePlayerData(player.UserId, updateDailyRewards, timeBoundary, loginTime, 1)
 	DailyRewards.awardReward(player, 1)
 end
 
@@ -59,12 +53,8 @@ end
 function DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, numStreaks)
 	local currentTable = playerData.DailyRewards
 	local newStreak = currentTable.streak + numStreaks
-	local saveTable = Table.merge(currentTable, {
-		timeBoundary = timeBoundary;
-		loginTime = loginTime;
-		streak = newStreak;
-	})
-	PlayerDataManager:updatePlayerData(player.UserId, setPlayerData, "DailyRewards", saveTable)
+	
+	PlayerDataManager:updatePlayerData(player.UserId, updateDailyRewards, timeBoundary, loginTime, newStreak)
 	DailyRewards.awardReward(player, newStreak)
 end
 

@@ -8,7 +8,7 @@ local DefaultData = loadModule("DefaultData")
 local Table = loadModule("Table")
 local RoduxStore = loadModule("RoduxStore")
 local CONFIG = loadModule("CONFIG")
-local PlayerOrderedDataManager = loadModule("PlayerOrderedDataManager")
+-- local PlayerOrderedDataManager = loadModule("PlayerOrderedDataManager")
 local ProfileService = loadModule("ProfileService")
 
 local setPlayerSession = loadModule("setPlayerSession")
@@ -37,7 +37,7 @@ function PlayerDataManager:start()
 	Players.PlayerAdded:Connect(PlayerDataManager.playerAdded)
 	Players.PlayerRemoving:Connect(PlayerDataManager.playerRemoving)
 
-	PlayerOrderedDataManager:init(PlayerDataManager.TOTAL_LEAVING_FUNCS)
+	--PlayerOrderedDataManager:init(PlayerDataManager.TOTAL_LEAVING_FUNCS)
 end
 
 -- Dispatches the new data to rodux for UI changes and then updates the data store directly
