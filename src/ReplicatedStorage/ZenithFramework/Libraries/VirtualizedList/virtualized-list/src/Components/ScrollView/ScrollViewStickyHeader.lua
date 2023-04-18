@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 -- ROBLOX upstream: https://github.com/facebook/react-native/blob/v0.68.0-rc.2/Libraries/Components/ScrollView/ScrollViewStickyHeader.js
 --[[*
  * Copyright (c) Meta Platforms, Inc. and affiliates.

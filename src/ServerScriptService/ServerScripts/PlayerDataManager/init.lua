@@ -8,7 +8,7 @@ local DefaultData = loadModule("DefaultData")
 local Table = loadModule("Table")
 local RoduxStore = loadModule("RoduxStore")
 local CONFIG = loadModule("CONFIG")
-local PlayerOrderedDataManager = loadModule("PlayerOrderedDataManager")
+-- local PlayerOrderedDataManager = loadModule("PlayerOrderedDataManager")
 local ProfileService = loadModule("ProfileService")
 
 local setPlayerSession = loadModule("setPlayerSession")

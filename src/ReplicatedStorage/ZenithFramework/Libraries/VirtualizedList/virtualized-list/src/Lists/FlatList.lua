@@ -1,3 +1,6 @@
+--# selene: allow(unused_variable)
+--# selene: allow(shadowing)
+
 -- ROBLOX upstream: https://github.com/facebook/react-native/blob/v0.68.0-rc.2/Libraries/Lists/FlatList.js
 --[[*
  * Copyright (c) Meta Platforms, Inc. and affiliates.

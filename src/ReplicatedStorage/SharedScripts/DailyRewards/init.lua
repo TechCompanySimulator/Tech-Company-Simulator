@@ -6,7 +6,6 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local RoduxStore = loadModule("RoduxStore")
 local PlayerDataManager = loadModule("PlayerDataManager")
-local Table = loadModule("Table")
 local DailyRewardsConfig = loadModule("DailyRewardsConfig")
 local CurrencyManager = loadModule("CurrencyManager")
 
