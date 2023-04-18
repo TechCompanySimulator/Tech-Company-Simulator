@@ -10,7 +10,7 @@ local SHARED_MODULE_PATHS = {
 }
 local SERVER_MODULES_PATHS
 local CLIENT_MODULES_PATH = StarterPlayer.StarterPlayerScripts.ClientScripts
-local COMPONENT_MODULES_PATH = StarterPlayer.StarterPlayerScripts.Components
+local COMPONENT_MODULES_PATH = CLIENT_MODULES_PATH.Components
 local PACKAGES_PATH = ReplicatedStorage.Packages
 local DEV_PACKAGES_PATH = ReplicatedStorage:FindFirstChild("DevPackages")
 local SERVER_PACKAGES_PATH
