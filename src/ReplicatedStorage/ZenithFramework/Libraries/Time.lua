@@ -1,5 +1,4 @@
 -- Useful functions to do with time
--- Author: TheM0rt0nator
 
 local Time = {}
 

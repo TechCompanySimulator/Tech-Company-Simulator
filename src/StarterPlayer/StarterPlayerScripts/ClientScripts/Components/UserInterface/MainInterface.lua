@@ -1,81 +1,81 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, getDataStream, loadComponent = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
---local SetInterfaceRemote = getDataStream("SetInterfaceState", "RemoteEvent")
-local SetInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
+local setInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
 
-local Roact = loadModule("Roact")
-local Maid = loadModule("Maid")
+local React = loadModule("React")
+local RoduxStore = loadModule("RoduxStore")
 
-local MainInterface = Roact.Component:extend("MainInterface")
+local ThemeContext = loadComponent("ThemeContext")
 
-local Components = {
-	LoadingScreen = loadModule("LoadingScreen");
-	MainMenu = loadModule("MainMenu");
-	Inventory = loadModule("Inventory")
-}
+local e = React.createElement
+local useState = React.useState
+local useEffect = React.useEffect
+local createBinding = React.createBinding
 
-local InterfaceStates = {
-	mainMenu = {
-		"MainMenu";
-	};
-	loadingScreen = {
-		"LoadingScreen";
-	};
+local player = Players.LocalPlayer
+
+local interfaceStates = {
 	gameplay = {
-		"Inventory";
 	};
 }
 
-function MainInterface:init()
-	self.maid = Maid.new()
-	self.currentState = nil
-	self.visibilityBindings = {}
-	self.setVisibleBindings = {}
-	for componentName, _ in pairs(Components) do
-		self.visibilityBindings[componentName], self.setVisibleBindings[componentName] = Roact.createBinding(false)
-	end
+local toggleBinds = {}
 
-	--[[self.maid:GiveTask(SetInterfaceRemote.OnClientEvent:Connect(function(state)
-		if state and InterfaceStates[state] and self.currentState ~= state then
-			self:setState(state)
-		end
-	end))]]
+for _, components in interfaceStates do
+	for componentName, info in pairs(components) do
+		if not info.hasToggle then continue end
 
-	self.maid:GiveTask(SetInterfaceState.Event:Connect(function(state)
-		if state and InterfaceStates[state] and self.currentState ~= state then
-			self:setState(state)
-		end
-	end))
+		local bind, setBind = createBinding(if info.enabled ~= nil then info.enabled else false)
 
-	self:setState("loadingScreen")
-end
-
-function MainInterface:setState(state)
-	self.currentState = state
-	local stateComponents = InterfaceStates[state]
-	for componentName, _ in pairs(Components) do
-		if not table.find(stateComponents, componentName) and self.visibilityBindings[componentName] and self.setVisibleBindings[componentName] then
-			self.setVisibleBindings[componentName](false)
-		else
-			self.setVisibleBindings[componentName](true)
-		end
+		toggleBinds[componentName] = {
+			bind = bind;
+			setBind = setBind;
+		}
 	end
 end
 
-function MainInterface:render()
+local function mainInterface()
+	local state, setState = useState("gameplay")
+
+	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
+	local settingsData = playerData.Settings or {}
+	local isDarkMode = settingsData.DarkMode
+	local theme, setTheme = useState(isDarkMode and "dark" or "light")
+
+	useEffect(function()
+		local connection = setInterfaceState.Event:Connect(function(newState)
+			if newState and interfaceStates[newState] then
+				setState(newState)
+			end
+		end)
+
+		return function()
+			connection:Disconnect()
+		end
+	end, {state})
+
 	local children = {}
 
-	for componentName, component in pairs(Components) do
-		children[componentName] = Roact.createElement(component, {
-			visible = self.visibilityBindings[componentName]
-		})
+	for stateName, components in interfaceStates do
+		for componentName, _ in pairs(components) do
+			children[componentName] = e(loadComponent(componentName), {
+				visible = stateName == state;
+				toggleBinds = toggleBinds;
+				setTheme = componentName == "SettingsUI" and setTheme;
+			})
+		end
 	end
 
-	return Roact.createElement("ScreenGui", {
+	return e("ScreenGui", {
 		Name = "MainInterface";
-	}, children)
+	}, {
+		Provider = e(ThemeContext.Provider, {
+			value = theme;
+		}, children)
+	})
 end
 
-return MainInterface
+return mainInterface

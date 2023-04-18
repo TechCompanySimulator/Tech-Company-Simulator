@@ -17,7 +17,8 @@ local Inventory = Roact.Component:extend("Inventory")
 
 function Inventory:init()
 	self:setState({
-		selectedCategory = "Main"
+		enabled = false;
+		selectedCategory = "Main";
 	})
 
 	self.canvasSize, self.setCanvasSize = Roact.createBinding(UDim2.new(0, 0, 0, 0))
@@ -61,6 +62,9 @@ function Inventory:render()
 	return Roact.createElement("ScreenGui", {
 		Name = "InventoryTest";
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
+		Enabled = self.props.visible:map(function(visible)
+			return visible and self.state.enabled
+		end);
 	}, {
 		Frame = Roact.createElement("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5);

@@ -307,6 +307,7 @@ end)
 game:BindToClose(function()
 	-- If the current session is studio, do nothing
 	if RunService:IsStudio() then return end
+	
 	DataStore.saveAllData()
 end)
 
