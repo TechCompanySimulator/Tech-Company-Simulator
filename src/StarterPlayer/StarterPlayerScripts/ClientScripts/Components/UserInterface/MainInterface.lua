@@ -50,9 +50,9 @@ local function mainInterface()
 	local theme, setTheme = useState(isDarkMode and "dark" or "light")
 
 	useEffect(function()
-		local connection = setInterfaceState.Event:Connect(function(state)
-			if state and interfaceStates[state] then
-				setState(state)
+		local connection = setInterfaceState.Event:Connect(function(newState)
+			if newState and interfaceStates[newState] then
+				setState(newState)
 			end
 		end)
 

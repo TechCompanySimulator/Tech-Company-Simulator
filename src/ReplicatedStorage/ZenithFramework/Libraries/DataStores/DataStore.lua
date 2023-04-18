@@ -282,7 +282,7 @@ end
 function DataStore.saveAllData()
 	for dataStore, data in pairs(DataStore.DataCache) do
 		for index, value in pairs(data) do
-			--[[if typeof(value) == "number" then
+			if typeof(value) == "number" then
 				DataStore.incrementDataAsync(dataStore, index, value)
 			else
 				DataStore.updateDataAsync(dataStore, index, function(_, keyInfo)
@@ -291,7 +291,7 @@ function DataStore.saveAllData()
 
 					return value, userIDs, metadata
 				end)
-			--end
+			end
 		end
 	end
 end

@@ -1,7 +1,3 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
-
 local Vehicle = {}
 Vehicle.__index = Vehicle
 

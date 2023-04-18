@@ -39,7 +39,7 @@ function Localization:translate(text, lang, object)
 	if not typeof(lang) == "string" or not table.find(self.languages, lang) then return end
 	local translator = self.translators[lang]
 	if not translator then
-		local foundTranslator = pcall(function()
+		local _ = pcall(function()
 			translator = LocalizationService:GetTranslatorForLocaleAsync(lang)
 		end)
 	end

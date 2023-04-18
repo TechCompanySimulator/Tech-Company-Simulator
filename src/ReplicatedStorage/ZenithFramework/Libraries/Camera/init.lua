@@ -6,7 +6,7 @@ if RunService:IsServer() then return {} end
 
 local Camera = workspace.CurrentCamera
 
-local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local _, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local camTypeChanged = getDataStream("CamTypeChanged", "BindableEvent")
 

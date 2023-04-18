@@ -1,3 +1,5 @@
+--# selene: allow(deprecated)
+
 --[[
 	Needed props:
 	setEnabled - Binding sent from the parent component which can be called to set the component to enabled == false

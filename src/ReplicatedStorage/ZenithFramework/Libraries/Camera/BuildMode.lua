@@ -262,7 +262,7 @@ local function connectInputs(self)
 	})
 end
 
-local function disconnectInputs(self)
+local function disconnectInputs()
 	-- Disconnect movement inputs
 	for _, info in pairs(inputs.movement) do
 		UserInput.disconnectInput(info.inputType, "MoveCam" .. info.direction)
@@ -309,7 +309,7 @@ return function(self, startCFrame, plotLength)
 		if newType ~= "BuildMode" then
 			camTypeChangedConnection:Disconnect()
 			camTypeChangedConnection = nil
-			disconnectInputs(self)
+			disconnectInputs()
 			Controls:Enable()
 		end
 	end)
