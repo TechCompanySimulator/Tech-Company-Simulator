@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 local createSignal = require(script.Parent.createSignal)
 local Symbol = require(script.Parent.Symbol)
 local Type = require(script.Parent.Type)

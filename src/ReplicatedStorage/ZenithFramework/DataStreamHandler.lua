@@ -46,8 +46,9 @@ function DataStreams:getDataStream(streamName, streamType)
 		if folder:FindFirstChild(streamName) then
 			return folder:FindFirstChild(streamName)
 		else
-			local newStream = Instance.new(streamType, folder)
+			local newStream = Instance.new(streamType)
 			newStream.Name = streamName
+			newStream.Parent = folder
 
 			return newStream
 		end

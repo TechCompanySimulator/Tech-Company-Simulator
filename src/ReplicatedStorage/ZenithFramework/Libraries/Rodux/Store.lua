@@ -1,7 +1,12 @@
+--# selene: allow(unused_variable)
+
 local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Table = require(game.ReplicatedStorage.ZenithFramework.Libraries.TableClass.Table)
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+
+local Llama = loadModule("Llama")
 local Signal = require(script.Parent.Signal)
 local NoYield = require(script.Parent.NoYield)
 
@@ -220,13 +225,13 @@ end
 function Store:_connectChanges()
 	self._bindValues = self.changed:connect(function(newState, oldState)
 		for _, bind in pairs(self._binds) do
-			local newValue = Table.followPath(newState, unpack(bind.path))
-			local oldValue = Table.followPath(oldState, unpack(bind.path))
+			local newValue = Llama.followPath(newState, unpack(bind.path))
+			local oldValue = Llama.followPath(oldState, unpack(bind.path))
 
 			local isEqual = true
 
 			if typeof(newValue) == "table" and typeof(oldValue) == "table" then
-				isEqual = Table.deepCheckEquality(newValue, oldValue)
+				isEqual = Llama.deepCheckEquality(newValue, oldValue)
 			elseif typeof(newValue) ~= "table" and typeof(oldValue) ~= "table" then
 				if newValue ~= oldValue then
 					isEqual = false
@@ -242,11 +247,11 @@ function Store:_connectChanges()
 end
 
 function Store:waitForValue(...)
-	local value = Table.followPath(self:getState(), ...)
+	local value = Llama.followPath(self:getState(), ...)
 
 	while not value do
 		self.changed:wait()
-		value = Table.followPath(self:getState(), ...)
+		value = Llama.followPath(self:getState(), ...)
 	end
 
 	return value
@@ -269,7 +274,7 @@ end
 function Store:unbindFromValueChanged(uniqueId)
 	self._binds[uniqueId] = nil
 
-	if Table.length(self._binds) == 0 then
+	if Llama.Dictionary.length(self._binds) == 0 then
 		self._bindValues:Disconnect()
 		self._bindValues = nil
 	end

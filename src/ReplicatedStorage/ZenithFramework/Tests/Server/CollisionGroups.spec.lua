@@ -32,19 +32,21 @@ return function()
 		end)
 
 		it("should assign a collision group to a part or model", function()
-			local newPart = Instance.new("Part", workspace)
-			local newModel = Instance.new("Model", workspace)
-			local newPart1 = Instance.new("Part", newModel)
+			local newPart = Instance.new("Part")
+			local newModel = Instance.new("Model")
+
+			newPart.Parent = workspace
+			newModel.Parent = workspace
 
 			expect(function()
 				CollisionGroups.assignGroup(newPart, testName)
 			end).never.to.throw()
-			expect(PhysicsService:GetCollisionGroupName(newPart.CollisionGroupId)).to.equal(testName)
+			expect(newPart.CollisionGroup).to.equal(testName)
 			expect(function()
 				CollisionGroups.assignGroup(newModel, testName)
 			end).never.to.throw()
 			for _, part in pairs(newModel:GetDescendants()) do
-				expect(PhysicsService:GetCollisionGroupName(part.CollisionGroupId)).to.equal(testName)
+				expect(part.CollisionGroup).to.equal(testName)
 			end
 			expect(function()
 				CollisionGroups.assignGroup(5, testName)

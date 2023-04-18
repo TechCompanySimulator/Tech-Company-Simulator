@@ -1,13 +1,10 @@
--- Useful string manipulation functions
--- Author: TheM0rt0nator
-
 local String = {}
 
 -- Removes all white space in a string
 function String.removeSpaces(str)
 	assert(typeof(str) == "string", "Argument needs to be a string")
 
-	local newString, numSpaces = string.gsub(str, "(%s)%s*", "")
+	local newString = string.gsub(str, "(%s)%s*", "")
 
 	return newString
 end
@@ -16,7 +13,7 @@ end
 function String.removePunc(str)
 	assert(typeof(str) == "string", "Argument needs to be a string")
 
-	local newString, numRemovals = string.gsub(str, "%p", "")
+	local newString = string.gsub(str, "%p", "")
 
 	return newString
 end
@@ -27,7 +24,7 @@ function String.getStringMatches(str, pattern)
 
 	local found = 0
 	local positions = {}
-	while(found)do
+	while found do
 		found += 1
 		found = str:find(pattern, found)
 		table.insert(positions, found)

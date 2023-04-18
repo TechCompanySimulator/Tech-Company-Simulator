@@ -4,10 +4,10 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = loadModule("makeActionCreator")
 
-return makeActionCreator("setPlayerData", function(userId, newIndex, value)
+return makeActionCreator("transactPlayerCurrency", function(player : Player, currency : string, amount : number)
 	return {
-		userId = userId,
-		newIndex = newIndex,
-		value = value
+		userId = player.UserId;
+		currency = currency;
+		amount = amount;
 	}
 end)

@@ -25,8 +25,8 @@ return function()
 	local playerData = RoduxStore:waitForValue("playerData", tostring(userId))
 
 	if isServer and playerData and not playerData.Inventory then
-		local setPlayerData = loadModule("setPlayerData")
-		RoduxStore:dispatch(setPlayerData(userId, invName, {}))
+		local setPlayerDataValue = loadModule("setPlayerDataValue")
+		RoduxStore:dispatch(setPlayerDataValue(userId, invName, {}))
 	end
 
 	local playersInventory

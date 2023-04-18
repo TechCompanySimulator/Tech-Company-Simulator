@@ -8,7 +8,7 @@ local _, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework)
 local RoduxReplicationEvent = getDataStream("RoduxReplicationEvent", "RemoteEvent")
 
 local ReplicationMiddleware
-ReplicationMiddleware = function(nextDispatch, store)
+ReplicationMiddleware = function(nextDispatch)
 	return function(action)
 		if not action.replicationTargets or action.replicationTargets == "all" then
 			RoduxReplicationEvent:FireAllClients(action)

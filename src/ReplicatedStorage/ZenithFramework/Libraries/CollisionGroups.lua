@@ -17,7 +17,7 @@ function CollisionGroups.newCollisionGroup(groupName)
 	assert(typeof(groupName) == "string", "Group name needs to be a string")
 
 	if not CollisionGroups.groupExists(groupName) then
-		PhysicsService:CreateCollisionGroup(groupName)
+		PhysicsService:RegisterCollisionGroup(groupName)
 	end
 end
 
@@ -25,7 +25,7 @@ end
 function CollisionGroups.groupExists(groupName)
 	assert(typeof(groupName) == "string", "Group name needs to be a string")
 
-	for _, group in pairs(PhysicsService:GetCollisionGroups()) do
+	for _, group in pairs(PhysicsService:GetRegisteredCollisionGroups()) do
 		if group and group.name == groupName then
 			return true
 		end
@@ -43,17 +43,17 @@ function CollisionGroups.assignGroup(obj, groupName)
 	end
 
 	if obj:IsA("BasePart") then
-		PhysicsService:SetPartCollisionGroup(obj, groupName)
+		obj.CollisionGroup = groupName
 	elseif obj:IsA("Model") then
 		for _, part in pairs(obj:GetDescendants()) do
 			if part:IsA("BasePart") then
-				PhysicsService:SetPartCollisionGroup(part, groupName)
+				part.CollisionGroup = groupName
 			end
 		end
 
 		obj.DescendantAdded:Connect(function(part)
 			if part:IsA("BasePart") then
-				PhysicsService:SetPartCollisionGroup(part, groupName)
+				part.CollisionGroup = groupName
 			end
 		end)
 	end

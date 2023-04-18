@@ -39,7 +39,7 @@ local function newEnvironment(currentNode, extraEnvironment)
 		addChild(phrase, callback, TestEnum.NodeType.Describe, TestEnum.NodeModifier.Skip)
 	end
 
-	function env.describe(phrase, callback, nodeModifier)
+	function env.describe(phrase, callback)
 		addChild(phrase, callback, TestEnum.NodeType.Describe, TestEnum.NodeModifier.None)
 	end
 
@@ -56,7 +56,7 @@ local function newEnvironment(currentNode, extraEnvironment)
 		warn("FIXME: broken test", node:getFullName())
 	end
 
-	function env.it(phrase, callback, nodeModifier)
+	function env.it(phrase, callback)
 		addChild(phrase, callback, TestEnum.NodeType.It, TestEnum.NodeModifier.None)
 	end
 
@@ -106,7 +106,7 @@ local function newEnvironment(currentNode, extraEnvironment)
 	env.xdescribe = env.describeSKIP
 
 	env.expect = setmetatable({
-		extend = function(...)
+		extend = function()
 			error("Cannot call \"expect.extend\" from within a \"describe\" node.")
 		end,
 	}, {

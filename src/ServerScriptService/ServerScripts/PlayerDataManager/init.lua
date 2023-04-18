@@ -7,7 +7,7 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local DataStore = loadModule("DataStore")
 local DefaultData = loadModule("DefaultData")
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 local RoduxStore = loadModule("RoduxStore")
 local CONFIG = loadModule("CONFIG")
 
@@ -34,9 +34,9 @@ function PlayerDataManager:initiate()
 	Players.PlayerRemoving:Connect(PlayerDataManager.playerRemoving)
 
 	RoduxStore.changed:connect(function(newState, oldState)
-		if not Table.deepCheckEquality(newState, oldState) then
+		if not Llama.deepCheckEquality(newState, oldState) then
 			for userId, data in pairs(newState.playerData) do
-				if not oldState.playerData[userId] or not Table.deepCheckEquality(oldState.playerData[userId], data) then
+				if not oldState.playerData[userId] or not Llama.deepCheckEquality(oldState.playerData[userId], data) then
 					DataStore.setSessionData(PlayerDataStore, "User_" .. userId, data)
 				end
 			end
@@ -58,7 +58,7 @@ end
 function PlayerDataManager.playerAdded(player)
 	local userId = player.UserId
 	local playerDataIndex = "User_" .. userId
-	local playersData = DataStore.getData(PlayerDataStore, playerDataIndex, Table.clone(DefaultData))
+	local playersData = DataStore.getData(PlayerDataStore, playerDataIndex, Llama.Dictionary.copyDeep(DefaultData))
 
 	if (not CONFIG.RESET_PLAYER_DATA or not RunService:IsStudio()) and playersData then
 		RoduxStore:dispatch(setPlayerSession(userId, playersData))
@@ -74,8 +74,9 @@ function PlayerDataManager.playerRemoving(player)
 		playerLeftEvent.Event:Wait()
 	end
 	local userId = player.UserId
+
 	DataStore.removeSessionData(PlayerDataStore, "User_" .. userId, true)
-	RoduxStore:dispatch(setPlayerSession(userId, Table.None))
+	RoduxStore:dispatch(setPlayerSession(userId, Llama.None))
 	PlayerDataManager.loadedData[tostring(player.UserId)] = nil
 	PlayerDataManager.leftBools[tostring(player.UserId)] = nil
 end

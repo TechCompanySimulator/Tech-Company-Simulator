@@ -7,10 +7,12 @@ return function()
 
 	describe("Raycast", function()
 		it("should raycast and detect a part correctly", function()
-			local testPart = Instance.new("Part", workspace)
+			local testPart = Instance.new("Part")
 			testPart.Anchored = true
 			testPart.Position = Vector3.new(0, 20, 0)
 			testPart.Size = Vector3.new(10, 10, 1)
+			testPart.Parent = workspace
+
 			local filterInstances = {testPart}
 
 			local raycastResult
@@ -48,10 +50,12 @@ return function()
 			local filterInstances = {}
 			local parts = {}
 			for i = 1, 5 do
-				local testPart = Instance.new("Part", workspace)
+				local testPart = Instance.new("Part")
 				testPart.Anchored = true
 				testPart.Position = Vector3.new(0, 20, (i - 1) * 3)
 				testPart.Size = Vector3.new(10, 10, 1)
+				testPart.Parent = workspace
+
 				table.insert(filterInstances, testPart)
 				table.insert(parts, testPart)
 			end
@@ -89,12 +93,16 @@ return function()
 
 		it("should return the first model hit by the raycast", function()
 			local filterInstances = {}
-			local newModel = Instance.new("Model", workspace)
+			local newModel = Instance.new("Model")
+			newModel.Parent = workspace
+
 			for i = 1, 5 do
-				local testPart = Instance.new("Part", newModel)
+				local testPart = Instance.new("Part")
 				testPart.Anchored = true
 				testPart.Position = Vector3.new(0, 20, (i - 1) * 3)
 				testPart.Size = Vector3.new(10, 10, 1)
+				testPart.Parent = newModel
+
 				table.insert(filterInstances, testPart)
 			end
 
@@ -126,11 +134,15 @@ return function()
 			local filterInstances = {}
 			local models = {}
 			for i = 1, 5 do
-				local newModel = Instance.new("Model", workspace)
-				local testPart = Instance.new("Part", newModel)
+				local newModel = Instance.new("Model")
+				newModel.Parent = workspace
+
+				local testPart = Instance.new("Part")
 				testPart.Anchored = true
 				testPart.Position = Vector3.new(0, 20, (i - 1) * 3)
 				testPart.Size = Vector3.new(10, 10, 1)
+				testPart.Parent = newModel
+
 				table.insert(filterInstances, testPart)
 				table.insert(models, newModel)
 			end

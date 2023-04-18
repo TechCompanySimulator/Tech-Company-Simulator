@@ -1,3 +1,5 @@
+--# selene: allow(unused_variable)
+
 --[[
 	This is a simple signal implementation that has a dead-simple API.
 

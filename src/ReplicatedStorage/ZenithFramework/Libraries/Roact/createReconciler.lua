@@ -1,3 +1,5 @@
+--# selene: allow(if_same_then_else)
+
 local Type = require(script.Parent.Type)
 local ElementKind = require(script.Parent.ElementKind)
 local ElementUtils = require(script.Parent.ElementUtils)
