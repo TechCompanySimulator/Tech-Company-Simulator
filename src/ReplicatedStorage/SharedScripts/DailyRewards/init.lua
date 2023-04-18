@@ -2,22 +2,18 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local require, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local RoduxStore = require("RoduxStore")
-local PlayerDataManager = require("PlayerDataManager")
-local Table = require("Table")
-local DailyRewardsConfig = require("DailyRewardsConfig")
-local CurrencyManager = require("CurrencyManager")
+local RoduxStore = loadModule("RoduxStore")
+local PlayerDataManager = loadModule("PlayerDataManager")
+local Table = loadModule("Table")
+local DailyRewardsConfig = loadModule("DailyRewardsConfig")
+local CurrencyManager = loadModule("CurrencyManager")
 
-local setPlayerData = require("setPlayerData")
+local setPlayerData = loadModule("setPlayerData")
 
 local dailyRewardsEvent = getDataStream("DailyRewardsEvent", "RemoteEvent")
-
-local playerLeftEvent 
-if RunService:IsServer() then
-	playerLeftEvent = getDataStream("PlayerLeft", "BindableEvent")
-end
+local playerDataLoaded = getDataStream("playerDataLoaded", "BindableEvent")
 
 local DailyRewards = {}
 
@@ -37,6 +33,11 @@ end
 
 if RunService:IsClient() then return DailyRewards end
 
+-- Connect this event before the start functions are ran
+function DailyRewards:initiate()
+	playerDataLoaded.Event:Connect(DailyRewards.playerAdded)
+end
+
 -- Awards the reward to the player
 function DailyRewards.awardReward(player, streak)
 	local currency, amount = DailyRewards.calculateReward(streak)
@@ -50,7 +51,7 @@ function DailyRewards.newStreak(player, loginTime, timeBoundary)
 		loginTime = loginTime;
 		streak = 1;
 	}
-	RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
+	PlayerDataManager:updatePlayerData(player.UserId, setPlayerData, "DailyRewards", saveTable)
 	DailyRewards.awardReward(player, 1)
 end
 
@@ -63,7 +64,7 @@ function DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, num
 		loginTime = loginTime;
 		streak = newStreak;
 	})
-	RoduxStore:dispatch(setPlayerData(player.UserId, "DailyRewards", saveTable))
+	PlayerDataManager:updatePlayerData(player.UserId, setPlayerData, "DailyRewards", saveTable)
 	DailyRewards.awardReward(player, newStreak)
 end
 
@@ -79,7 +80,9 @@ end
 -- When timer is over on client, server is fired to add the streak
 function DailyRewards.serverEvent(player)
 	local timeNow = DateTime.now().UnixTimestamp
-	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
+	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
+	if not playerData then return end
+
 	local timeBoundary = DailyRewards.getTimeBoundary(timeNow)
 	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + DailyRewardsConfig.timer) then
 		DailyRewards.addStreak(player, playerData, timeNow, timeBoundary, 1)
@@ -95,9 +98,12 @@ end
 
 -- When player joins, need to check the time and see if they are eligible for a reward
 function DailyRewards.playerAdded(player)
+	if not player:IsDescendantOf(Players) then return end
+
 	local loginTime = DateTime.now().UnixTimestamp
-	PlayerDataManager:waitForLoadedData(player)
-	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
+	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
+	if not playerData then return end
+
 	local timeBoundary = DailyRewards.getTimeBoundary(loginTime)
 	local timer = DailyRewardsConfig.timer
 	
@@ -118,27 +124,24 @@ end
 function DailyRewards.playerRemoving(player)
 	local leaveTime = DateTime.now().UnixTimestamp
 	local timeBoundary = DailyRewards.getTimeBoundary(leaveTime)
-	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
-	if playerData.DailyRewards and playerData.DailyRewards.timeBoundary ~= timeBoundary then
+	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
+	
+	if playerData and playerData.DailyRewards and playerData.DailyRewards.timeBoundary ~= timeBoundary then
 		local numBoundariesPassed = 0
 		local prevTimeBoundary = playerData.DailyRewards.timeBoundary
 		local timeDiff = timeBoundary - prevTimeBoundary
 		numBoundariesPassed += math.floor(timeDiff / DailyRewardsConfig.timer)
 		DailyRewards.addStreak(player, playerData, leaveTime, timeBoundary, numBoundariesPassed)
 	end
-	PlayerDataManager.leftBools[tostring(player.UserId)] = true
-	playerLeftEvent:Fire()
-end
 
--- Run the function for any players who already loaded in before this module loaded
-for _, player in pairs(Players:GetPlayers()) do
-	task.spawn(function()
-		DailyRewards.playerAdded(player)
-	end)
+	if not PlayerDataManager.leftBools[tostring(player.UserId)] then
+		PlayerDataManager.leftBools[tostring(player.UserId)] = 1
+	else
+		PlayerDataManager.leftBools[tostring(player.UserId)] += 1
+	end
 end
 
 dailyRewardsEvent.OnServerEvent:Connect(DailyRewards.serverEvent)
-Players.PlayerAdded:Connect(DailyRewards.playerAdded)
 Players.PlayerRemoving:Connect(DailyRewards.playerRemoving)
 
 return DailyRewards
