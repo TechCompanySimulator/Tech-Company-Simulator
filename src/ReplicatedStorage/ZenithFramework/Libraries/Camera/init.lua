@@ -1,18 +1,44 @@
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 if RunService:IsServer() then return {} end
 
-local Player = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local Cam = {}
+local _, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+
+local camTypeChanged = getDataStream("CamTypeChanged", "BindableEvent")
+
+local player = Players.LocalPlayer
+
+local Cam = {
+	currentType = "Default";
+}
+
+-- Compile all of the camera modes into this module
+for _, module in pairs(script:GetChildren()) do
+	Cam[module.Name] = require(module)
+end
+
+-- Sets a unique custom camera type if it exists
+function Cam:setCameraType(camType: string, ...)
+	if self.currentType ~= camType and camType == "Default" then
+		self:returnToPlayer()
+		return
+	end
+	if self[camType] then 
+		self.currentType = camType
+		self[camType](self, ...)
+		camTypeChanged:Fire(camType)
+	end
+end
 
 -- Sets the camera to a fixed position, with a given rotation or looking at the given lookAt Vector3
 function Cam:fixedPoint(pos, rotation, lookAt)
 	local camCF = Camera.CFrame
 	self.prevCamCFrame = camCF
-	self.prevCamDist = camCF.Position - Player.Character.Head.Position
+	self.prevCamDist = camCF.Position - player.Character.Head.Position
 
 	if not pos and not rotation and not lookAt then
 		Camera.CameraType = Enum.CameraType.Scriptable
@@ -40,6 +66,9 @@ end
 function Cam:returnToPlayer()
 	Camera.CFrame = self.prevCamCFrame
 	Camera.CameraType = Enum.CameraType.Custom
+	Camera.CameraSubject = player.Character:FindFirstChild("Humanoid")
+	self.currentType = "Default"
+	camTypeChanged:Fire("Default")
 end
 
 return Cam

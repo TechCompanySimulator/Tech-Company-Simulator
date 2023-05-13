@@ -18,20 +18,16 @@ return function()
 		end
 		player = Players:GetPlayers()[1]
 	end
-	local userId = player.UserId
 
+	local userId = player.UserId
 	local invName = "Inventory"
 
+	RoduxStore:waitForValue("playerData", tostring(userId), invName)
+
 	local playerData = RoduxStore:waitForValue("playerData", tostring(userId))
-
-	if isServer and playerData and not playerData.Inventory then
-		local setPlayerDataValue = loadModule("setPlayerDataValue")
-		RoduxStore:dispatch(setPlayerDataValue(userId, invName, {}))
-	end
-
 	local playersInventory
 
-    describe("InventoryManager", function()
+	describe("InventoryManager", function()
 		it("should return the players inventory data", function()
 			expect(function()
 				playersInventory = InventoryManager.getInventory(userId, invName)
@@ -73,7 +69,7 @@ return function()
 				capacity = InventoryManager.getCapacity(userId, invName)
 			end).never.to.throw()
 			expect(capacity).to.equal(playerData.InventoryCapacity or 5)
-		end)	
+		end)
 
 		it("should return whether the players inventory is full or not", function()
 			local isFull
@@ -91,14 +87,18 @@ return function()
 					level = 1;
 				})
 			end).never.to.throw()
+
 			expect(hasItem).to.equal(true)
+
 			expect(InventoryManager.hasItem(userId, invName, "Tools", {
 				name = "Hammer";
 				level = 2;
 			})).to.equal(false)
+
 			expect(function()
 				InventoryManager.hasItem(userId, invName, {}, {})
 			end).to.throw()
+
 			expect(function()
 				InventoryManager.hasItem(userId, invName, "Tools", "Fail")
 			end).to.throw()
