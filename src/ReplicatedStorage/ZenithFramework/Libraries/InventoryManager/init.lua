@@ -133,20 +133,21 @@ if RunService:IsServer() then
 	end
 
 	-- Removes multiple items, but only updates the Rodux store once to prevent unnecessary re-renders
-	function InventoryManager.removeMultipleItems(userId, inventoryName, category, keys)
+	-- Keys is a list of keys to remove e.g. '{"key_3", "key_10", "key_15"}'
+	function InventoryManager.removeMultipleInvItems(userId, inventoryName, category, keys)
 		if not InventoryManager.isValidCategory(category) then return end
 
-
+		RoduxStore:dispatch(removeMultipleInvItems(userId, inventoryName or "Inventory", category, keys))
 	end
 
-	-- Replaces an item in the inventory with the new item table (can be used for upgrading items etc)
-	function InventoryManager.replaceItem(userId, inventoryName, category, key, newItem)
+	-- Updates an item in the inventory with the new item table (can be used for upgrading items etc)
+	function InventoryManager.updateItem(userId, inventoryName, category, key, newValues)
 		if not InventoryManager.isValidCategory(category) then return false end
 
 		local categoryData = InventoryManager.getInventory(userId, inventoryName)[category]
 		if not categoryData or not categoryData[key] then return false end
 
-		RoduxStore:dispatch(changeInventoryItem(userId, inventoryName or "Inventory", category, key, newItem))
+		RoduxStore:dispatch(changeInventoryItem(userId, inventoryName or "Inventory", category, key, newValues))
 
 		return true
 	end

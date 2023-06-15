@@ -80,9 +80,9 @@ return {
 		local inventoryName = action.inventoryName
 		local category = action.category
 		local key = action.key
-		local newItem = action.newItem
+		local newValues = action.newValues
 
-		if userId and inventoryName and category and key and newItem then
+		if userId and inventoryName and category and key and newValues then
 			local currentData = state[tostring(userId)] or {}
 			local currentInventory = currentData[inventoryName] or {}
 			local currentCategoryData = currentInventory[category] or {}
@@ -94,7 +94,7 @@ return {
 				[tostring(userId)] = Llama.Dictionary.join(currentData, {
 					[inventoryName] = Llama.Dictionary.join(currentInventory, {
 						[category] = Llama.Dictionary.join(currentCategoryData, {
-							[key] = Llama.Dictionary.join(currentItemData, newItem);
+							[key] = Llama.Dictionary.join(currentItemData, newValues);
 						});
 					});
 				});
@@ -121,6 +121,31 @@ return {
 						[category] = Llama.Dictionary.join(currentCategoryData, {
 							[key] = Llama.None;
 						});
+					});
+				});
+			})
+		else
+			return state
+		end
+	end;
+
+	removeMultipleInvItems = function(state, action)
+		local userId = action.userId
+		local inventoryName = action.inventoryName
+		local category = action.category
+		local keys = action.keys
+
+		if userId and inventoryName and category and keys then
+			local currentData = state[tostring(userId)] or {}
+			local currentInventory = currentData[inventoryName] or {}
+			local currentCategoryData = currentInventory[category] or {}
+
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = Llama.Dictionary.join(currentData, {
+					[inventoryName] = Llama.Dictionary.join(currentInventory, {
+						[category] = Llama.Dictionary.join(currentCategoryData, Llama.Dictionary.map(keys, function(_, key)
+							return Llama.None, key
+						end));
 					});
 				});
 			})
