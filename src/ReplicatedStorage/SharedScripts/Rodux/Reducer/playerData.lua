@@ -5,6 +5,20 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 local Llama = loadModule("Llama")
 local Rodux = loadModule("Rodux")
 
+local function getUniqueKey(itemTable)
+	local largestValue = 0
+	for key, _ in pairs(itemTable) do
+		local number = string.gsub(key, "%D", "")
+		number = tonumber(number)
+
+		if number and number > largestValue then
+			largestValue = number
+		end
+	end
+
+	return "key_" .. (largestValue + 1)
+end
+
 return Rodux.createReducer({}, {
 	setPlayerSession = function(state, action)
 		local userId = action.userId
@@ -81,22 +95,44 @@ return Rodux.createReducer({}, {
 			local currentInventory = currentData[inventoryName] or {}
 			local currentCategoryData = currentInventory[category] or {}
 
-			local uniqueId = 0
-			for id in pairs(currentCategoryData) do
-				uniqueId += 1
-
-				if tonumber(id) ~= uniqueId then break end
-			end
-
-			local newInventory = Llama.Dictionary.join(currentInventory, {
-				[category] = Llama.Dictionary.join(currentCategoryData, {
-					[tostring(uniqueId)] = item;
-				});
-			})
+			local key = getUniqueKey(currentCategoryData)
 
 			return Llama.Dictionary.join(state, {
 				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = newInventory;
+					[inventoryName] = Llama.Dictionary.join(currentInventory, {
+						[category] = Llama.Dictionary.join(currentCategoryData, {
+							[key] = item;
+						});
+					});
+				});
+			})
+		else
+			return state
+		end
+	end;
+
+	addMultipleInvItems = function(state, action)
+		local userId = action.userId
+		local inventoryName = action.inventoryName
+		local category = action.category
+		local items = action.items
+
+		if userId and inventoryName and category and items then
+			local currentData = state[tostring(userId)] or {}
+			local currentInventory = currentData[inventoryName] or {}
+			local currentCategoryData = currentInventory[category] or {}
+
+			local newItems = table.clone(currentCategoryData)
+			for _, item in items do
+				local key = getUniqueKey(currentCategoryData)
+				newItems[key] = item
+			end
+
+			return Llama.Dictionary.join(state, {
+				[tostring(userId)] = Llama.Dictionary.join(currentData, {
+					[inventoryName] = Llama.Dictionary.join(currentInventory, {
+						[category] = newItems;
+					});
 				});
 			})
 		else
