@@ -14,7 +14,7 @@ local removeMultipleInvItems = loadModule("removeMultipleInvItems")
 
 local InventoryManager = {}
 InventoryManager.validCategories = {
-
+	Tools = true;
 }
 
 function InventoryManager.isValidCategory(category)

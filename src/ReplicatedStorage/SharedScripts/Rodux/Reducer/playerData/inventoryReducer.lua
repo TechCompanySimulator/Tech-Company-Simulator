@@ -108,7 +108,7 @@ return {
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
-		local key = action.item
+		local key = action.key
 
 		if userId and inventoryName and category and key then
 			local currentData = state[tostring(userId)] or {}

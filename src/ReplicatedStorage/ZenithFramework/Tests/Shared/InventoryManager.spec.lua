@@ -2,11 +2,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 return function()
 	local InventoryManager = loadModule("InventoryManager")
 	local RoduxStore = loadModule("RoduxStore")
+
+	local testStream = getDataStream("TestStream", "RemoteEvent")
 
 	local isServer = RunService:IsServer()
 
@@ -22,10 +24,19 @@ return function()
 	local userId = player.UserId
 	local invName = "Inventory"
 
-	RoduxStore:waitForValue("playerData", tostring(userId), invName)
-
 	local playerData = RoduxStore:waitForValue("playerData", tostring(userId))
 	local playersInventory
+
+	local currentTest = 0
+	if RunService:IsServer() then
+		testStream.OnServerEvent:Connect(function()
+			currentTest += 1
+		end)
+	else
+		testStream.OnClientEvent:Connect(function()
+			currentTest += 1
+		end)
+	end
 
 	describe("InventoryManager", function()
 		it("should return the players inventory data", function()
@@ -34,12 +45,8 @@ return function()
 			end).never.to.throw()
 			expect(playersInventory).to.be.ok()
 			if RunService:IsClient() then
-				while not InventoryManager.hasItem(userId, invName, "Tools", {
-					name = "Hammer";
-					level = 1;
-				}) do
-					print("Waiting")
-					task.wait(0.1)
+				while currentTest == 0 do
+					task.wait()
 				end
 			end
 		end)
@@ -52,13 +59,19 @@ return function()
 						level = 1;
 					})
 				end).never.to.throw()
+
+				testStream:FireClient(player)
+
+				while currentTest == 0 do
+					task.wait()
+				end
 			end)
 		end
 
 		it("should get the content size of the inventory", function()
 			local contentSize
 			expect(function()
-				contentSize = InventoryManager.getContentSize(userId, invName)
+				contentSize = InventoryManager.getContentSize(userId, invName, "Tools")
 			end).never.to.throw()
 			expect(contentSize).to.equal(1)
 		end)
@@ -66,15 +79,15 @@ return function()
 		it("should get the capacity of the players inventory", function()
 			local capacity
 			expect(function()
-				capacity = InventoryManager.getCapacity(userId, invName)
+				capacity = InventoryManager.getCapacity(userId, invName, "Tools")
 			end).never.to.throw()
-			expect(capacity).to.equal(playerData.InventoryCapacity or 5)
+			expect(capacity).to.equal(playerData.Inventory.Capacities.Tools)
 		end)
 
 		it("should return whether the players inventory is full or not", function()
 			local isFull
 			expect(function()
-				isFull = InventoryManager.isInventoryFull(userId, invName)
+				isFull = InventoryManager.isInventoryFull(userId, invName, "Tools")
 			end).never.to.throw()
 			expect(isFull).to.equal(false)
 		end)
@@ -123,15 +136,16 @@ return function()
 			expect(function()
 				InventoryManager.getItemCount(userId, invName, "Tools", "Fail")
 			end).to.throw()
+
+			if RunService:IsClient() then
+				testStream:FireServer()
+			end
 		end)
 
 		if isServer then
 			it("should change an items data in the players inventory", function()
 				expect(function()
-					InventoryManager.replaceItem(userId, invName, "Tools", {
-						name = "Hammer";
-						level = 1;
-					}, {
+					InventoryManager.updateItem(userId, invName, "Tools", "key_1", {
 						name = "Hammer";
 						level = 2;
 					})
@@ -148,10 +162,7 @@ return function()
 
 			it("should remove an item from the players inventory", function()
 				expect(function()
-					InventoryManager.removeItem(userId, invName, "Tools", {
-						name = "Hammer";
-						level = 2;
-					})
+					InventoryManager.removeItem(userId, invName, "Tools", "key_1")
 				end).never.to.throw()
 				expect(InventoryManager.hasItem(userId, invName, "Tools", {
 					name = "Hammer";

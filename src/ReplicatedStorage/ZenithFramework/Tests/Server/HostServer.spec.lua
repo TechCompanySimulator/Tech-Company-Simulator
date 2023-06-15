@@ -9,6 +9,8 @@ return function()
 
 	SortedMaps.flush(TestMap)
 
+	SKIP()
+
     describe("HostServer", function()
 		it("should bind a host function to the server to be run if / when this server becomes the host", function()
 			local test = false

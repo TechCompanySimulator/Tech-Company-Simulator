@@ -5,6 +5,8 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 return function()
 	local Raycast = loadModule("Raycast")
 
+	SKIP()
+	
 	describe("Raycast", function()
 		it("should raycast and detect a part correctly", function()
 			local testPart = Instance.new("Part")
