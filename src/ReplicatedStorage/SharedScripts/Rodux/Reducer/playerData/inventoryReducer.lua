@@ -59,7 +59,7 @@ return {
 
 			local newItems = table.clone(currentCategoryData)
 			for _, item in items do
-				local key = getUniqueKey(currentCategoryData)
+				local key = getUniqueKey(newItems)
 				newItems[key] = item
 			end
 
@@ -143,7 +143,7 @@ return {
 			return Llama.Dictionary.join(state, {
 				[tostring(userId)] = Llama.Dictionary.join(currentData, {
 					[inventoryName] = Llama.Dictionary.join(currentInventory, {
-						[category] = Llama.Dictionary.join(currentCategoryData, Llama.Dictionary.map(keys, function(_, key)
+						[category] = Llama.Dictionary.join(currentCategoryData, Llama.Dictionary.map(keys, function(key, _)
 							return Llama.None, key
 						end));
 					});

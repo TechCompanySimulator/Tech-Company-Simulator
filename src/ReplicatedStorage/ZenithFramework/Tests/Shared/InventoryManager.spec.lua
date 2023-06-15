@@ -168,15 +168,100 @@ return function()
 					name = "Hammer";
 					level = 2;
 				})).to.equal(false)
-				if not InventoryManager.hasItem(userId, invName, "Tools", {
-					name = "Hammer";
-					level = 1;
-				}) then
-					InventoryManager.addItem(userId, invName, "Tools", {
-						name = "Hammer";
-						level = 1;
+			end)
+
+			it("should add multiple items to the players inventory", function()
+				expect(function()
+					InventoryManager.addMultipleItems(userId, invName, "Tools", {
+						{
+							name = "Hammer";
+							level = 5;
+						};
+						{
+							name = "Hammer";
+							level = 6;
+						};
+						{
+							name = "Hammer";
+							level = 7;
+						};
+						{
+							name = "Hammer";
+							level = 7;
+						};
+						{
+							name = "Hammer";
+							level = 7;
+						};
+						{
+							name = "Hammer";
+							level = 6;
+						};
+						{
+							name = "Hammer";
+							level = 6;
+						};
+						{
+							name = "Hammer";
+							level = 6;
+						};
 					})
-				end
+				end).never.to.throw()
+
+				local contentSize = InventoryManager.getContentSize(userId, invName, "Tools")
+				expect(contentSize).to.equal(8)
+
+				InventoryManager.addMultipleItems(userId, invName, "Tools", {
+					{
+						name = "Hammer";
+						level = 5;
+					};
+					{
+						name = "Hammer";
+						level = 6;
+					};
+					{
+						name = "Hammer";
+						level = 7;
+					};
+					{
+						name = "Hammer";
+						level = 7;
+					};
+					{
+						name = "Hammer";
+						level = 7;
+					};
+					{
+						name = "Hammer";
+						level = 6;
+					};
+					{
+						name = "Hammer";
+						level = 6;
+					};
+					{
+						name = "Hammer";
+						level = 6;
+					};
+				})
+
+				-- Just checking it can't exceed the capacity limit
+				local contentSize = InventoryManager.getContentSize(userId, invName, "Tools")
+				expect(contentSize).to.equal(10)
+			end)
+
+			it("should remove multiple items from the players inventory", function()
+				expect(function()
+					InventoryManager.removeMultipleItems(userId, invName, "Tools", {
+						"key_1";
+						"key_3";
+						"key_5";
+					})
+				end).never.to.throw()
+
+				local contentSize = InventoryManager.getContentSize(userId, invName, "Tools")
+				expect(contentSize).to.equal(7)
 			end)
 		end
 	end)
