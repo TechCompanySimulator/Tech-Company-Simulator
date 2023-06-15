@@ -3,7 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Llama = loadModule("Llama")
-local Rodux = loadModule("Rodux")
 
 local function getUniqueKey(itemTable)
 	local largestValue = 0
@@ -19,71 +18,7 @@ local function getUniqueKey(itemTable)
 	return "key_" .. (largestValue + 1)
 end
 
-return Rodux.createReducer({}, {
-	setPlayerSession = function(state, action)
-		local userId = action.userId
-
-		if userId then
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = action.data;
-			})
-		else
-			return state
-		end
-	end;
-
-	transactPlayerCurrency = function(state, action)
-		local userId = action.userId
-		local currency = action.currency
-		local amount = action.amount
-
-		if userId and currency and amount then
-			local currentPlayerData = state[tostring(userId)] or {}
-			local currentAmount = currentPlayerData.Currencies[currency]
-
-			-- If the currency doesn't exist, then return the current state
-			if not currentAmount then
-				return state
-			end
-
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
-					Currencies = Llama.Dictionary.join(currentPlayerData.Currencies, {
-						[currency] = math.max(currentAmount + amount, 0);
-					});
-				});
-			})
-		else
-			return state
-		end
-	end;
-
-	setPlayerCurrency = function(state, action)
-		local userId = action.userId
-		local currency = action.currency
-		local amount = action.amount
-
-		if userId and currency and amount then
-			local currentPlayerData = state[tostring(userId)] or {}
-			local currentAmount = currentPlayerData.Currencies[currency]
-
-			-- If the currency doesn't exist, then return the current state
-			if not currentAmount then
-				return state
-			end
-
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
-					Currencies = Llama.Dictionary.join(currentPlayerData.Currencies, {
-						[currency] = math.max(amount, 0);
-					});
-				});
-			})
-		else
-			return state
-		end
-	end;
-
+return {
 	addInventoryItem = function(state, action)
 		local userId = action.userId
 		local inventoryName = action.inventoryName
@@ -144,29 +79,22 @@ return Rodux.createReducer({}, {
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
-		local item = action.item
+		local key = action.key
 		local newItem = action.newItem
 
-		if userId and inventoryName and category and item and newItem then
+		if userId and inventoryName and category and key and newItem then
 			local currentData = state[tostring(userId)] or {}
 			local currentInventory = currentData[inventoryName] or {}
 			local currentCategoryData = currentInventory[category] or {}
+			local currentItemData = currentCategoryData[key]
 
-			local changeId
-			for id, invItem in pairs(currentCategoryData) do
-				if Llama.deepCheckEquality(item, invItem) then
-					changeId = id
-					break
-				end
-			end
-
-			if not changeId then return state end
+			if not currentItemData then return state end
 
 			return Llama.Dictionary.join(state, {
 				[tostring(userId)] = Llama.Dictionary.join(currentData, {
 					[inventoryName] = Llama.Dictionary.join(currentInventory, {
 						[category] = Llama.Dictionary.join(currentCategoryData, {
-							[tostring(changeId)] = newItem;
+							[key] = Llama.Dictionary.join(currentItemData, newItem);
 						});
 					});
 				});
@@ -176,19 +104,23 @@ return Rodux.createReducer({}, {
 		end
 	end;
 
-	updateDailyRewards = function(state, action)
+	removeInventoryItem = function(state, action)
 		local userId = action.userId
+		local inventoryName = action.inventoryName
+		local category = action.category
+		local key = action.item
 
-		if userId then
+		if userId and inventoryName and category and key then
 			local currentData = state[tostring(userId)] or {}
-			local currentDailyRewards = currentData.DailyRewards or {}
+			local currentInventory = currentData[inventoryName] or {}
+			local currentCategoryData = currentInventory[category] or {}
 
 			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(state[tostring(userId)], {
-					DailyRewards = Llama.Dictionary.join(currentDailyRewards, {
-						timeBoundary = action.timeBoundary;
-						loginTime = action.loginTime;
-						streak = action.streak;
+				[tostring(userId)] = Llama.Dictionary.join(currentData, {
+					[inventoryName] = Llama.Dictionary.join(currentInventory, {
+						[category] = Llama.Dictionary.join(currentCategoryData, {
+							[key] = Llama.None;
+						});
 					});
 				});
 			})
@@ -196,4 +128,4 @@ return Rodux.createReducer({}, {
 			return state
 		end
 	end;
-})
+}
