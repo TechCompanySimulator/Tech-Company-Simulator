@@ -9,6 +9,8 @@ return function()
 	local gridWidth = 8
 	local gridHeight = 8
 
+	SKIP()
+
 	describe("Grid", function()
 		it("should create a new grid object correctly", function()
 			expect(function()

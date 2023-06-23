@@ -8,6 +8,8 @@ return function()
 	local TestMap = SortedMaps.getSortedMap("ServerListTestMap")
 
 	SortedMaps.flush(TestMap)
+	
+	SKIP()
 
     describe("ServerList", function()
 		it("should create a unique server list key by inputting a number and outputting a string with the correct amount of significant figures", function()

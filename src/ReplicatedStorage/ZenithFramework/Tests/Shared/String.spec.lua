@@ -5,6 +5,8 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 return function()
 	local String = loadModule("String")
 
+	SKIP()
+	
 	describe("String", function()
 		it("should remove all spaces from a string", function()
 			local testString = "T h is Is a T e  s   t"

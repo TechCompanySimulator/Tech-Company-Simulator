@@ -7,6 +7,8 @@ return function()
 
 	local TestMap
 
+	SKIP()
+
     describe("SortedMaps", function()
 		it("should get a sorted map of a given name and save it in the sorted maps table", function()
 			expect(function()

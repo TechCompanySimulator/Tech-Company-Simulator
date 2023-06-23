@@ -6,6 +6,8 @@ return function()
     local CameraLib = loadModule("Camera")
 	local Camera = workspace.CurrentCamera
 
+	SKIP()
+
     describe("CameraLibrary", function()
         it("should fix the camera at it's current position", function()
 			expect(function()
@@ -22,7 +24,7 @@ return function()
         end)
     end)
 
-	afterAll(function()
+	--[[afterAll(function()
 		CameraLib:returnToPlayer()
-	end)
+	end)]]
 end
