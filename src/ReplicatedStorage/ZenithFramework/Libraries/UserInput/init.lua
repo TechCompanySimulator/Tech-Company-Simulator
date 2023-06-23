@@ -6,7 +6,7 @@ if RunService:IsServer() then return {} end
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 
 local UserInput = {}
 
@@ -65,7 +65,7 @@ function UserInput.disconnectInput(inputType, inputId)
 			UserInput[inputType][inputId .. "Ended"] = nil
 		end
 
-		if Table.length(UserInput[inputType]) == 0 then
+		if Llama.Dictionary.length(UserInput[inputType]) == 0 then
 			UserInput[inputType] = nil
 		end
 	end

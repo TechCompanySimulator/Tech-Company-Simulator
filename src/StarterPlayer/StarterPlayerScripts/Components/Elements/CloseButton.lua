@@ -13,12 +13,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Roact = loadModule("Roact")
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 
 local CloseButton = Roact.Component:extend("CloseButton")
 
 function CloseButton:render()
-	return Roact.createElement("TextButton", Table.merge(self.props.buttonProps or {}, {
+	return Roact.createElement("TextButton", Llama.Dictionary.join(self.props.buttonProps or {}, {
 		FontSize = Enum.FontSize.Size14;
 		TextColor3 = Color3.new(1, 0, 0);
 		Text = "X";

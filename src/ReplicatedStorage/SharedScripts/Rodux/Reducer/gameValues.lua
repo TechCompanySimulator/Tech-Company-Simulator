@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Rodux = loadModule("Rodux")
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 
 local GameValues = ReplicatedStorage:WaitForChild("SharedScripts"):WaitForChild("GameValues")
 
@@ -17,7 +17,7 @@ return Rodux.createReducer(valuesTable, {
 	setGameValues = function(state, action)
 		local newTable = action.newTable
 		if newTable then
-			return Table.clone(newTable)
+			return Llama.Dictionary.copy(newTable)
 		end
 		return state
 	end;

@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local RoduxStore = loadModule("RoduxStore")
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 
 local setGameValues = loadModule("setGameValues")
 
@@ -15,7 +15,8 @@ local GameValues = {
 -- Adds a value with the given path to the game values table
 function GameValues:addValue(value, ...)
 	if RunService:IsClient() then return end
-	Table.createPath(self.values, value, ...)
+
+	Llama.createPath(self.values, value, ...)
 	RoduxStore:dispatch(setGameValues(self.values))
 end
 
