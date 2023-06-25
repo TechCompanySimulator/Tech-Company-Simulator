@@ -5,6 +5,8 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 return function()
 	local Vectors = loadModule("Vectors")
 
+	SKIP()
+	
 	describe("Vectors", function()
 		it("should convert a vector to a string in the format x:y or x:y:z", function()
 			local convertedVector

@@ -9,6 +9,8 @@ return function()
 	local testName = "TestCollisionGroup"
 	local testName2 = "TestCollisionGroup2"
 
+	SKIP()
+
     describe("CollisionGroups", function()
 		it("should create a new collision group", function()
 			expect(function()

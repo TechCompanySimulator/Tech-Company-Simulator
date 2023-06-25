@@ -8,9 +8,9 @@ return function()
 
 	local TestDataStore = DataStoreService:GetDataStore("TestDataStore")
 
-	DataStore.removeDataAsync(TestDataStore, "TestIndex")
-
 	SKIP()
+
+	--DataStore.removeDataAsync(TestDataStore, "TestIndex")
 
     describe("DataStore", function()
         it("should create or return the data cache table, and error if the given argument is not a datastore object", function()
@@ -164,10 +164,10 @@ return function()
 		end)
     end)
 
-	afterAll(function()
+	--[[afterAll(function()
 		task.spawn(function()
 			task.wait(6)
 			DataStore.removeDataAsync(TestDataStore, "TestIncrementIndex")
 		end)
-	end)
+	end)]]
 end

@@ -3,9 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Llama = loadModule("Llama")
-local Rodux = loadModule("Rodux")
 
-return Rodux.createReducer({}, {
+return {
 	setPlayerSession = function(state, action)
 		local userId = action.userId
 
@@ -70,76 +69,6 @@ return Rodux.createReducer({}, {
 		end
 	end;
 
-	addInventoryItem = function(state, action)
-		local userId = action.userId
-		local inventoryName = action.inventoryName
-		local category = action.category
-		local item = action.item
-
-		if userId and inventoryName and category and item then
-			local currentData = state[tostring(userId)] or {}
-			local currentInventory = currentData[inventoryName] or {}
-			local currentCategoryData = currentInventory[category] or {}
-
-			local uniqueId = 0
-			for id in pairs(currentCategoryData) do
-				uniqueId += 1
-
-				if tonumber(id) ~= uniqueId then break end
-			end
-
-			local newInventory = Llama.Dictionary.join(currentInventory, {
-				[category] = Llama.Dictionary.join(currentCategoryData, {
-					[tostring(uniqueId)] = item;
-				});
-			})
-
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = newInventory;
-				});
-			})
-		else
-			return state
-		end
-	end;
-
-	changeInventoryItem = function(state, action)
-		local userId = action.userId
-		local inventoryName = action.inventoryName
-		local category = action.category
-		local item = action.item
-		local newItem = action.newItem
-
-		if userId and inventoryName and category and item and newItem then
-			local currentData = state[tostring(userId)] or {}
-			local currentInventory = currentData[inventoryName] or {}
-			local currentCategoryData = currentInventory[category] or {}
-
-			local changeId
-			for id, invItem in pairs(currentCategoryData) do
-				if Llama.deepCheckEquality(item, invItem) then
-					changeId = id
-					break
-				end
-			end
-
-			if not changeId then return state end
-
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = Llama.Dictionary.join(currentInventory, {
-						[category] = Llama.Dictionary.join(currentCategoryData, {
-							[tostring(changeId)] = newItem;
-						});
-					});
-				});
-			})
-		else
-			return state
-		end
-	end;
-
 	updateDailyRewards = function(state, action)
 		local userId = action.userId
 
@@ -160,4 +89,4 @@ return Rodux.createReducer({}, {
 			return state
 		end
 	end;
-})
+}

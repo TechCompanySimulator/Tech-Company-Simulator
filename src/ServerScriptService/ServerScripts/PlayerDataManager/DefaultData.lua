@@ -7,7 +7,11 @@ local DefaultData = {
 	};
 	Warehouses = {};
 	Machines = {};
-	Inventory = {};
+	Inventory = {
+		Capacities = {
+			Tools = 10;
+		};
+	};
 }
 
 return DefaultData

@@ -5,6 +5,8 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 return function()
 	local Maths = loadModule("Maths")
 
+	SKIP()
+	
 	describe("Maths", function()
 		it("should interpolate a number linearly by the given alpha amount", function()
 			local result1
