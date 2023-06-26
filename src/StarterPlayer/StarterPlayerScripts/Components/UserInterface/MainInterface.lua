@@ -19,6 +19,12 @@ local player = Players.LocalPlayer
 
 local interfaceStates = {
 	gameplay = {
+		
+	};
+	buildMode = {
+		BuildModeUI = {
+			hasToggle = true;
+		};
 	};
 }
 
@@ -59,10 +65,10 @@ local function mainInterface()
 
 	local children = {}
 
-	for stateName, components in interfaceStates do
+	for _, components in interfaceStates do
 		for componentName, _ in pairs(components) do
 			children[componentName] = e(loadComponent(componentName), {
-				visible = stateName == state;
+				visible = interfaceStates[state][componentName] ~= nil;
 				toggleBinds = toggleBinds;
 				setTheme = componentName == "SettingsUI" and setTheme;
 			})
