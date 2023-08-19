@@ -6,7 +6,6 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local RoduxStore = loadModule("RoduxStore")
 local PlayerDataManager = loadModule("PlayerDataManager")
-local DailyRewardsConfig = loadModule("DailyRewardsConfig")
 local CurrencyManager = loadModule("CurrencyManager")
 
 local updateDailyRewards = loadModule("updateDailyRewards")
@@ -18,15 +17,16 @@ local DailyRewards = {}
 
 -- Calculate the reward based on the current login streak you're on
 function DailyRewards.calculateReward(streak)
-	local streakLength = #DailyRewardsConfig.rewards
+	local dailyRewardsConfig = RoduxStore:waitForValue("gameValues", "dailyRewardsConfig")
+	local streakLength = #dailyRewardsConfig.rewards
 	local streakNum = streak % streakLength
 	local numCycles = math.floor(streak / streakLength)
 	if streakNum == 0 then 
 		numCycles = math.floor((streak - 1) / streakLength)
 		streakNum = streakLength
 	end
-	local multiplier = DailyRewardsConfig.multiplier ^ numCycles
-	local reward = DailyRewardsConfig.rewards[streakNum]
+	local multiplier = dailyRewardsConfig.multiplier ^ numCycles
+	local reward = dailyRewardsConfig.rewards[streakNum]
 	return reward.currency, math.floor(reward.amount * multiplier)
 end
 
@@ -60,8 +60,9 @@ end
 
 -- Gets the previous time boundary for the given time
 function DailyRewards.getTimeBoundary(time)
-	local timeDiff = time - DailyRewardsConfig.baseTime.UnixTimestamp
-	local timer = DailyRewardsConfig.timer
+	local dailyRewardsConfig = RoduxStore:waitForValue("gameValues", "dailyRewardsConfig")
+	local timeDiff = time - dailyRewardsConfig.baseTime.UnixTimestamp
+	local timer = dailyRewardsConfig.timer
 	local numBoundaries = timeDiff / timer
 	local remainder = numBoundaries - math.floor(numBoundaries)
 	return time - remainder * timer
@@ -73,14 +74,15 @@ function DailyRewards.serverEvent(player)
 	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
 	if not playerData then return end
 
+	local dailyRewardsConfig = RoduxStore:waitForValue("gameValues", "dailyRewardsConfig")
 	local timeBoundary = DailyRewards.getTimeBoundary(timeNow)
-	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + DailyRewardsConfig.timer) then
+	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + dailyRewardsConfig.timer) then
 		DailyRewards.addStreak(player, playerData, timeNow, timeBoundary, 1)
 	else
 		-- Add this just incase the client fires the server slightly too early
 		task.wait(3)
 		timeBoundary = DailyRewards.getTimeBoundary(DateTime.now().UnixTimestamp)
-		if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + DailyRewardsConfig.timer) then
+		if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + dailyRewardsConfig.timer) then
 			DailyRewards.addStreak(player, playerData, timeNow, timeBoundary, 1)
 		end
 	end
@@ -94,8 +96,9 @@ function DailyRewards.playerAdded(player)
 	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
 	if not playerData then return end
 
+	local dailyRewardsConfig = RoduxStore:waitForValue("gameValues", "dailyRewardsConfig")
 	local timeBoundary = DailyRewards.getTimeBoundary(loginTime)
-	local timer = DailyRewardsConfig.timer
+	local timer = dailyRewardsConfig.timer
 	
 	if playerData.DailyRewards and playerData.DailyRewards.streak > 0 and timeBoundary == (playerData.DailyRewards.timeBoundary + timer) then
 		DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, 1)
@@ -117,10 +120,11 @@ function DailyRewards.playerRemoving(player)
 	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
 	
 	if playerData and playerData.DailyRewards and playerData.DailyRewards.timeBoundary ~= timeBoundary then
+		local dailyRewardsConfig = RoduxStore:waitForValue("gameValues", "dailyRewardsConfig")
 		local numBoundariesPassed = 0
 		local prevTimeBoundary = playerData.DailyRewards.timeBoundary
 		local timeDiff = timeBoundary - prevTimeBoundary
-		numBoundariesPassed += math.floor(timeDiff / DailyRewardsConfig.timer)
+		numBoundariesPassed += math.floor(timeDiff / dailyRewardsConfig.timer)
 		DailyRewards.addStreak(player, playerData, leaveTime, timeBoundary, numBoundariesPassed)
 	end
 

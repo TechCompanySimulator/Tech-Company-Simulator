@@ -5,20 +5,18 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 local Rodux = loadModule("Rodux")
 local Llama = loadModule("Llama")
 
-local GameValues = ReplicatedStorage:WaitForChild("SharedScripts"):WaitForChild("GameValues")
-
-local valuesTable = {}
-
-for _, module in pairs(GameValues:GetChildren()) do
-	valuesTable[module.Name] = require(module)
+local initialValues = {}
+for _, module in pairs(script:GetChildren()) do
+	initialValues[module.Name] = require(module)
 end
 
-return Rodux.createReducer(valuesTable, {
+return Rodux.createReducer(initialValues, {
 	setGameValues = function(state, action)
 		local newTable = action.newTable
 		if newTable then
 			return Llama.Dictionary.copy(newTable)
 		end
+		
 		return state
 	end;
 })
