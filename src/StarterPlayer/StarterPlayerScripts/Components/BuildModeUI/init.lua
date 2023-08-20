@@ -4,6 +4,7 @@ local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.Zeni
 
 local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
+local RoduxStore = loadModule("RoduxStore")
 
 local ThemeContext = loadComponent("ThemeContext")
 local BuildModeButtons = loadComponent("BuildModeButtons")
@@ -12,24 +13,19 @@ local BuildModeCategoryFrame = loadComponent("BuildModeCategoryFrame")
 local e = React.createElement
 local useState = React.useState
 
-local categories = {
-	machines = {
-		layoutOrder = 1;
-		name = "Machines";
-	};
-	decorations = {
-		layoutOrder = 2;
-		name = "Decorations";
-	};
-}
-
 local function buildModeUI(props)
 	local selectionInfo, setSelectionInfo = useState({})
 
+	local categories = RoduxStore:getState().gameValues.shopConfig.categories
+
 	local categoryFrames = {}
-	for category, info in pairs(categories) do
+	for category, info in categories do
+		local categoryConfig = RoduxStore:getState().gameValues.shopConfig[category]
 		local frame = e(BuildModeCategoryFrame, {
+			layoutOrder = info.layoutOrder;
 			visible = selectionInfo.category == category;
+			config = categoryConfig;
+			category = category;
 			selectionInfo = selectionInfo;
 			setSelectionInfo = setSelectionInfo;
 		})
@@ -49,5 +45,7 @@ local function buildModeUI(props)
 		}
 	)
 end
+
+
 
 return buildModeUI

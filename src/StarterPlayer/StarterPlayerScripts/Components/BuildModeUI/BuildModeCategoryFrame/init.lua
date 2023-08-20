@@ -16,6 +16,21 @@ local e = React.createElement
 local camera = workspace.CurrentCamera
 
 local function buildModeUI(props)
+	local config = props.config
+	local tiles = {}
+	-- Can change this in the future to have separate pages for each category instead of having all categories in this one frame
+	for variation, items in config do
+		for _, itemData in items do
+			table.insert(tiles, e(BuildModeItem, {
+				itemData = itemData;
+				category = props.category;
+				variation = variation;
+				selectionInfo = props.selectionInfo;
+				setSelectionInfo = props.setSelectionInfo;
+			}))
+		end
+	end
+
 	return e(frameTemplate, {
 		[RoactTemplate.Root] = {
 			Visible = props.visible;
@@ -35,9 +50,7 @@ local function buildModeUI(props)
 						VerticalAlignment = Enum.VerticalAlignment.Top;
 						SortOrder = Enum.SortOrder.LayoutOrder;
 					};
-					tiles = e(React.Fragment, {}, {
-						Item = e(BuildModeItem);
-					});
+					tiles = e(React.Fragment, {}, tiles);
 				});
 			}
 		};

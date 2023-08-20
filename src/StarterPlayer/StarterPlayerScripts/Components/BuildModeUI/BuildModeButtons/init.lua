@@ -18,7 +18,7 @@ local function buildModeButtons(props)
 		local button = e(buttonTemplate, {
 			[RoactTemplate.Root] = {
 				LayoutOrder = info.layoutOrder;
-				Text = info.name;
+				Text = info.displayName;
 				[React.Event.MouseButton1Click] = function()
 					props.setSelectionInfo(Llama.Dictionary.join(props.selectionInfo, {
 						category = category;
