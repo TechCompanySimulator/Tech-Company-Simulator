@@ -1,27 +1,28 @@
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 
 if RunService:IsServer() then return {} end
 
-local ProximityManager = {}
+local ProximityManager = {
+	enabled = {}
+}
 ProximityManager.__index = ProximityManager
-ProximityManager.enabled = {}
 
-function ProximityManager:Enable(groupName)
+function ProximityManager:enable(groupName : string) : nil
 	ProximityManager.enabled[groupName] = nil
-	ProximityManager._update()
+	ProximityManager:update()
 end
 
-function ProximityManager:Disable(groupName)
+function ProximityManager:disable(groupName : string) : nil
 	ProximityManager.enabled[groupName] = false
-	ProximityManager._update()
+	ProximityManager:update()
 end
 
-function ProximityManager._update()
+function ProximityManager:update() : nil
 	local isEnabled = true
 
-	for _, groupEnabled in pairs(ProximityManager.enabled) do
+	for _, groupEnabled in ProximityManager.enabled do
 		if groupEnabled == false then
 			isEnabled = false
 			break
@@ -33,7 +34,7 @@ function ProximityManager._update()
 	end
 end
 
-function ProximityManager.reset()
+function ProximityManager:reset() : nil
 	ProximityManager.enabled = {}
 
 	if not ProximityPromptService.Enabled then
