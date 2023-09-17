@@ -14,12 +14,12 @@ function Maid.new()
 end
 
 -- Stores a task in the maid
-function Maid:GiveTask(task)
+function Maid:giveTask(task)
 	table.insert(self.connections, task)
 end
 
 -- Clears all tasks stored in the maid
-function Maid:DoCleaning()
+function Maid:doCleaning()
 	for _, task in pairs(self.connections) do
 		if typeof(task) == "RBXScriptConnection" then
 			task:Disconnect()
