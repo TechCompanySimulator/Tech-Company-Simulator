@@ -9,7 +9,7 @@ return Rodux.createReducer({}, {
 	addServerMachine = function(state : table, action : table) : table
 		local userId = action.userId
 		local machine = action.machine
-		local guid = machine.machineGUID
+		local guid = machine.guid
 
 		local playerMachines = state[tostring(userId)] or {}
 
@@ -23,7 +23,7 @@ return Rodux.createReducer({}, {
 	removeServerMachine = function(state : table, action : table) : table
 		local userId = action.userId
 		local machine = action.machine
-		local guid = machine.machineGUID
+		local guid = machine.guid
 
 		local playerMachines = state[tostring(userId)] or {}
 
@@ -37,7 +37,7 @@ return Rodux.createReducer({}, {
 	updateServerMachine = function(state : table, action : table) : table
 		local userId = action.userId
 		local machine = action.machineData
-		local guid = machine.machineGUID
+		local guid = machine.guid
 
 		local playerMachines = state[tostring(userId)] or {}
 
