@@ -19,6 +19,9 @@ local player = Players.LocalPlayer
 
 local interfaceStates = {
 	gameplay = {
+		MachinePrompt = {
+			hasToggle = true;
+		};
 	};
 }
 
