@@ -6,5 +6,5 @@ local BuildModeSystem = loadModule("BuildModeSystem")
 
 task.wait(5)
 
-BuildModeSystem.enter()
+--BuildModeSystem.enter()
 

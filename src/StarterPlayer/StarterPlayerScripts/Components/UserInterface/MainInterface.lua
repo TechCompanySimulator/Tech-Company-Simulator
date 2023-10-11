@@ -26,6 +26,9 @@ local interfaceStates = {
 			hasToggle = true;
 		};
 	};
+	plotSelection = {
+		PlotSelectionUI = {};
+	};
 }
 
 local toggleBinds = {}
@@ -44,7 +47,7 @@ for _, components in interfaceStates do
 end
 
 local function mainInterface()
-	local state, setState = useState("gameplay")
+	local state, setState = useState("plotSelection")
 
 	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
 	local settingsData = playerData.Settings or {}

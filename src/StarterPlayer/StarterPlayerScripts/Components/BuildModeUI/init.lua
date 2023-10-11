@@ -46,6 +46,4 @@ local function buildModeUI(props)
 	)
 end
 
-
-
 return buildModeUI
