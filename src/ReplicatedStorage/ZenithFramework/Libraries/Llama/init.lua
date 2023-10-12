@@ -5,6 +5,7 @@ local Llama = {
 	Set = require(script.Set);
 
 	deepCheckEquality = require(script.deepCheckEquality);
+	deepClone = require(script.deepClone);
 	equalObjects = require(script.equalObjects);
 	followPath = require(script.followPath);
 	isEmpty = require(script.isEmpty);
