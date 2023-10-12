@@ -1,3 +1,9 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+
+local RoduxStore = loadModule("RoduxStore")
+
 local MachineUtility = {
 	METAL_PROPERTIES = {
 		Material = Enum.Material.Metal;
@@ -17,6 +23,27 @@ function MachineUtility.getPlayerFolder(player : Player) : Instance
 	-- TODO: Implement
 
 	return workspace
+end
+
+function MachineUtility.isItemResearched(player : Player, machineType : string, itemIndex : number) : boolean
+	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)] or {}
+	local researchLevels = playerData.ResearchLevels or {}
+	local machineLevel = researchLevels[machineType] or 0
+
+	return machineLevel >= itemIndex
+end
+
+function MachineUtility.getUpgradeCost(machineType : string, levelType : string, level : number) : table
+	levelType = string.lower(levelType)
+	machineType = string.lower(machineType)
+
+	local machineData = RoduxStore:waitForValue("gameValues", "machines", machineType, levelType .. "Upgrades")
+
+	return machineData[level - 1]
+end
+
+function MachineUtility.isLevelValid(machineType : string, levelType : string, level : number) : boolean
+	return MachineUtility.getUpgradeCost(machineType, levelType, level) ~= nil
 end
 
 -- Updates the physical properties of a model, based on their name and the properties passed in

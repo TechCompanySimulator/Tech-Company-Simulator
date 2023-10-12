@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -7,9 +8,12 @@ local CurrencyManager = loadModule("CurrencyManager")
 local Llama = loadModule("Llama")
 local MachineUtility = loadModule("MachineUtility")
 local RoduxStore = loadModule("RoduxStore")
+local addServerMachine = loadModule("addServerMachine")
+local removeServerMachine = loadModule("removeServerMachine")
+local updateServerMachine = loadModule("updateServerMachine")
 
-local upgradeMachineLevel = getDataStream("UpgradeMachineLevel", "RemoteFunction")
-local setBuildOption = getDataStream("SetBuildOption", "RemoteFunction")
+local upgradeMachineLevel = getDataStream("UpgradeMachineLevel", "RemoteEvent")
+local setBuildOption = getDataStream("SetBuildOption", "RemoteEvent")
 
 local assets = ReplicatedStorage.Assets
 
@@ -19,21 +23,32 @@ Machine.__index = Machine
 function Machine.new(player : Player, data : table) : table
 	local machineObj = assets.Machines[data.machineType .. "Machine"]:Clone()
 
-	local self = setmetatable(Llama.Dictionary.join(data, {
+	local self = setmetatable(Llama.Dictionary.join({
 		player = player;
 		machine = machineObj;
-	}), Machine)
+		guid = HttpService:GenerateGUID(false);
+		speedLevel = 1;
+		qualityLevel = 1
+	}, data), Machine)
 
 	self:placeMachine()
+
+	warn(self)
+
+	RoduxStore:dispatch(addServerMachine(player.UserId, self))
+end
+
+function Machine:_writeToRodux() : nil
+	RoduxStore:dispatch(updateServerMachine(self.player.UserId, self))
 end
 
 function Machine:destroy() : nil
+	RoduxStore:dispatch(removeServerMachine(self.player.UserId, self))
 
+	self.machine:Destroy()
 end
 
 function Machine:placeMachine() : nil
-	print(self.orientation)
-	print(self.pos)
 	self.machine:SetPrimaryPartCFrame(CFrame.new(self.pos)) --CFrame.fromOrientation(self.orientation) * CFrame.new(self.pos)
 
 	self.machine.Parent = MachineUtility.getPlayerFolder(self.player)
@@ -43,9 +58,14 @@ function Machine:moveMachine() : nil
 	-- TODO: Update self.orientation and self.pos
 
 	self:placeMachine()
+
+	-- TODO: Decide if needed?
+	--self:_writeToRodux()
 end
 
 function Machine:upgradeLevel(levelType : string) : boolean
+	levelType = string.lower(levelType)
+
 	local upgradeValues = RoduxStore:waitForValue("gameValues", "machines", self.machineType, levelType .. "Upgrades")
 	local currentLevel = self[levelType .. "Level"]
 
@@ -62,11 +82,15 @@ function Machine:upgradeLevel(levelType : string) : boolean
 		self[levelType .. "Level"] = currentLevel + 1
 	end
 
+	self:_writeToRodux()
+
 	return success
 end
 
 function Machine:setBuildOption(option : string) : boolean
 	-- TODO: Checks to see if the option is valid and unlocked
+
+	self:_writeToRodux()
 end
 
 function Machine:updatePropertiesByName(partPropertiesMap : table) : nil
@@ -87,6 +111,7 @@ task.spawn(function()
 		setmetatable(require(module), Machine)
 	end
 
+	-- TODO: REMOVE
 	while #Players:GetPlayers() == 0 do
 		task.wait()
 	end

@@ -1,16 +1,16 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Button = loadModule("Button")
-local CloseButton = loadModule("CloseButton")
 local Llama = loadModule("Llama")
 local MachineSystem = loadModule("MachineSystem")
 local Maid = loadModule("Maid")
 local React = loadModule("React")
 local RoactRodux = loadModule("RoactRodux")
 local RoactTemplate = loadModule("RoactTemplate")
+local Button = loadComponent("Button")
+local CloseButton = loadComponent("CloseButton")
 
 local uiTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.MachinePrompt)
 
@@ -24,7 +24,7 @@ local player = Players.LocalPlayer
 local function getBuildItemButtons(props : table, machineObj : table) : table
 	if not machineObj  or not props.playerResearchLevels then return {} end
 
-	local machineType = machineObj.machineType
+	local machineType = string.lower(machineObj.machineType)
 	local playerLevel = props.playerResearchLevels[machineType] or 0
 
 	local buttons = {}
@@ -34,11 +34,9 @@ local function getBuildItemButtons(props : table, machineObj : table) : table
 
 		table.insert(buttons, e(Button, {
 			buttonProps = {
-				Size = UDim2.new(0.8, 0, 0.07, 0);
-				LayoutOrder = ind;
+				Size = UDim2.new(0.8, 0, 0.14, 0);
 			};
 			text = displayName;
-			buttonType = buttonType;
 			onClick = function()
 				machineObj:setBuildOption(ind)
 			end;
@@ -49,9 +47,10 @@ local function getBuildItemButtons(props : table, machineObj : table) : table
 end
 
 local function getUpgradeButtons(props : table, machineObj : table) : table
+	warn(machineObj)
 	if not machineObj then return {} end
 
-	local machineType = machineObj.machineType
+	local machineType = string.lower(machineObj.machineType)
 	local levels = {
 		Speed = machineObj.speedLevel;
 		Quality = machineObj.qualityLevel;
@@ -68,13 +67,13 @@ local function getUpgradeButtons(props : table, machineObj : table) : table
 
 		table.insert(buttons, e(Button, {
 			buttonProps = {
-				Size = UDim2.new(0.8, 0, 0.07, 0);
+				Size = UDim2.new(0.8, 0, 0.14, 0);
 				LayoutOrder = 100 + string.len(levelType);
 			};
 			text = levelType .. " Upgrade " .. level .. ": " .. upgradeDetails.cost .. " " .. upgradeDetails.currency;
 			buttonType = "Special";
 			onClick = function()
-				machineObj:upgradeLevel(levelType)
+				machineObj:upgradeLevel(string.lower(levelType))
 			end;
 		}))
 	end
@@ -83,15 +82,17 @@ local function getUpgradeButtons(props : table, machineObj : table) : table
 end
 
 local function machinePrompt(props)
-	local isEnabled, setEnabled = useState(false)
+	local state, setState = useState(false)
 	local machineObj = useRef()
+	local toggleBinds = props.toggleBinds.MachinePrompt
 
 	useEffect(function()
 		local maid = Maid.new()
 
 		maid:giveTask(MachineSystem.openMachinePrompt:connect(function(_machineObj)
 			machineObj.current = _machineObj
-			setEnabled(true)
+			toggleBinds.setBind(true)
+			setState(true)
 		end))
 
 		return function()
@@ -101,24 +102,31 @@ local function machinePrompt(props)
 
 	return e(uiTemplate, {
 		[RoactTemplate.Root] = 	{
-			Visible = props.toggleBinds.MachinePrompt.bind:map(function(bool)
-				return bool and isEnabled
+			Visible = toggleBinds.bind:map(function(bool)
+				return bool and props.visible
 			end);
+
+			[React.Children] = {
+				CloseButton = e(CloseButton, {
+					onClick = function()
+						machineObj.current = nil
+						toggleBinds.setBind(false)
+						setState(false)
+					end;
+				});
+			};
+		};
+
+		Title = {
+			Text = (machineObj.current and machineObj.current.machineType or "") .. " Machine";
 		};
 
 		ButtonFrame = {
-			[React.Children] = e(React.Fragment, {}, Llama.List.join(
+			[React.Children] = Llama.List.join(
 				getBuildItemButtons(props, machineObj.current),
 				getUpgradeButtons(props, machineObj.current)
-			));
+			);
 		};
-
-		CloseButton = e(CloseButton, {
-			onClick = function()
-				machineObj.current = nil
-				setEnabled(false)
-			end;
-		});
 	})
 end
 

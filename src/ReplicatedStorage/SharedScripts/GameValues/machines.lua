@@ -1,5 +1,5 @@
 return {
-	phones = {
+	phone = {
 		machineCost = 5000; -- TODO: Correct Value
 		buildItems = {
 			"RoBrick 1990";
@@ -85,7 +85,7 @@ return {
 			};
 		};
 	};
-	computers = {
+	pc = {
 		machineCost = 5000; -- TODO: Correct Value
 		buildItems = {
 			"Genesis";
