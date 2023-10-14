@@ -89,6 +89,19 @@ return {
 			return state
 		end
 	end;
+
+	setPlayerLanguage = function(state, action)
+		local userId = action.userId
+		if not userId then return state end
+
+		local currentData = state[tostring(userId)] or {}
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentData, {
+				Language = action.language;
+			});
+		})
+	end;
 }
 
 
