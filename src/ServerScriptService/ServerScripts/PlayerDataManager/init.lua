@@ -5,12 +5,11 @@ local RunService = game:GetService("RunService")
 local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local DefaultData = loadModule("DefaultData")
-local Table = loadModule("Table")
+local Llama = loadModule("Llama")
 local RoduxStore = loadModule("RoduxStore")
-local CONFIG = loadModule("CONFIG")
 -- local PlayerOrderedDataManager = loadModule("PlayerOrderedDataManager")
 local ProfileService = loadModule("ProfileService")
-
+local CONFIG = loadModule("CONFIG")
 local setPlayerSession = loadModule("setPlayerSession")
 
 local playerDataLoaded = getDataStream("playerDataLoaded", "BindableEvent")
@@ -101,7 +100,7 @@ function PlayerDataManager.playerRemoving(player)
 	end
 
 	-- Remove data from Rodux store
-	RoduxStore:dispatch(setPlayerSession(player.UserId, Table.None))
+	RoduxStore:dispatch(setPlayerSession(player.UserId, Llama.None))
 
 	PlayerDataManager.leftBools[tostring(player.UserId)] = nil
 end
