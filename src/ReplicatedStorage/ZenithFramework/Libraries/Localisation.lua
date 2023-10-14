@@ -9,7 +9,7 @@ local setPlayerLanguage = loadModule("setPlayerLanguage")
 
 local setPlayerLanguageEvent = getDataStream("SetPlayerLanguage", "RemoteEvent")
 
-local Localization = {
+local Localisation = {
 	translators = {};
 	sourceLanguageCode = "en";
 	languages = {
@@ -19,24 +19,24 @@ local Localization = {
 }
 
 local foundSourceTranslator = pcall(function()
-	local sourceTranslator = LocalizationService:GetTranslatorForLocaleAsync(Localization.sourceLanguageCode)
+	local sourceTranslator = LocalizationService:GetTranslatorForLocaleAsync(Localisation.sourceLanguageCode)
 
-	Localization.translators[Localization.sourceLanguageCode] = sourceTranslator
+	Localisation.translators[Localisation.sourceLanguageCode] = sourceTranslator
 end)
 
 -- Translates any text to the source language
-function Localization.translateToSource(text, object)
+function Localisation.translateToSource(text, object)
 	object = if object then object else game
 
 	if foundSourceTranslator then
-		return Localization.translators[Localization.sourceLanguageCode]:Translate(object, text)
+		return Localisation.translators[Localisation.sourceLanguageCode]:Translate(object, text)
 	end
 
 	return false
 end
 
 -- Translates any text into the given language, if that language is supported
-function Localization:translate(text, lang, object)
+function Localisation:translate(text, lang, object)
 	if not typeof(lang) == "string" or not table.find(self.languages, lang) then return end
 
 	local translator = self.translators[lang]
@@ -54,10 +54,10 @@ function Localization:translate(text, lang, object)
 end
 
 -- Changes the rodux store to reflect the new language, and update UI with the translated text
-function Localization.setPlayerLanguage(player, lang)
+function Localisation.setPlayerLanguage(player, lang)
 	if RunService:IsClient()
 		or typeof(lang) ~= "string"
-		or not table.find(Localization.languages, lang)
+		or not table.find(Localisation.languages, lang)
 	then
 		return
 	end
@@ -66,7 +66,7 @@ function Localization.setPlayerLanguage(player, lang)
 end
 
 if RunService:IsServer() then
-	setPlayerLanguageEvent.OnServerEvent:Connect(Localization.setPlayerLanguage)
+	setPlayerLanguageEvent.OnServerEvent:Connect(Localisation.setPlayerLanguage)
 end
 
-return Localization
+return Localisation
