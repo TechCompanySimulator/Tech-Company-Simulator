@@ -5,14 +5,14 @@ local RunService = game:GetService("RunService")
 local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local RoduxStore = loadModule("RoduxStore")
-local PlayerDataManager = loadModule("PlayerDataManager")
 local DailyRewardsConfig = loadModule("DailyRewardsConfig")
 local CurrencyManager = loadModule("CurrencyManager")
+local PlayerDataManager = RunService:IsServer() and loadModule("PlayerDataManager")
 
 local updateDailyRewards = loadModule("updateDailyRewards")
 
 local dailyRewardsEvent = getDataStream("DailyRewardsEvent", "RemoteEvent")
-local playerDataLoaded = getDataStream("playerDataLoaded", "BindableEvent")
+local playerDataLoaded = RunService:IsServer() and getDataStream("playerDataLoaded", "BindableEvent")
 
 local DailyRewards = {}
 
@@ -21,12 +21,15 @@ function DailyRewards.calculateReward(streak)
 	local streakLength = #DailyRewardsConfig.rewards
 	local streakNum = streak % streakLength
 	local numCycles = math.floor(streak / streakLength)
+
 	if streakNum == 0 then 
 		numCycles = math.floor((streak - 1) / streakLength)
 		streakNum = streakLength
 	end
+
 	local multiplier = DailyRewardsConfig.multiplier ^ numCycles
 	local reward = DailyRewardsConfig.rewards[streakNum]
+
 	return reward.currency, math.floor(reward.amount * multiplier)
 end
 
@@ -35,11 +38,13 @@ if RunService:IsClient() then return DailyRewards end
 -- Connect this event before the start functions are ran
 function DailyRewards:initiate()
 	playerDataLoaded.Event:Connect(DailyRewards.playerAdded)
+	PlayerDataManager:addLeavingCallback(DailyRewards.playerRemoving)
 end
 
 -- Awards the reward to the player
 function DailyRewards.awardReward(player, streak)
 	local currency, amount = DailyRewards.calculateReward(streak)
+
 	CurrencyManager:transact(player, currency, amount)
 end
 
@@ -64,6 +69,7 @@ function DailyRewards.getTimeBoundary(time)
 	local timer = DailyRewardsConfig.timer
 	local numBoundaries = timeDiff / timer
 	local remainder = numBoundaries - math.floor(numBoundaries)
+
 	return time - remainder * timer
 end
 
@@ -115,23 +121,17 @@ function DailyRewards.playerRemoving(player)
 	local leaveTime = DateTime.now().UnixTimestamp
 	local timeBoundary = DailyRewards.getTimeBoundary(leaveTime)
 	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
-	
+
 	if playerData and playerData.DailyRewards and playerData.DailyRewards.timeBoundary ~= timeBoundary then
 		local numBoundariesPassed = 0
 		local prevTimeBoundary = playerData.DailyRewards.timeBoundary
 		local timeDiff = timeBoundary - prevTimeBoundary
+
 		numBoundariesPassed += math.floor(timeDiff / DailyRewardsConfig.timer)
 		DailyRewards.addStreak(player, playerData, leaveTime, timeBoundary, numBoundariesPassed)
-	end
-
-	if not PlayerDataManager.leftBools[tostring(player.UserId)] then
-		PlayerDataManager.leftBools[tostring(player.UserId)] = 1
-	else
-		PlayerDataManager.leftBools[tostring(player.UserId)] += 1
 	end
 end
 
 dailyRewardsEvent.OnServerEvent:Connect(DailyRewards.serverEvent)
-Players.PlayerRemoving:Connect(DailyRewards.playerRemoving)
 
 return DailyRewards

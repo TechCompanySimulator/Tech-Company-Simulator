@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -14,22 +15,20 @@ local setPlayerSession = loadModule("setPlayerSession")
 
 local playerDataLoaded = getDataStream("playerDataLoaded", "BindableEvent")
 
+local profiles = {}
+
 local ProfileStore = ProfileService.GetProfileStore(
 	"PlayerData",
 	DefaultData
 )
 
 local PlayerDataManager = {
-	leftBools = {};
+	leavingCallbacks = {};
 }
 
-PlayerDataManager.TOTAL_LEAVING_FUNCS = 2
-
-local profiles = {}
-
 -- Sets up the playerAdded function for all players already in the game and for new players
-function PlayerDataManager:start()
-	for _, player in pairs(Players:GetPlayers()) do
+function PlayerDataManager:start() : nil
+	for _, player in Players:GetPlayers() do
 		task.spawn(PlayerDataManager.playerAdded, player)
 	end
 
@@ -40,24 +39,40 @@ function PlayerDataManager:start()
 end
 
 -- Dispatches the new data to rodux for UI changes and then updates the data store directly
-function PlayerDataManager:updatePlayerData(userId, action, ...)
+function PlayerDataManager:updatePlayerData(userId : number, action, ...) : boolean
 	RoduxStore:dispatch(action(userId, ...))
-	local newData = RoduxStore:getState().playerData[tostring(userId)]
+
+	local newData = RoduxStore:waitForValue("playerData")[tostring(userId)]
 	local player = Players:GetPlayerByUserId(userId)
-	if not newData or not player or not profiles[player] then return end
+
+	if not newData or not player or not profiles[player] then return false end
 
 	profiles[player].Data = newData
+
+	return true
 end
 
-function PlayerDataManager:resetData(userId)
+function PlayerDataManager:resetData(userId : number) : nil
 	PlayerDataManager:updatePlayerData(userId, setPlayerSession, DefaultData)
 end
 
-function PlayerDataManager.playerAdded(player)
+function PlayerDataManager:addLeavingCallback(callback : (Player) -> nil) : string
+	local guid = HttpService:GenerateGUID(false)
+	PlayerDataManager.leavingCallbacks[guid] = callback
+
+	return guid
+end
+
+function PlayerDataManager:removeLeavingCallback(guid : string) : nil
+	PlayerDataManager.leavingCallbacks[guid] = nil
+end
+
+function PlayerDataManager.playerAdded(player : Player) : nil
 	local profile = ProfileStore:LoadProfileAsync("Player_" .. player.UserId)
-	if profile ~= nil then
+
+	if profile then
 		-- Reset data for testing if enabled
-		if CONFIG.RESET_PLAYER_DATA and RunService:IsStudio() then 
+		if CONFIG.RESET_PLAYER_DATA and RunService:IsStudio() then
 			profile.Data = DefaultData
 		end
 
@@ -68,8 +83,10 @@ function PlayerDataManager.playerAdded(player)
 			-- The profile could've been loaded on another Roblox server:
 			player:Kick()
 		end)
-		if player:IsDescendantOf(Players) == true then
+
+		if player:IsDescendantOf(Players) then
 			profiles[player] = profile
+
 			-- A profile has been successfully loaded
 			RoduxStore:dispatch(setPlayerSession(player.UserId, profile.Data))
 
@@ -82,27 +99,41 @@ function PlayerDataManager.playerAdded(player)
 	else
 		-- The profile couldn't be loaded possibly due to other
 		-- Roblox servers trying to load this profile at the same time:
-		player:Kick() 
+		player:Kick()
 	end
 end
 
-function PlayerDataManager.playerRemoving(player)
-	-- Here we wait for all the other leaving functions which effect data to be completed before removing the players data from rodux and saving it
-	if not PlayerDataManager.leftBools[tostring(player.UserId)] or PlayerDataManager.leftBools[tostring(player.UserId)] < PlayerDataManager.TOTAL_LEAVING_FUNCS then
-		while not PlayerDataManager.leftBools[tostring(player.UserId)] or PlayerDataManager.leftBools[tostring(player.UserId)] < PlayerDataManager.TOTAL_LEAVING_FUNCS do
-			task.wait(0.1)
-		end
+function PlayerDataManager.playerRemoving(player : Player) : nil
+	local callbacksCompleted = Llama.Dictionary.map(PlayerDataManager.leavingCallbacks, function()
+		return false
+	end)
+
+	-- Run all callbacks that have been connected to the player leaving event
+	for guid, callback in PlayerDataManager.leavingCallbacks do
+		task.spawn(function() : nil
+			local success, err = pcall(callback, player)
+
+			if not success then
+				warn(err)
+			end
+
+			callbacksCompleted[guid] = nil
+		end)
+	end
+
+	-- Wait for all callbacks to be completed
+	while next(callbacksCompleted) ~= nil do
+		task.wait(0.1)
 	end
 
 	local profile = profiles[player]
-	if profile ~= nil then
+
+	if profile then
 		profile:Release()
 	end
 
 	-- Remove data from Rodux store
 	RoduxStore:dispatch(setPlayerSession(player.UserId, Llama.None))
-
-	PlayerDataManager.leftBools[tostring(player.UserId)] = nil
 end
 
 return PlayerDataManager
