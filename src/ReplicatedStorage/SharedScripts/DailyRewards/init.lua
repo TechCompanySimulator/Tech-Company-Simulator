@@ -50,7 +50,7 @@ end
 
 -- Create a new streak for the player, saving the previous time interval unix timestamp and the login time
 function DailyRewards.newStreak(player, loginTime, timeBoundary)
-	PlayerDataManager:updatePlayerData(player.UserId, updateDailyRewards, timeBoundary, loginTime, 1)
+	PlayerDataManager:updatePlayerData(player, updateDailyRewards, timeBoundary, loginTime, 1)
 	DailyRewards.awardReward(player, 1)
 end
 
@@ -59,7 +59,7 @@ function DailyRewards.addStreak(player, playerData, loginTime, timeBoundary, num
 	local currentTable = playerData.DailyRewards
 	local newStreak = currentTable.streak + numStreaks
 	
-	PlayerDataManager:updatePlayerData(player.UserId, updateDailyRewards, timeBoundary, loginTime, newStreak)
+	PlayerDataManager:updatePlayerData(player, updateDailyRewards, timeBoundary, loginTime, newStreak)
 	DailyRewards.awardReward(player, newStreak)
 end
 

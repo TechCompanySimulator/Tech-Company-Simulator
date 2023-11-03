@@ -34,7 +34,7 @@ function SettingsManager.changePlayerSetting(player : Player, setting : string, 
 		return false
 	end
 
-	PlayerDataManager:updatePlayerData(player.UserId, changePlayerSetting, setting, value)
+	PlayerDataManager:updatePlayerData(player, changePlayerSetting, setting, value)
 
 	return true
 end

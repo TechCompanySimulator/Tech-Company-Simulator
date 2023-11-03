@@ -39,11 +39,12 @@ function PlayerDataManager:start() : nil
 end
 
 -- Dispatches the new data to rodux for UI changes and then updates the data store directly
-function PlayerDataManager:updatePlayerData(userId : number, action, ...) : boolean
+function PlayerDataManager:updatePlayerData(player : Player, action, ...) : boolean
+	local userId = player.UserId
+
 	RoduxStore:dispatch(action(userId, ...))
 
 	local newData = RoduxStore:waitForValue("playerData")[tostring(userId)]
-	local player = Players:GetPlayerByUserId(userId)
 
 	if not newData or not player or not profiles[player] then return false end
 
@@ -52,8 +53,8 @@ function PlayerDataManager:updatePlayerData(userId : number, action, ...) : bool
 	return true
 end
 
-function PlayerDataManager:resetData(userId : number) : nil
-	PlayerDataManager:updatePlayerData(userId, setPlayerSession, DefaultData)
+function PlayerDataManager:resetData(player : Player) : nil
+	PlayerDataManager:updatePlayerData(player, setPlayerSession, DefaultData)
 end
 
 function PlayerDataManager:addLeavingCallback(callback : (Player) -> nil) : string
