@@ -45,9 +45,10 @@ return function(props)
 	local isActive = props.buttonType ~= "Disabled"
 
 	return e(buttonTemplate, {
-		[RoactTemplate.Root] = Llama.Dictionary.join({
+		[RoactTemplate.Root] = props.buttonProps or {};
+
+		Click = {
 			Active = isActive;
-			AutoButtonColor = isActive;
 			BackgroundColor3 = isHovered:map(function(bool)
 				local index = bool and "hover" or "default"
 				return buttonColours[index]
@@ -80,14 +81,18 @@ return function(props)
 					props.onMouseLeave(...)
 				end
 			end else nil;
-		}, props.buttonProps or {});
+		};
 
 		Text = {
 			Text = props.text or "";
 		};
 
+		UIStroke = {
+			Thickness = camera.ViewportSize.Y * 0.002;
+		};
+
 		TextUIStroke = {
-			Thickness = camera.ViewportSize.Y * 0.002
+			Thickness = camera.ViewportSize.Y * 0.002;
 		}
 	})
 end
