@@ -6,16 +6,21 @@ local Llama = loadModule("Llama")
 local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
 
-local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.Elements.CloseButton)
+local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.CloseButton)
 
 local e = React.createElement
 
-local function closeButton(props)
+return function(props)
+	local zIndex = props.ZIndex or 100
+
 	return e(buttonTemplate, {
 		[RoactTemplate.Root] = Llama.Dictionary.join({
 			[React.Event.MouseButton1Click] = props.onClick;
-		}, props.buttonProps or {})
+			ZIndex = zIndex;
+		}, props.buttonProps or {});
+
+		Text = {
+			ZIndex = zIndex + 1;
+		};
 	})
 end
-
-return closeButton
