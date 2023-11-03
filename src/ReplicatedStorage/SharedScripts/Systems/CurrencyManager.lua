@@ -3,7 +3,7 @@ local RunService = game:GetService("RunService")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local PlayerDataManager = loadModule("PlayerDataManager")
+local PlayerDataManager = if RunService:IsServer() then loadModule("PlayerDataManager") else nil
 local RoduxStore = loadModule("RoduxStore")
 local transactPlayerCurrency = loadModule("transactPlayerCurrency")
 
