@@ -98,4 +98,20 @@ return {
 			});
 		})
 	end;
+
+	changePlayerSetting = function(state, action)
+		local userId = action.userId
+		if not userId then return state end
+
+		local currentData = state[tostring(userId)] or {}
+		local currentSettings = currentData.Settings or {}
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentData, {
+				Settings = Llama.Dictionary.join(currentSettings, {
+					[action.setting] = action.value;
+				});
+			});
+		})
+	end;
 }
