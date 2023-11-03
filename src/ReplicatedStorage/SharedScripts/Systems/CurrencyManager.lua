@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
+local PlayerDataManager = loadModule("PlayerDataManager")
 local RoduxStore = loadModule("RoduxStore")
 local transactPlayerCurrency = loadModule("transactPlayerCurrency")
 
@@ -23,7 +24,7 @@ function CurrencyManager:getBalance(player : Player, currency : string) : number
 		return
 	end
 
-	local playerCurrency = RoduxStore:waitForValue("playerData", tostring(player.UserId), currency)
+	local playerCurrency = RoduxStore:waitForValue("playerData", tostring(player.UserId), "Currencies", currency)
 
 	return playerCurrency
 end
@@ -52,7 +53,7 @@ if RunService:IsServer() then
 		if isExpense and not CurrencyManager:hasAmount(player, currency, math.abs(amount)) then
 			return false
 		else
-			RoduxStore:dispatch(transactPlayerCurrency(player, currency, amount))
+			PlayerDataManager:updatePlayerData(player, transactPlayerCurrency, currency, amount)
 
 			return true
 		end

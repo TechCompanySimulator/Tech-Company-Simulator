@@ -24,7 +24,7 @@ return {
 			amount = 350;
 		};
 		{
-			currency = "Tokens";
+			currency = "Gems";
 			amount = 10;
 		};
 	};
