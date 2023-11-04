@@ -7,7 +7,7 @@ local CurrencyManager = loadModule("CurrencyManager")
 local Llama = loadModule("Llama")
 local PlayerDataManager = loadModule("PlayerDataManager")
 local RoduxStore = loadModule("RoduxStore")
-local MachineUtility
+local MachineUtility = loadModule("MachineUtility")
 
 local completeResearch = loadModule("completeResearch")
 local incrementResearchProgress = loadModule("incrementResearchProgress")
@@ -27,6 +27,12 @@ function ResearchSystem.getPlayerLevel(player : Player, machineType : string) : 
 	local playerLevel = researchLevels[string.lower(machineType)]
 
 	return playerLevel.Level, playerLevel.Progress
+end
+
+function ResearchSystem.hasPlayerResearched(player : Player, machineType : string, level : number) : boolean
+	local playerLevel, _ = ResearchSystem.getPlayerLevel(player, machineType)
+
+	return playerLevel >= level
 end
 
 function ResearchSystem.getResearchCosts(machineType : string, level : number) : table?
@@ -55,8 +61,6 @@ function ResearchSystem.isResearchCompleted(player : Player, machineType : strin
 end
 
 function ResearchSystem.incrementResearch(player : Player, machineType : string, researchIndex : number) : boolean?
-	MachineUtility = MachineUtility or loadModule("MachineUtility")
-
 	local playerLevel, playerProgress = ResearchSystem.getPlayerLevel(player, machineType)
 
 	if playerProgress[researchIndex] then

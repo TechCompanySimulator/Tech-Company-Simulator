@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local ResearchSystem = loadModule("ResearchSystem")
 local RoduxStore = loadModule("RoduxStore")
 
 local MachineUtility = {
@@ -30,12 +29,6 @@ function MachineUtility.getMachineDisplayName(machineType : string) : string
 	local machineData = RoduxStore:waitForValue("gameValues", "machines", string.lower(machineType))
 
 	return machineData.displayName
-end
-
-function MachineUtility.isItemResearched(player : Player, machineType : string, itemIndex : number) : boolean
-	local playerMachineLevel = ResearchSystem.getPlayerLevel(player, machineType)
-
-	return playerMachineLevel >= itemIndex
 end
 
 function MachineUtility.getUpgradeCost(machineType : string, levelType : string, level : number) : table
