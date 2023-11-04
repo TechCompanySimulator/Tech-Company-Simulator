@@ -1,6 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 if RunService:IsServer() then return {} end
 
@@ -65,7 +65,7 @@ function UserInput.disconnectInput(inputType, inputId)
 			UserInput[inputType][inputId .. "Ended"] = nil
 		end
 
-		if Llama.Dictionary.length(UserInput[inputType]) == 0 then
+		if not next(UserInput[inputType]) then
 			UserInput[inputType] = nil
 		end
 	end

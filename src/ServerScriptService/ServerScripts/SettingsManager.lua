@@ -4,10 +4,9 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local RoduxStore = loadModule("RoduxStore")
 local PlayerDataManager = loadModule("PlayerDataManager")
+local changePlayerSetting = loadModule("changePlayerSetting")
 
-local changeSetting = loadModule("changeSetting")
-
-local changeSettings = getDataStream("ChangeSettings", "RemoteEvent")
+local changeSettingsEvent = getDataStream("ChangeSettings", "RemoteEvent")
 
 local SettingsManager = {
 	allowedSettings = {
@@ -16,18 +15,28 @@ local SettingsManager = {
 }
 
 function SettingsManager:initiate()
-	changeSettings.OnServerEvent:Connect(SettingsManager.changeSettings)
+	changeSettingsEvent.OnServerEvent:Connect(SettingsManager.changePlayerSetting)
 end
 
-function SettingsManager.changeSettings(player, setting, value)
-	if not setting or value == nil or not SettingsManager.allowedSettings[setting] then return end
+function SettingsManager.isValidSetting(setting : string, value : any) : boolean
+	local settingAllowed = SettingsManager.allowedSettings[setting]
+	local settingType = if settingAllowed then typeof(settingAllowed) else nil
+
+	return settingAllowed ~= nil and typeof(value) == settingType
+end
+
+function SettingsManager.changePlayerSetting(player : Player, setting : string, value : any) : boolean
+	if not SettingsManager.isValidSetting(setting, value) then return end
 
 	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
-	if not playerData then return end
-	
-	if playerData.Settings and playerData.Settings[setting] == value then return end
 
-	PlayerDataManager:updatePlayerData(player.UserId, changeSetting, setting, value)
+	if not playerData or (playerData.Settings and playerData.Settings[setting] == value) then
+		return false
+	end
+
+	PlayerDataManager:updatePlayerData(player, changePlayerSetting, setting, value)
+
+	return true
 end
 
 return SettingsManager

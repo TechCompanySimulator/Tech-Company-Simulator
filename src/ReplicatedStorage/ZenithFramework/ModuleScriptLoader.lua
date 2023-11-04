@@ -109,6 +109,8 @@ function ModuleScriptLoader:requireModule(moduleName)
 	assert(type(moduleName) == "string", "Module name must be a string")
 	if self._modules[moduleName] then
 		return require(self._modules[moduleName].module)
+	else
+		warn("Module " .. moduleName .. " not found")
 	end
 end
 

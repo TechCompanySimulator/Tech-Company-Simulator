@@ -1,42 +1,26 @@
---# selene: allow(deprecated)
-
---[[
-	Needed props:
-	setEnabled - Binding sent from the parent component which can be called to set the component to enabled == false
-
-	Optional props:
-	buttonProps - Optional props to change the properties of the close button
-]]
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
-local Roact = loadModule("Roact")
 local Llama = loadModule("Llama")
+local React = loadModule("React")
+local RoactTemplate = loadModule("RoactTemplate")
 
-local CloseButton = Roact.Component:extend("CloseButton")
+local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.CloseButton)
 
-function CloseButton:render()
-	return Roact.createElement("TextButton", Llama.Dictionary.join(self.props.buttonProps or {}, {
-		FontSize = Enum.FontSize.Size14;
-		TextColor3 = Color3.new(1, 0, 0);
-		Text = "X";
-		Name = "Close";
-		AnchorPoint = Vector2.new(1, 0);
-		Font = Enum.Font.GothamSemibold;
-		BackgroundTransparency = 1;
-		Position = UDim2.new(0.99, 0, 0.01, 0);
-		SizeConstraint = Enum.SizeConstraint.RelativeXX;
-		Size = UDim2.new(0.1, 0, 0.1, 0);
-		TextScaled = true;
-		BackgroundColor3 = Color3.new(1, 1, 1);
-		[Roact.Event.MouseButton1Click] = function()
-			if self.props.setEnabled then
-				self.props.setEnabled(false)
-			end
-		end;
-	}))
+local e = React.createElement
+
+return function(props)
+	local zIndex = props.ZIndex or 100
+
+	return e(buttonTemplate, {
+		[RoactTemplate.Root] = Llama.Dictionary.join({
+			[React.Event.MouseButton1Click] = props.onClick;
+			ZIndex = zIndex;
+		}, props.buttonProps or {});
+
+		Text = {
+			ZIndex = zIndex + 1;
+		};
+	})
 end
-
-return CloseButton
