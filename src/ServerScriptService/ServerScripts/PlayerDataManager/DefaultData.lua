@@ -13,9 +13,18 @@ local DefaultData = {
 		};
 	};
 	ResearchLevels = {
-		Phone = 0;
-		PC = 0;
-		Accesories = 0;
+		Phone = {
+			Level = 0;
+			Progress = {};
+		};
+		PC = {
+			Level = 0;
+			Progress = {};
+		};
+		Accesories = {
+			Level = 0;
+			Progress = {};
+		}
 	};
 }
 
