@@ -1,5 +1,7 @@
 return {
 	phone = {
+		displayName = "Phone";
+		displayOrder = 1;
 		machineCost = 5000; -- TODO: Correct Value
 		buildItems = {
 			"RoBrick 1990";
@@ -86,6 +88,8 @@ return {
 		};
 	};
 	pc = {
+		displayName = "PC";
+		displayOrder = 2;
 		machineCost = 5000; -- TODO: Correct Value
 		buildItems = {
 			"Genesis";
@@ -168,6 +172,8 @@ return {
 		};
 	};
 	accessories = {
+		displayName = "Accessories";
+		displayOrder = 3;
 		machineCost = 5000; -- TODO: Correct Value
 		buildItems = {
 			"Basic Monitor";
@@ -247,5 +253,4 @@ return {
 			};
 		};
 	};
-	-- TODO: Research costs in another table
 }
