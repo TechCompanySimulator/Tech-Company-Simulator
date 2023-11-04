@@ -9,7 +9,7 @@ local Llama = loadModule("Llama")
 local AutoResizeScrollFrame = loadComponent("AutoResizeScrollFrame")
 local BuildModeItem = loadComponent("BuildModeItem")
 
-local frameTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.UITemplates.BuildMode.CategoryFrame)
+local frameTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.CategoryFrame)
 
 local e = React.createElement
 

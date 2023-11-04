@@ -7,7 +7,7 @@ local RoactTemplate = loadModule("RoactTemplate")
 local String = loadModule("String")
 local ItemPlacementSystem = loadModule("ItemPlacementSystem")
 
-local itemTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.UITemplates.BuildMode.TemplateItem)
+local itemTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.TemplateItem)
 
 local e = React.createElement
 

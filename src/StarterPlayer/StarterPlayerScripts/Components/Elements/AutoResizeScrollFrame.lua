@@ -21,7 +21,7 @@ local RoactTemplate = loadModule("RoactTemplate")
 local e = React.createElement
 local useState = React.useState
 
-local autoResizeScrollFrameTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.UITemplates.Elements.AutoResizeScrollFrame)
+local autoResizeScrollFrameTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.Elements.AutoResizeScrollFrame)
 
 local function autoResizeScrollFrame(props)
 	local canvasSize, setCanvasSize = useState(UDim2.new(0, 0, 0, 0))

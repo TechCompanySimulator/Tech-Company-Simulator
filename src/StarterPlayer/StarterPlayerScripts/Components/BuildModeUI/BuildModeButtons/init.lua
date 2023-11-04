@@ -6,8 +6,8 @@ local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
 local Llama = loadModule("Llama")
 
-local buttonsHolderTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.UITemplates.BuildMode.CategoryButtonsHolder)
-local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.UITemplates.BuildMode.CategoryButton)
+local buttonsHolderTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.CategoryButtonsHolder)
+local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.CategoryButton)
 
 local e = React.createElement
 

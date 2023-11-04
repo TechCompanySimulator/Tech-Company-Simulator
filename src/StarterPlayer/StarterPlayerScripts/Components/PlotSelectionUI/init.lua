@@ -8,7 +8,7 @@ local PlotSelection = loadModule("PlotSelection")
 
 local setInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
 
-local template = RoactTemplate.fromInstance(React, ReplicatedStorage.UITemplates.PlotSelection.Holder)
+local template = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.PlotSelection.Holder)
 
 local e = React.createElement
 local useEffect = React.useEffect
