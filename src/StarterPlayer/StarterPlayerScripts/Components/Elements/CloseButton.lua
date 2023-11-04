@@ -6,7 +6,7 @@ local Llama = loadModule("Llama")
 local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
 
-local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.CloseButton)
+local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.Elements.CloseButton)
 
 local e = React.createElement
 
