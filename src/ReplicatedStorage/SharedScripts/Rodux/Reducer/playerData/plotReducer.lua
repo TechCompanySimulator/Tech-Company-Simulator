@@ -8,24 +8,41 @@ return {
 	addPlotItem = function(state, action)
 		local userId = action.userId
 		local category = action.category
+		local itemIndex = action.itemIndex
 		local itemData = action.itemData
 
-		if userId and category and itemData then
-			local currentPlayerData = state[tostring(userId)] or {}
-			local plotData = currentPlayerData.PlotData or {}
-			local categoryData = plotData[category] or {}
+		local currentPlayerData = state[tostring(userId)] or {}
+		local plotData = currentPlayerData.PlotData or {}
+		local categoryData = plotData[category] or {}
 
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
-					PlotData = Llama.Dictionary.join(plotData, {
-						[category] = Llama.List.join(categoryData, {
-							itemData;
-						});
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
+				PlotData = Llama.Dictionary.join(plotData, {
+					[category] = Llama.Dictionary.join(categoryData, {
+						[itemIndex] = itemData;
 					});
 				});
-			})
-		else
-			return state
-		end
+			});
+		})
+	end;
+
+	removePlotItem = function(state, action)
+		local userId = action.userId
+		local category = action.category
+		local itemIndex = action.itemIndex
+
+		local currentPlayerData = state[tostring(userId)] or {}
+		local plotData = currentPlayerData.PlotData or {}
+		local categoryData = plotData[category] or {}
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
+				PlotData = Llama.Dictionary.join(plotData, {
+					[category] = Llama.Dictionary.join(categoryData, {
+						[itemIndex] = Llama.None;
+					});
+				});
+			});
+		})
 	end;
 }

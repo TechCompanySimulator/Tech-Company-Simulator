@@ -4,9 +4,9 @@ local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local makeActionCreator = loadModule("makeActionCreator")
 
-return makeActionCreator("addPlotItem", function(player : Player, category : string, itemData : table)
+return makeActionCreator("addPlotItem", function(userId : Player, category : string, itemData : table)
 	return {
-		userId = player.UserId;
+		userId = userId;
 		category = category;
 		itemData = itemData;
 	}
