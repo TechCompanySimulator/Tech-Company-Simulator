@@ -19,7 +19,7 @@ local player = Players.LocalPlayer
 
 local interfaceStates = {
 	gameplay = {
-		
+		HUD = {};
 	};
 	buildMode = {
 		BuildModeUI = {

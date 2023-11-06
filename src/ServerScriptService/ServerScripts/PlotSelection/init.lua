@@ -22,6 +22,7 @@ end
 function PlotSelection.promptTriggered(player, plot)
 	if plot:GetAttribute("Taken") or PlotSelection.playerPlotInfo[player] then return end
 
+	plot:SetAttribute("Owner", player.UserId)
 	plot:SetAttribute("Taken", true)
 	maids[plot]:DoCleaning()
 	plot:FindFirstChild("FreePlotSign"):Destroy()
@@ -29,6 +30,7 @@ function PlotSelection.promptTriggered(player, plot)
 end
 
 function PlotSelection.setupPlotSign(plot)
+	plot:SetAttribute("Owner", nil)
 	plot:SetAttribute("Taken", nil)
 	local freePlotSign = assets.Misc.FreePlotSign:Clone()
 	freePlotSign.Parent = plot
@@ -46,6 +48,7 @@ function PlotSelection.playerRemoving(player)
 	-- TODO: Clear plot and cleanup plots connections
 
 	PlotSelection.setupPlotSign(PlotSelection.playerPlotInfo[player])
+	PlotSelection.playerPlotInfo[player]:SetAttribute("Taken", false)
 	PlotSelection.playerPlotInfo[player] = nil
 end
 
