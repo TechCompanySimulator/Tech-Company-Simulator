@@ -22,6 +22,9 @@ local interfaceStates = {
 		MachinePrompt = {
 			hasToggle = true;
 		};
+		ResearchPrompt = {
+			hasToggle = true;
+		};
 	};
 }
 
@@ -74,6 +77,7 @@ local function mainInterface()
 
 	return e("ScreenGui", {
 		Name = "MainInterface";
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
 	}, {
 		Provider = e(ThemeContext.Provider, {
 			value = theme;
