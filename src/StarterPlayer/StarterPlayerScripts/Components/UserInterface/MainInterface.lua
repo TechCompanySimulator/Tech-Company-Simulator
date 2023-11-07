@@ -25,6 +25,7 @@ local interfaceStates = {
 		BuildModeUI = {
 			hasToggle = true;
 		};
+		HUD = {};
 	};
 	plotSelection = {
 		PlotSelectionUI = {};

@@ -3,17 +3,22 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Mouse = loadModule("Mouse")
 local PlotSelection = loadModule("PlotSelection")
 local Maid = loadModule("Maid")
 local Tween = loadModule("Tween")
+local PlotUtility = loadModule("PlotUtility")
+local CurrencyManager = loadModule("CurrencyManager")
+
+local placeItemFunc = getDataStream("PlaceItem", "RemoteFunction")
 
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 local placementMaid = Maid.new()
 local placementAsset
+local placingBool = false
 
 local GRID_INCREMENT = 2
 local ROTATE_INCREMENT = math.rad(45)
@@ -43,15 +48,13 @@ end
 function ItemPlacementSystem.startPlacement(category, variation, itemId)
 	if not PlotSelection.myPlot then return end
 
-	print(category, itemId)
-	local categoryItems = ReplicatedStorage.Assets:FindFirstChild(category)
-	if not categoryItems then return end
-
-	local variationItems = categoryItems:FindFirstChild(variation)
-	if not variationItems then return end
-
-	local asset = variationItems:FindFirstChild(itemId)
+	local asset = PlotUtility.getAsset(category, variation, itemId)
 	if not asset then return end
+
+	local itemConfig = PlotUtility.getItemConfig(category, variation, itemId)
+	if not itemConfig then return end
+
+	if not CurrencyManager:hasAmount(player, itemConfig.price.currency, itemConfig.price.amount) then return end
 
 	mouse.TargetFilter = workspace.PlacementGhosts
 
@@ -67,9 +70,7 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 
 	local plotPart = PlotSelection.myPlot
 	local currentRotation = plotPart.CFrame - plotPart.CFrame.Position
-	local halfPrimPartSize = assetClone.PrimaryPart.Size / 2
 	local origin = plotPart.CFrame * CFrame.new(-plotPart.Size.X / 2, 0, -plotPart.Size.Z / 2)
-	print(halfPrimPartSize)
 	local targetCF
 	plotPart.Texture.Transparency = 0.7
 	
@@ -118,11 +119,36 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 		end
 	end)
 
+	-- Rotate the asset when the user presses R
 	placementMaid:GiveTask(UserInputService.InputBegan:Connect(function(input)
 		if input.UserInputType ~= Enum.UserInputType.Keyboard or input.KeyCode ~= Enum.KeyCode.R then return end
 		
 		currentRotation *= CFrame.Angles(0, ROTATE_INCREMENT, 0)
 	end))
+
+	-- Cancel placement when pressing C
+	placementMaid:GiveTask(UserInputService.InputBegan:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.Keyboard or input.KeyCode ~= Enum.KeyCode.C then return end
+		
+		ItemPlacementSystem.stopPlacement()
+	end))
+
+	print("connecting this")
+
+	task.defer(function()
+		if not placementAsset or not placementAsset.Parent then return end
+
+		-- When the player clicks, ask the server to place the asset
+		placementMaid:GiveTask(UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+			
+			local objectSpace = PlotSelection.myPlot.CFrame:ToObjectSpace(placementAsset.PrimaryPart.CFrame)
+			local success = placeItemFunc:InvokeServer(category, variation, itemId, objectSpace)
+			if not success then return end
+
+			ItemPlacementSystem.stopPlacement()
+		end))
+	end)
 end
 
 function ItemPlacementSystem.stopPlacement()
@@ -132,6 +158,8 @@ function ItemPlacementSystem.stopPlacement()
 		placementAsset:Destroy()
 		placementAsset = nil
 	end
+
+	placementMaid:DoCleaning()
 
 	if PlotSelection.myPlot then
 		PlotSelection.myPlot.Texture.Transparency = 1

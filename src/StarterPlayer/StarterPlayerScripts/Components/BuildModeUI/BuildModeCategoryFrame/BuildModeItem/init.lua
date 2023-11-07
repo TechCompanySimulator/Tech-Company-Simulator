@@ -29,7 +29,7 @@ local function buildModeItem(props)
 		};
 
 		ItemCost = {
-			Text = "$" .. String.commaFormat(props.itemData.price);
+			Text = "$" .. String.commaFormat(props.itemData.price.amount);
 		};
 	})
 end

@@ -1,7 +1,10 @@
 return {
 	chairs = {
 		woodenchair = {
-			price = 100;
+			price = {
+				currency = "Coins";
+				amount = 100;
+			};
 			id = "woodenchair";
 			displayName = "Wooden Chair";
 			description = "A wooden chair.";

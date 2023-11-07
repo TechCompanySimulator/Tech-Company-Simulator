@@ -1,12 +1,14 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
 local BuildModeSystem = loadModule("BuildModeSystem")
 local PlotSelection = loadModule("PlotSelection")
+
+local CurrencyDisplay = loadComponent("CurrencyDisplay")
 
 local buildModeButton = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.HUD.BuildModeButton)
 
@@ -52,6 +54,10 @@ local function hud(props)
 				end;
 				Visible = buildButtonVisible;
 			};
+		});
+
+		CurrencyDisplay = e(CurrencyDisplay, {
+			
 		})
 	})
 end
