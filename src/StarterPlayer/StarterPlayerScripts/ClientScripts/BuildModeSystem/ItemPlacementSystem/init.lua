@@ -46,7 +46,8 @@ local function constrainToRectangle(plotPart, pos)
 end
 
 function ItemPlacementSystem.startPlacement(category, variation, itemId)
-	if not PlotSelection.myPlot then return end
+	local plotPart = PlotSelection.myPlot
+	if not plotPart then return end
 
 	local asset = PlotUtility.getAsset(category, variation, itemId)
 	if not asset then return end
@@ -56,27 +57,30 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 
 	if not CurrencyManager:hasAmount(player, itemConfig.price.currency, itemConfig.price.amount) then return end
 
-	mouse.TargetFilter = workspace.PlacementGhosts
+	mouse.TargetFilter = workspace.MouseTargetFilter
 
 	local assetClone = asset:Clone()
-	assetClone.Parent = workspace.PlacementGhosts
+	assetClone.Parent = workspace.MouseTargetFilter.PlacementGhosts
 	placementAsset = assetClone
 
 	for _, part in assetClone:GetDescendants() do
 		if not part:IsA("BasePart") then continue end
 
 		part.Transparency = math.max(part.Transparency, 0.5)
+		part.CollisionGroup = "PlacementGhost"
 	end
 
-	local plotPart = PlotSelection.myPlot
 	local currentRotation = plotPart.CFrame - plotPart.CFrame.Position
 	local origin = plotPart.CFrame * CFrame.new(-plotPart.Size.X / 2, 0, -plotPart.Size.Z / 2)
 	local targetCF
 	plotPart.Texture.Transparency = 0.7
+
+	local lastCheckedCF
+	local currentTween
 	
 	RunService:BindToRenderStep("ItemPlacement", Enum.RenderPriority.Camera.Value, function()
 		local hit = Mouse.findHitWithWhitelist(mouse, {
-			PlotSelection.myPlot;
+			plotPart;
 		}, 100)
 
 		local freePos
@@ -103,18 +107,65 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 			)
 
 			local newCF = CFrame.new(snappedPosition) * currentRotation
+			local didFinishTween = false
 			if targetCF ~= newCF then
+				if currentTween then
+					currentTween:reset()
+				end
+
 				targetCF = newCF
-				local newTween = Tween.new(
+				currentTween = Tween.new(
 					assetClone:GetPivot(), 
 					newCF,
 					TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
 					function(val)
 						-- Update the asset clone's position, snapped to the grid
 						assetClone:PivotTo(val)
+						didFinishTween = val == newCF
 					end
 				)
-				newTween:play()
+				currentTween:play(true)
+			end
+
+			if didFinishTween and lastCheckedCF ~= newCF then
+				lastCheckedCF = newCF
+				local isTouching = false
+				local placedItems = workspace.PlacedItems:FindFirstChild(plotPart.Name)
+				local overlapParams = OverlapParams.new()
+				overlapParams.FilterDescendantsInstances = placedItems and placedItems:GetChildren() or {}
+				overlapParams.FilterType = Enum.RaycastFilterType.Whitelist
+
+				for _, part in assetClone.Touch:GetChildren() do
+					local touchingParts = workspace:GetPartsInPart(part, overlapParams)
+					print(touchingParts)
+					for _, touchingPart in touchingParts do
+						if touchingPart:IsDescendantOf(assetClone) then continue end
+
+						isTouching = true
+						break
+					end
+
+					if isTouching then break end
+				end
+
+				if isTouching and not assetClone:GetAttribute("IsTouching") then
+					assetClone:SetAttribute("IsTouching", true)
+
+					for _, part in assetClone:GetDescendants() do
+						if not part:IsA("BasePart") then continue end
+
+						part:SetAttribute("OriginalColor", part.Color)
+						part.Color = Color3.fromRGB(255, 0, 0)
+					end
+				elseif not isTouching and assetClone:GetAttribute("IsTouching") then
+					assetClone:SetAttribute("IsTouching", false)
+
+					for _, part in assetClone:GetDescendants() do
+						if not part:IsA("BasePart") then continue end
+
+						part.Color = part:GetAttribute("OriginalColor")
+					end
+				end
 			end
 		end
 	end)
@@ -132,8 +183,6 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 		
 		ItemPlacementSystem.stopPlacement()
 	end))
-
-	print("connecting this")
 
 	task.defer(function()
 		if not placementAsset or not placementAsset.Parent then return end

@@ -56,7 +56,8 @@ function PlotSystem.setupPlotSign(plot)
 end
 
 function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffset)
-	if not PlotSystem.playerPlotInfo[player] then return end
+	local plot = PlotSystem.playerPlotInfo[player]
+	if not plot then return end
 
 	local asset = PlotUtility.getAsset(category, variation, itemId)
 	if not asset then return end
@@ -67,9 +68,16 @@ function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffs
 	local success = CurrencyManager:transact(player, itemConfig.price.currency, -itemConfig.price.amount)
 	if not success then return end
 
+	local placedItemsFolder = workspace.PlacedItems:FindFirstChild(plot.Name)
+	if not placedItemsFolder then
+		placedItemsFolder = Instance.new("Folder")
+		placedItemsFolder.Name = plot.Name
+		placedItemsFolder.Parent = workspace.PlacedItems
+	end
+
 	local assetClone = asset:Clone()
-	assetClone.Parent = workspace
-	assetClone:PivotTo(PlotSystem.playerPlotInfo[player].CFrame * cfOffset)
+	assetClone.Parent = placedItemsFolder
+	assetClone:PivotTo(plot.CFrame * cfOffset)
 
 	local pos = cfOffset.Position
 	local rotX, rotY, rotZ = cfOffset:ToOrientation()
@@ -91,7 +99,11 @@ function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffs
 		rotZ = math.round(math.deg(rotZ))
 	end
 
-	local saveCf = pos.X .. "," .. pos.Y .. "," .. pos.Z .. "," .. rotX .. "," .. rotY .. "," .. rotZ
+	local posX = math.floor(pos.X * 1000) / 1000
+	local posY = math.floor(pos.Y * 1000) / 1000
+	local posZ = math.floor(pos.Z * 1000) / 1000
+
+	local saveCf = posX .. "," .. posY .. "," .. posZ .. "," .. rotX .. "," .. rotY .. "," .. rotZ
 
 	PlayerDataManager:updatePlayerData(player, addPlotItem, category, variation, {
 		id = itemId;
@@ -107,6 +119,13 @@ function PlotSystem.placePlotData(player, plot)
 	local playerData = RoduxStore:getState().playerData[tostring(player.UserId)]
 	if not playerData or not playerData.PlotData then return end
 
+	local placedItemsFolder = workspace.PlacedItems:FindFirstChild(plot.Name)
+	if not placedItemsFolder then
+		placedItemsFolder = Instance.new("Folder")
+		placedItemsFolder.Name = plot.Name
+		placedItemsFolder.Parent = workspace.PlacedItems
+	end
+
 	local plotData = playerData.PlotData
 	for category, categoryInfo in plotData do
 		for variation, variationInfo in categoryInfo do
@@ -115,7 +134,7 @@ function PlotSystem.placePlotData(player, plot)
 				if not asset then continue end
 
 				local assetClone = asset:Clone()
-				assetClone.Parent = plot
+				assetClone.Parent = placedItemsFolder
 				local cfString = item.cf
 				local split = string.split(cfString, ",")
 				local pos = Vector3.new(tonumber(split[1]), tonumber(split[2]), tonumber(split[3]))

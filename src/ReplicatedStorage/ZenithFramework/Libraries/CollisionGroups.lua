@@ -8,8 +8,14 @@ local CollisionGroups = {}
 
 local DEFAULT_GROUPS = {
 	Player = {
-		Player = false
-	}
+		Player = false;
+		PlacementGhost = false;
+	};
+
+	PlacementGhost = {
+		PlacementGhost = false;
+		Player = false;
+	};
 }
 
 -- Creates a new collision group

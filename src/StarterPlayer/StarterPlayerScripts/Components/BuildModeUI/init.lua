@@ -5,15 +5,20 @@ local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.Zeni
 local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
 local RoduxStore = loadModule("RoduxStore")
+local BuildModeSystem = loadModule("BuildModeSystem")
 
 local ThemeContext = loadComponent("ThemeContext")
 local BuildModeButtons = loadComponent("BuildModeButtons")
 local BuildModeCategoryFrame = loadComponent("BuildModeCategoryFrame")
 
+local exitButton = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.ExitButton)
+
 local e = React.createElement
 local useState = React.useState
 
 local function buildModeUI(props)
+	if not props.visible then return end
+	
 	local selectionInfo, setSelectionInfo = useState({})
 
 	local categories = RoduxStore:getState().gameValues.shopConfig.categories
@@ -42,6 +47,15 @@ local function buildModeUI(props)
 			});
 			
 			CategoryFrames = e(React.Fragment, {}, categoryFrames);
+
+			ExitButton = e(exitButton, {
+				[RoactTemplate.Root] = {
+					[React.Event.MouseButton1Click] = function()
+						setSelectionInfo({})
+						BuildModeSystem.exit()
+					end;
+				};
+			})
 		}
 	)
 end

@@ -30,6 +30,14 @@ local function hud(props)
 
 				if not PlotSelection.myPlot then continue end
 
+				if BuildModeSystem.isActive then 
+					if buildButtonVisible then
+						setBuildButtonVisible(false)
+					end
+
+					continue
+				end
+
 				local char = player.Character
 				if not char or not char:FindFirstChild("HumanoidRootPart") then continue end
 
@@ -50,6 +58,7 @@ local function hud(props)
 		BuildModeButton = e(buildModeButton, {
 			[RoactTemplate.Root] = {
 				[React.Event.MouseButton1Click] = function()
+					setBuildButtonVisible(false)
 					BuildModeSystem.enter()
 				end;
 				Visible = buildButtonVisible;
