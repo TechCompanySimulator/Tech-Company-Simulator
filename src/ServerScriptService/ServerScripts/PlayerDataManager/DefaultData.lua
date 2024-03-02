@@ -21,7 +21,7 @@ local DefaultData = {
 			Level = 0;
 			Progress = {};
 		};
-		accesories = {
+		accessories = {
 			Level = 0;
 			Progress = {};
 		}
