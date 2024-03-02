@@ -1,5 +1,13 @@
 return {
 	phone = {
+		categoryNames = {
+			"Operating System";
+			"Battery";
+			"Processor";
+			"Screen Technology";
+			"Camera";
+			"Wireless Communication";
+		};
 		[1] = {
 			100;
 			100;
@@ -47,6 +55,14 @@ return {
 		};
 	};
 	pc = {
+		categoryNames = {
+			"Operating System";
+			"CPU Architecture";
+			"RAM";
+			"GPU";
+			"Power Efficiency";
+			"Connectivity";
+		};
 		[1] = {
 			300;
 			300;
@@ -139,6 +155,14 @@ return {
 		};
 	};
 	accessories = {
+		categoryNames = {
+			"Screen Resolution";
+			"Screen Size";
+			"Mouse Tracking";
+			"Ergonomics";
+			"Connectivity";
+			"Energy Efficiency";
+		};
 		[1] = {
 			500;
 			650;
