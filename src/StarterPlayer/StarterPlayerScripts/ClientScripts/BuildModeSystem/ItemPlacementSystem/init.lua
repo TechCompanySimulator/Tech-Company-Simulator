@@ -18,7 +18,6 @@ local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 local placementMaid = Maid.new()
 local placementAsset
-local placingBool = false
 
 local GRID_INCREMENT = 2
 local ROTATE_INCREMENT = math.rad(45)

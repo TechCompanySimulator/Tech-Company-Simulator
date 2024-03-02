@@ -1,4 +1,3 @@
-local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))

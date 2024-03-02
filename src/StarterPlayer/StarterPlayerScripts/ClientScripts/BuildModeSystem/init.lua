@@ -1,8 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
-
-local Camera = loadModule("Camera")
+local _, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local setInterfaceState = getDataStream("SetInterfaceState", "BindableEvent")
 

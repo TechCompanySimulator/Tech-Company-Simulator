@@ -53,7 +53,7 @@ return function(props)
 				return buttonColours[index]
 			end);
 			[React.Event.MouseButton1Click] = function()
-				if debounce.current or typeof(props.onClick) ~= "function" then return end
+				if not isActive or debounce.current or typeof(props.onClick) ~= "function" then return end
 
 				debounce.current = true
 

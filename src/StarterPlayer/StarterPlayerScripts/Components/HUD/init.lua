@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule, getDataStream, loadComponent = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
@@ -10,7 +10,10 @@ local PlotSelection = loadModule("PlotSelection")
 
 local CurrencyDisplay = loadComponent("CurrencyDisplay")
 
+local openResearchUI = getDataStream("OpenResearchUI", "BindableEvent")
+
 local buildModeButton = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.HUD.BuildModeButton)
+local researchButton = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.HUD.ResearchButton)
 
 local e = React.createElement
 local useEffect = React.useEffect
@@ -67,6 +70,14 @@ local function hud(props)
 
 		CurrencyDisplay = e(CurrencyDisplay, {
 			
+		});
+
+		ResearchButton = e(researchButton, {
+			[RoactTemplate.Root] = {
+				[React.Event.MouseButton1Click] = function()
+					openResearchUI:Fire()
+				end;
+			};
 		})
 	})
 end
