@@ -1,12 +1,7 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 if RunService:IsServer() then return {} end
-
-local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
-
-local Llama = loadModule("Llama")
 
 local UserInput = {}
 

@@ -3,10 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local React = loadModule("React")
-local RoactTemplate = loadModule("RoactTemplate")
 local RoduxStore = loadModule("RoduxStore")
 
-local ThemeContext = loadComponent("ThemeContext")
 local BuildModeButtons = loadComponent("BuildModeButtons")
 local BuildModeCategoryFrame = loadComponent("BuildModeCategoryFrame")
 

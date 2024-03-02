@@ -36,6 +36,7 @@ local function getButtons(props : table, levelToResearch: number, isFullyResearc
 				local success = ResearchSystem.incrementResearch(player, props.machineType, ind)
 
 				if success == false then
+					warn("TODO: Fire Currency Shop")
 					-- TODO: Fire Currency Shop
 				end
 			end;
