@@ -23,6 +23,9 @@ local interfaceStates = {
 		ResearchPrompt = {
 			hasToggle = true;
 		}
+		MachinePrompt = {
+			hasToggle = true;
+		};
 	};
 	buildMode = {
 		BuildModeUI = {
