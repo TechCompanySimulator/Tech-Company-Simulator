@@ -5,6 +5,7 @@ local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.Zeni
 local React = loadModule("React")
 local RoduxStore = loadModule("RoduxStore")
 local BuildModeSystem = loadModule("BuildModeSystem")
+local RoactTemplate = loadModule("RoactTemplate")
 
 local BuildModeButtons = loadComponent("BuildModeButtons")
 local BuildModeCategoryFrame = loadComponent("BuildModeCategoryFrame")

@@ -19,11 +19,12 @@ local function buildModeUI(props)
 	local config = props.config
 	local tiles = {}
 	-- Can change this in the future to have separate pages for each category instead of having all categories in this one frame
-	for variation, items in config do
+	for variation, items in config.variations do
 		for _, itemData in items do
 			table.insert(tiles, e(BuildModeItem, {
 				itemData = itemData;
 				category = props.category;
+				categoryDisplayName = config.displayName;
 				variation = variation;
 				selectionInfo = props.selectionInfo;
 				setSelectionInfo = props.setSelectionInfo;

@@ -1,14 +1,18 @@
 return {
-	chairs = {
-		woodenchair = {
-			price = {
-				currency = "Coins";
-				amount = 100;
+	variations = {
+		chairs = {
+			woodenchair = {
+				price = {
+					currency = "Coins";
+					amount = 100;
+				};
+				id = "woodenchair";
+				displayName = "Wooden Chair";
+				description = "A wooden chair.";
+				image = "rbxassetid://6681638079";
 			};
-			id = "woodenchair";
-			displayName = "Wooden Chair";
-			description = "A wooden chair.";
-			image = "rbxassetid://6681638079";
 		};
 	};
+
+	displayName = 'Furniture';
 }

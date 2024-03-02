@@ -51,7 +51,7 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 	local asset = PlotUtility.getAsset(category, variation, itemId)
 	if not asset then return end
 
-	local itemConfig = PlotUtility.getItemConfig(category, variation, itemId)
+	local itemConfig = PlotUtility.getItemConfig(category:lower(), variation, itemId)
 	if not itemConfig then return end
 
 	if not CurrencyManager:hasAmount(player, itemConfig.price.currency, itemConfig.price.amount) then return end
@@ -132,7 +132,7 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 				local placedItems = workspace.PlacedItems:FindFirstChild(plotPart.Name)
 				local overlapParams = OverlapParams.new()
 				overlapParams.FilterDescendantsInstances = placedItems and placedItems:GetChildren() or {}
-				overlapParams.FilterType = Enum.RaycastFilterType.Whitelist
+				overlapParams.FilterType = Enum.RaycastFilterType.Include
 
 				for _, part in assetClone.Touch:GetChildren() do
 					local touchingParts = workspace:GetPartsInPart(part, overlapParams)

@@ -16,7 +16,7 @@ local function buildModeItem(props)
 		[RoactTemplate.Root] = {
 			[React.Event.MouseButton1Click] = function()
 				print("Purchase item: " , props.itemData.displayName)
-				ItemPlacementSystem.startPlacement(props.category, props.variation, props.itemData.id)
+				ItemPlacementSystem.startPlacement(props.categoryDisplayName, props.variation, props.itemData.id)
 			end;
 		};
 
