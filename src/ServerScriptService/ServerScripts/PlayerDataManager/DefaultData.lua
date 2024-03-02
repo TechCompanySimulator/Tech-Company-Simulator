@@ -12,6 +12,20 @@ local DefaultData = {
 			Tools = 10;
 		};
 	};
+	ResearchLevels = {
+		phone = {
+			Level = 0;
+			Progress = {};
+		};
+		pc = {
+			Level = 0;
+			Progress = {};
+		};
+		accessories = {
+			Level = 0;
+			Progress = {};
+		}
+	};
 }
 
 return DefaultData
