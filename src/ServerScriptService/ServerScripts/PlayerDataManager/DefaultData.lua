@@ -2,7 +2,7 @@ local DefaultData = {
 	XP = 0;
 	Level = 1;
 	Currencies = {
-		Coins = 0;
+		Coins = 500;
 		Gems = 0;
 	};
 	Warehouses = {};
@@ -13,15 +13,15 @@ local DefaultData = {
 		};
 	};
 	ResearchLevels = {
-		Phone = {
+		phone = {
 			Level = 0;
 			Progress = {};
 		};
-		PC = {
+		pc = {
 			Level = 0;
 			Progress = {};
 		};
-		Accesories = {
+		accessories = {
 			Level = 0;
 			Progress = {};
 		}

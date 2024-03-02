@@ -28,4 +28,7 @@ function Maid:doCleaning()
 	self.connections = {}
 end
 
+Maid.giveTask = Maid.GiveTask
+Maid.doCleaning = Maid.DoCleaning
+
 return Maid

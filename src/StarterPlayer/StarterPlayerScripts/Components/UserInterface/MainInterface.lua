@@ -19,12 +19,19 @@ local player = Players.LocalPlayer
 
 local interfaceStates = {
 	gameplay = {
-		MachinePrompt = {
-			hasToggle = true;
-		};
+		HUD = {};
 		ResearchPrompt = {
 			hasToggle = true;
+		}
+	};
+	buildMode = {
+		BuildModeUI = {
+			hasToggle = true;
 		};
+		HUD = {};
+	};
+	plotSelection = {
+		PlotSelectionUI = {};
 	};
 }
 
@@ -44,7 +51,7 @@ for _, components in interfaceStates do
 end
 
 local function mainInterface()
-	local state, setState = useState("gameplay")
+	local state, setState = useState("plotSelection")
 
 	local playerData = RoduxStore:waitForValue("playerData", tostring(player.UserId))
 	local settingsData = playerData.Settings or {}
@@ -65,10 +72,10 @@ local function mainInterface()
 
 	local children = {}
 
-	for stateName, components in interfaceStates do
+	for _, components in interfaceStates do
 		for componentName, _ in pairs(components) do
 			children[componentName] = e(loadComponent(componentName), {
-				visible = stateName == state;
+				visible = interfaceStates[state][componentName] ~= nil;
 				toggleBinds = toggleBinds;
 				setTheme = componentName == "SettingsUI" and setTheme;
 			})
@@ -77,7 +84,6 @@ local function mainInterface()
 
 	return e("ScreenGui", {
 		Name = "MainInterface";
-		ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
 	}, {
 		Provider = e(ThemeContext.Provider, {
 			value = theme;

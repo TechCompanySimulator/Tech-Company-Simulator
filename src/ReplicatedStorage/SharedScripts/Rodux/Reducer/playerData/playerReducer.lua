@@ -22,7 +22,7 @@ return {
 		if userId and currency and amount then
 			local currentPlayerData = state[tostring(userId)] or {}
 			local currentCurrencies = currentPlayerData.Currencies or {}
-			local currentAmount = currentPlayerData.Currencies[currency]
+			local currentAmount = currentCurrencies[currency] or 0
 
 			-- If the currency doesn't exist, then return the current state
 			if not currentAmount then

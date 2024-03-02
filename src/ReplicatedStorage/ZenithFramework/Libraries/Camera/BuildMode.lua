@@ -125,6 +125,7 @@ local function moveCam(self)
 		if objSpace.X < buildModeCam.xLowerBound or objSpace.X > buildModeCam.xUpperBound then
 			additionalVectorX = -xComp * xVec
 		end
+
 		if objSpace.Z < buildModeCam.zLowerBound or objSpace.Z > buildModeCam.zUpperBound then
 			additionalVectorZ = -zComp * zVec
 		end
@@ -142,8 +143,8 @@ local function moveCam(self)
 	local offsetCF = buildModeCam.origin * CFrame.new(0, buildModeCam.currentOffset.Y, buildModeCam.currentOffset.X) * CFrame.new(0, -1, 6)
 	Camera.CFrame = CFrame.new(offsetCF.Position, buildModeCam.origin.Position)
 	buildModeCam.prevOrigin = buildModeCam.origin
-	print(buildModeCam.origin.Position - buildModeCam.startCF.Position, ((buildModeCam.plotSize * math.sqrt(2)) / 2))
 end
+
 -- Rotate cameras origin
 local function rotateCam(self)
 	if self.currentType ~= "BuildMode" then
@@ -155,6 +156,7 @@ local function rotateCam(self)
 		moveCam(self)
 	end
 end
+
 -- Set cameras offset and move the camera if not already moving
 local function zoomCam(self, input)
 	local direction = input.Position.Z > 0 and -1 or 1
@@ -213,6 +215,7 @@ local function connectInputs(self)
 				buildModeCam.moveVector += info.vector
 				checkMovementVector(self)
 			end;
+
 			endedFunc = function()
 				buildModeCam.moveVector -= info.vector
 				checkMovementVector(self)
@@ -227,6 +230,7 @@ local function connectInputs(self)
 				buildModeCam.rotationVector += info.vector
 				checkRotationVector(self)
 			end;
+
 			endedFunc = function()
 				buildModeCam.rotationVector -= info.vector
 				checkRotationVector(self)
@@ -252,6 +256,7 @@ local function connectInputs(self)
 					if not buildModeCam.moving then
 						moveCam(self)
 					end
+
 					prevPos = mousePos
 				end
 			})
@@ -288,9 +293,8 @@ return function(self, startCFrame, plotLength)
 		buildModeCam.startCF = startCFrame
 		buildModeCam.origin = startCFrame
 		buildModeCam.plotSize = plotLength
-		moveCam(self)
-		rotateCam(self)
 	end
+
 	if plotLength then
 		buildModeCam.xLowerPos = buildModeCam.startCF * CFrame.new(-buildModeCam.plotSize / 2, 0, 0)
 		buildModeCam.xUpperPos = buildModeCam.startCF * CFrame.new(buildModeCam.plotSize / 2, 0, 0)
@@ -302,6 +306,9 @@ return function(self, startCFrame, plotLength)
 		buildModeCam.zLowerBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.zLowerPos).Z
 		buildModeCam.zUpperBound = buildModeCam.startCF:ToObjectSpace(buildModeCam.zUpperPos).Z
 	end
+
+	moveCam(self)
+	rotateCam(self)
 	connectInputs(self)
 
 	local camTypeChangedConnection
