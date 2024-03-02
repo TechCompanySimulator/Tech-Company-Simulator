@@ -22,7 +22,7 @@ local interfaceStates = {
 		HUD = {};
 		ResearchPrompt = {
 			hasToggle = true;
-		}
+		};
 		MachinePrompt = {
 			hasToggle = true;
 		};
