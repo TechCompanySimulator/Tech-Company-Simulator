@@ -49,7 +49,7 @@ function Machine.initiate(): nil
 end
 
 function Machine.new(player: Player, data: table?): table
-	local machineModel = assets.Machines[data.machineType .. "machine"]:Clone()
+	local machineModel = assets.Machines[data.machineType .. "Machine"]:Clone()
 
 	local self = setmetatable(Llama.Dictionary.join({
 		player = player;
