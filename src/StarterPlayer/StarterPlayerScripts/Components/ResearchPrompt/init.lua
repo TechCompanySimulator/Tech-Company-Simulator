@@ -81,7 +81,7 @@ local function researchPrompt(props: table)
 				setSelectedMachine(machineType)
 			else
 				local selectedMachineType = ResearchSystem.getFirstUIDisplayType(player)
-				print(selectedMachineType)
+
 				setSelectedMachine(selectedMachineType)
 			end
 		end))
