@@ -50,7 +50,17 @@ return Rodux.createReducer({}, {
 		})
 	end;
 
-	removeAllServerMachines = function(state: table, action: table): table
+	startServerMachineSession = function(state: table, action: table): table
+		local userId = action.userId
+		local currentMachineData = state[tostring(userId)] or {}
+		local machineData = action.machineData or {}
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentMachineData, machineData)
+		})
+	end;
+
+	endServerMachineSession = function(state: table, action: table): table
 		local userId = action.userId
 
 		return Llama.Dictionary.join(state, {

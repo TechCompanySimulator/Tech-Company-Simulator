@@ -6,12 +6,14 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local CurrencyManager = loadModule("CurrencyManager")
 local Llama = loadModule("Llama")
+local PlayerDataManager = loadModule("PlayerDataManager")
 local RoduxStore = loadModule("RoduxStore")
 
 local addServerMachine = loadModule("addServerMachine")
 local updateServerMachine = loadModule("updateServerMachine")
 local removeServerMachine = loadModule("removeServerMachine")
-local removeAllServerMachines = loadModule("removeAllServerMachines")
+local startServerMachineSession = loadModule("startServerMachineSession")
+local endServerMachineSession = loadModule("endServerMachineSession")
 
 local upgradeMachine = getDataStream("UpgradeMachine", "RemoteEvent")
 local setBuildOption = getDataStream("SetMachineBuildOption", "RemoteEvent")
@@ -29,28 +31,18 @@ function Machine.initiate(): nil
 		setmetatable(require(module), Machine)
 	end
 
-	for _, player in Players:GetPlayers() do
-		Machine.playerAdded(player)
-	end
-
-	Players.PlayerAdded:Connect(Machine.playerAdded)
+	PlayerDataManager:playerAdded(Machine.playerAdded)
 	Players.PlayerRemoving:Connect(Machine.playerRemoving)
-
-	-- TODO: Remove Testing Code Below
-	while #Players:GetPlayers() == 0 do task.wait() end
-
-	local part = workspace:FindFirstChild("MachineTestPart")
-
-	Machine.new(Players:GetPlayers()[1], {
-		machineType = "Phone";
-		position = part.Position;
-		orientation = part.Orientation;
-	})
 end
 
-function Machine.new(player: Player, data: table?): table
+function Machine.start()
+
+end
+
+function Machine.new(player: Player, data: table?, onPlayerAdded: boolean?): table
 	local machineModel = assets.Machines[data.machineType .. "Machine"]:Clone()
 
+	-- TODO: Don't get guid if onPlayerAdded
 	local self = setmetatable(Llama.Dictionary.join({
 		player = player;
 		machine = machineModel;
@@ -61,12 +53,15 @@ function Machine.new(player: Player, data: table?): table
 
 	self:placeMachine()
 
-	RoduxStore:dispatch(addServerMachine(player.UserId, self))
+	-- This is handled seperately for initiating the player's machines to reduce the amount of dispatches
+	if not onPlayerAdded then
+		Machine.playerMachines[tostring(player.UserId)][self.guid] = self
+		RoduxStore:dispatch(addServerMachine(player.UserId, table.clone(self)))
+	end
 
 	return self
 end
 
--- TODO: Only save certain info to Rodux?
 function Machine:writeToRodux(newData: table): nil
 	RoduxStore:dispatch(updateServerMachine(self.player.UserId, self.guid, newData))
 end
@@ -103,13 +98,39 @@ function Machine.getPlayerMachine(player: Player, guid: string): table?
 	end
 end
 
-function Machine.playerAdded(player: Player): nil
-	Machine.playerMachines[tostring(player.UserId)] = {}
+-- Create the player's machines from the player's data and add them to the Rodux store
+function Machine.playerAdded(player: Player, playerData: table): nil
+	local machineInvData = playerData.Inventory.Machines or {}
+
+	local machines = {}
+
+	for _, machineData in machineInvData do
+		machines[machineData.guid] = Machine.new(player, machineData, true)
+	end
+
+	-- Create a copy of the machines to avoid modifying the Rodux store when modifying the machines
+	local roduxMachineData = Llama.Dictionary.map(machines, function(machine)
+		return table.clone(machine)
+	end)
+
+	Machine.playerMachines[tostring(player.UserId)] = machines
+	RoduxStore:dispatch(startServerMachineSession(player.UserId, roduxMachineData))
+
+	-- TODO: Remove Testing Code Below
+	while #Players:GetPlayers() == 0 do task.wait() end
+
+	local part = workspace:FindFirstChild("MachineTestPart")
+
+	Machine.new(Players:GetPlayers()[1], {
+		machineType = "Phone";
+		position = part.Position;
+		orientation = part.Orientation;
+	})
 end
 
 function Machine.playerRemoving(player: Player): nil
 	-- Remove all the player's machines from the Rodux store
-	RoduxStore:dispatch(removeAllServerMachines(player.UserId))
+	RoduxStore:dispatch(endServerMachineSession(player.UserId))
 
 	local playerMachines = Machine.playerMachines[tostring(player.UserId)] or {}
 
