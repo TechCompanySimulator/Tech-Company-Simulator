@@ -11,6 +11,7 @@ local BuildModeButtons = loadComponent("BuildModeButtons")
 local BuildModeCategoryFrame = loadComponent("BuildModeCategoryFrame")
 
 local exitButton = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.ExitButton)
+local deleteButton = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.DeleteButton)
 
 local e = React.createElement
 local useState = React.useState
@@ -19,6 +20,10 @@ local function buildModeUI(props)
 	if not props.visible then return end
 	
 	local selectionInfo, setSelectionInfo = useState({})
+
+	if next(selectionInfo) and BuildModeSystem.deleteModeActive then
+		BuildModeSystem.toggleDeleteMode(false)
+	end
 
 	local categories = RoduxStore:getState().gameValues.shopConfig.categories
 
@@ -54,7 +59,18 @@ local function buildModeUI(props)
 						BuildModeSystem.exit()
 					end;
 				};
-			})
+			});
+
+			DeleteButton = e(deleteButton, {
+				[RoactTemplate.Root] = {
+					[React.Event.MouseButton1Click] = function()
+						BuildModeSystem.toggleDeleteMode()
+						setSelectionInfo({})
+					end;
+
+					BackgroundColor3 = BuildModeSystem.deleteModeActive and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(129, 129, 129);
+				};
+			});
 		}
 	)
 end

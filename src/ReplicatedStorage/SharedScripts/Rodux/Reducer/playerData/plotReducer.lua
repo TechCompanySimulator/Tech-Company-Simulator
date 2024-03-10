@@ -9,6 +9,7 @@ return {
 		local userId = action.userId
 		local category = action.category
 		local variation = action.variation
+		local itemIndex = action.itemIndex
 		local itemData = action.itemData
 
 		local currentPlayerData = state[tostring(userId)] or {}
@@ -20,8 +21,8 @@ return {
 			[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
 				PlotData = Llama.Dictionary.join(plotData, {
 					[category] = Llama.Dictionary.join(categoryData, {
-						[variation] = Llama.List.join(variationData, {
-							itemData;
+						[variation] = Llama.Dictionary.join(variationData, {
+							[itemIndex] = itemData;
 						})
 					});
 				});
@@ -41,13 +42,13 @@ return {
 		local variationData = categoryData[variation] or {}
 
 		local finalVariationData = table.clone(variationData)
-		table.remove(finalVariationData, itemIndex)
+		finalVariationData[itemIndex] = nil
 
 		return Llama.Dictionary.join(state, {
 			[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
 				PlotData = Llama.Dictionary.join(plotData, {
 					[category] = Llama.Dictionary.join(categoryData, {
-						[variation ] = finalVariationData;
+						[variation] = finalVariationData;
 					});
 				});
 			});

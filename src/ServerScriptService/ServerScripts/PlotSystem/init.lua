@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -8,10 +9,13 @@ local PlayerDataManager = loadModule("PlayerDataManager")
 local RoduxStore = loadModule("RoduxStore")
 local CurrencyManager = loadModule("CurrencyManager")
 local PlotUtility = loadModule("PlotUtility")
+local Llama = loadModule("Llama")
 
 local addPlotItem = loadModule("addPlotItem")
+local removePlotItem = loadModule("removePlotItem")
 
 local placeItemFunc = getDataStream("PlaceItem", "RemoteFunction")
+local deleteItemEvent = getDataStream("DeleteItem", "RemoteEvent")
 
 local assets = ReplicatedStorage.Assets
 local maids = {}
@@ -27,6 +31,9 @@ function PlotSystem.initiate()
 	Players.PlayerRemoving:Connect(PlotSystem.playerRemoving)
 
 	placeItemFunc.OnServerInvoke = PlotSystem.placeItemRequest
+	deleteItemEvent.OnServerEvent:Connect(function(player, plotName, item)
+		PlotSystem.deleteItemRequest(player, plotName, item)
+	end)
 end
 
 function PlotSystem.promptTriggered(player, plot)
@@ -62,7 +69,7 @@ function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffs
 	local asset = PlotUtility.getAsset(category, variation, itemId)
 	if not asset then return end
 
-	local itemConfig = PlotUtility.getItemConfig(category, variation, itemId)
+	local itemConfig = PlotUtility.getItemConfig(category:lower(), variation, itemId)
 	if not itemConfig then return end
 	
 	local success = CurrencyManager:transact(player, itemConfig.price.currency, -itemConfig.price.amount)
@@ -105,7 +112,30 @@ function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffs
 
 	local saveCf = posX .. "," .. posY .. "," .. posZ .. "," .. rotX .. "," .. rotY .. "," .. rotZ
 
-	PlayerDataManager:updatePlayerData(player, addPlotItem, category, variation, {
+	local playerData = RoduxStore:getState().playerData[tostring(player.UserId)]
+	if not playerData then return end
+
+	local changed = false
+	local itemIndex = 1
+	if playerData.PlotData and playerData.PlotData[category] and playerData.PlotData[category][variation] then
+		local numItems = Llama.Dictionary.count(playerData.PlotData[category][variation])
+		for i = 1, numItems do
+			if playerData.PlotData[category][variation][tostring(i)] then continue end
+
+			changed = true
+			itemIndex = i
+			break
+		end
+
+		if not changed then
+			itemIndex = numItems + 1
+		end
+	end
+
+	itemIndex = tostring(itemIndex)
+	assetClone.Name = category .. "_" .. variation .. "_" .. itemId .. "_" .. itemIndex
+
+	PlayerDataManager:updatePlayerData(player, addPlotItem, category, variation, itemIndex, {
 		id = itemId;
 		cf = saveCf;
 	})
@@ -113,6 +143,20 @@ function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffs
 	print(RoduxStore:getState())
 
 	return true
+end
+
+function PlotSystem.deleteItemRequest(player, plotName, item)
+	-- Check if the player is the owner of this plot and the given item is a descendant of the plot
+
+	local splitName = string.split(item.Name, "_")
+	local category, variation, _itemId, itemIndex = splitName[1], splitName[2], splitName[3], splitName[4]
+
+	item:Destroy()
+	PlayerDataManager:updatePlayerData(player, removePlotItem, category, variation, itemIndex)
+
+	print(RoduxStore:getState())
+
+	-- Give the a refund?
 end
 
 function PlotSystem.placePlotData(player, plot)
@@ -129,11 +173,12 @@ function PlotSystem.placePlotData(player, plot)
 	local plotData = playerData.PlotData
 	for category, categoryInfo in plotData do
 		for variation, variationInfo in categoryInfo do
-			for _, item in variationInfo do
+			for itemIndex, item in variationInfo do
 				local asset = PlotUtility.getAsset(category, variation, item.id)
 				if not asset then continue end
 
 				local assetClone = asset:Clone()
+				assetClone.Name = category .. "_" .. variation .. "_" .. item.id .. "_" .. itemIndex
 				assetClone.Parent = placedItemsFolder
 				local cfString = item.cf
 				local split = string.split(cfString, ",")

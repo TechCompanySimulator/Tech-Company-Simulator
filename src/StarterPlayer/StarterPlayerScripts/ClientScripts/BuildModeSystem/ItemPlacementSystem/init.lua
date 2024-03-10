@@ -134,17 +134,19 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 				overlapParams.FilterDescendantsInstances = placedItems and placedItems:GetChildren() or {}
 				overlapParams.FilterType = Enum.RaycastFilterType.Include
 
-				for _, part in assetClone.Touch:GetChildren() do
-					local touchingParts = workspace:GetPartsInPart(part, overlapParams)
-					print(touchingParts)
-					for _, touchingPart in touchingParts do
-						if touchingPart:IsDescendantOf(assetClone) then continue end
+				local touch = assetClone:WaitForChild("Touch", 1)
+				if touch then
+					for _, part in touch:GetChildren() do
+						local touchingParts = workspace:GetPartsInPart(part, overlapParams)
+						for _, touchingPart in touchingParts do
+							if touchingPart:IsDescendantOf(assetClone) then continue end
 
-						isTouching = true
-						break
+							isTouching = true
+							break
+						end
+
+						if isTouching then break end
 					end
-
-					if isTouching then break end
 				end
 
 				if isTouching and not assetClone:GetAttribute("IsTouching") then
@@ -163,6 +165,7 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 						if not part:IsA("BasePart") then continue end
 
 						part.Color = part:GetAttribute("OriginalColor")
+						part:SetAttribute("OriginalColor", nil)
 					end
 				end
 			end
@@ -183,20 +186,25 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 		ItemPlacementSystem.stopPlacement()
 	end))
 
-	task.defer(function()
-		if not placementAsset or not placementAsset.Parent then return end
+	if not placementAsset or not placementAsset.Parent then 
+		ItemPlacementSystem.stopPlacement()
+		return 
+	end
 
-		-- When the player clicks, ask the server to place the asset
-		placementMaid:GiveTask(UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-			
-			local objectSpace = PlotSelection.myPlot.CFrame:ToObjectSpace(placementAsset.PrimaryPart.CFrame)
-			local success = placeItemFunc:InvokeServer(category, variation, itemId, objectSpace)
-			if not success then return end
+	local buttonReleased = false
 
-			ItemPlacementSystem.stopPlacement()
-		end))
-	end)
+	-- When the player clicks, ask the server to place the asset
+	placementMaid:GiveTask(UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+
+		if not buttonReleased then buttonReleased = true return end
+		
+		local objectSpace = PlotSelection.myPlot.CFrame:ToObjectSpace(placementAsset.PrimaryPart.CFrame)
+		local success = placeItemFunc:InvokeServer(category, variation, itemId, objectSpace)
+		if not success then return end
+
+		ItemPlacementSystem.stopPlacement()
+	end))
 end
 
 function ItemPlacementSystem.stopPlacement()
