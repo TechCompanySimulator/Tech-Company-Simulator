@@ -22,7 +22,10 @@ local interfaceStates = {
 		HUD = {};
 		ResearchPrompt = {
 			hasToggle = true;
-		}
+		};
+		CompanyNameUI = {
+			hasToggle = true;
+		};
 	};
 	buildMode = {
 		BuildModeUI = {
@@ -35,7 +38,7 @@ local interfaceStates = {
 	};
 }
 
-local toggleBinds = {}
+local toggleBinds = require(script.ToggleBinds)
 
 for _, components in interfaceStates do
 	for componentName, info in pairs(components) do

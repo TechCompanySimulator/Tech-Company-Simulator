@@ -7,13 +7,14 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local DefaultData = loadModule("DefaultData")
 local Llama = loadModule("Llama")
+local Signal = loadModule("Signal")
 local RoduxStore = loadModule("RoduxStore")
 -- local PlayerOrderedDataManager = loadModule("PlayerOrderedDataManager")
 local ProfileService = loadModule("ProfileService")
 local CONFIG = loadModule("CONFIG")
 local setPlayerSession = loadModule("setPlayerSession")
 
-local playerDataLoaded = getDataStream("playerDataLoaded", "BindableEvent")
+local playerDataLoaded = Signal.new()
 
 local profiles = {}
 
@@ -29,11 +30,11 @@ local PlayerDataManager = {
 -- Sets up the playerAdded function for all players already in the game and for new players
 function PlayerDataManager:start() : nil
 	for _, player in Players:GetPlayers() do
-		task.spawn(PlayerDataManager.playerAdded, player)
+		task.spawn(PlayerDataManager._onPlayerAdded, player)
 	end
 
-	Players.PlayerAdded:Connect(PlayerDataManager.playerAdded)
-	Players.PlayerRemoving:Connect(PlayerDataManager.playerRemoving)
+	Players.PlayerAdded:Connect(PlayerDataManager._onPlayerAdded)
+	Players.PlayerRemoving:Connect(PlayerDataManager._onPlayerRemoving)
 
 	--PlayerOrderedDataManager:init(PlayerDataManager.TOTAL_LEAVING_FUNCS)
 end
@@ -68,7 +69,7 @@ function PlayerDataManager:removeLeavingCallback(guid : string) : nil
 	PlayerDataManager.leavingCallbacks[guid] = nil
 end
 
-function PlayerDataManager.playerAdded(player : Player) : nil
+function PlayerDataManager._onPlayerAdded(player : Player) : nil
 	local profile = ProfileStore:LoadProfileAsync("Player_" .. player.UserId)
 
 	if profile then
@@ -92,7 +93,7 @@ function PlayerDataManager.playerAdded(player : Player) : nil
 			RoduxStore:dispatch(setPlayerSession(player.UserId, profile.Data))
 
 			-- Fire a bindable event to let the server know that the player has loaded successfully and we can run any data-dependant functions
-			playerDataLoaded:Fire(player)
+			playerDataLoaded:fire(player, profile.Data)
 		else
 			-- Player left before the profile loaded:
 			profile:Release()
@@ -104,7 +105,7 @@ function PlayerDataManager.playerAdded(player : Player) : nil
 	end
 end
 
-function PlayerDataManager.playerRemoving(player : Player) : nil
+function PlayerDataManager._onPlayerRemoving(player : Player) : nil
 	local callbacksCompleted = Llama.Dictionary.map(PlayerDataManager.leavingCallbacks, function()
 		return false
 	end)
@@ -135,6 +136,10 @@ function PlayerDataManager.playerRemoving(player : Player) : nil
 
 	-- Remove data from Rodux store
 	RoduxStore:dispatch(setPlayerSession(player.UserId, Llama.None))
+end
+
+function PlayerDataManager:playerAdded(callback)
+	playerDataLoaded:connect(callback)
 end
 
 return PlayerDataManager

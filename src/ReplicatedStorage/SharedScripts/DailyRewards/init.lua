@@ -11,7 +11,6 @@ local PlayerDataManager = RunService:IsServer() and loadModule("PlayerDataManage
 local updateDailyRewards = loadModule("updateDailyRewards")
 
 local dailyRewardsEvent = getDataStream("DailyRewardsEvent", "RemoteEvent")
-local playerDataLoaded = RunService:IsServer() and getDataStream("playerDataLoaded", "BindableEvent")
 
 local DailyRewards = {}
 
@@ -35,7 +34,7 @@ if RunService:IsClient() then return DailyRewards end
 
 -- Connect this event before the start functions are ran
 function DailyRewards:initiate()
-	playerDataLoaded.Event:Connect(DailyRewards.playerAdded)
+	PlayerDataManager:playerAdded(DailyRewards.playerAdded)
 	PlayerDataManager:addLeavingCallback(DailyRewards.playerRemoving)
 end
 
@@ -93,13 +92,10 @@ function DailyRewards.serverEvent(player)
 end
 
 -- When player joins, need to check the time and see if they are eligible for a reward
-function DailyRewards.playerAdded(player)
+function DailyRewards.playerAdded(player, playerData)
 	if not player:IsDescendantOf(Players) then return end
 
 	local loginTime = DateTime.now().UnixTimestamp
-	local playerData = RoduxStore:waitForValue("playerData")[tostring(player.UserId)]
-	if not playerData then return end
-
 	local dailyRewardsConfig = RoduxStore:waitForValue("gameValues", "dailyRewardsConfig")
 	local timeBoundary = DailyRewards.getTimeBoundary(loginTime)
 	local timer = dailyRewardsConfig.timer
