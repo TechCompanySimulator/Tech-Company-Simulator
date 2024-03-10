@@ -11,7 +11,7 @@ local PlayerDataManager = RunService:IsServer() and loadModule("PlayerDataManage
 local completeResearch = loadModule("completeResearch")
 local incrementResearchProgress = loadModule("incrementResearchProgress")
 
-local incrementResearchRemote = getDataStream("incrementResearch", "RemoteFunction")
+local incrementResearchRemote = getDataStream("IncrementResearch", "RemoteFunction")
 
 local ResearchSystem = {}
 

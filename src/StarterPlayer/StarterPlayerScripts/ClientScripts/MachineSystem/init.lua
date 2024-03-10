@@ -5,13 +5,18 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 
 local CurrencyManager = loadModule("CurrencyManager")
 local MachineUtility = loadModule("MachineUtility")
+local ResearchSystem = loadModule("ResearchSystem")
 local RoduxStore = loadModule("RoduxStore")
 local Signal = loadModule("Signal")
+
+local upgradeMachine = getDataStream("UpgradeMachine", "RemoteFunction")
+local setBuildOption = getDataStream("SetMachineBuildOption", "RemoteFunction")
+local openResearchUI = getDataStream("OpenResearchUI", "BindableEvent")
 
 local player = Players.LocalPlayer
 
 local Machine = {
-	openMachinePrompt = Signal.new();
+	machinePromptSignal = Signal.new();
 	activeMachines = {};
 }
 Machine.__index = Machine
@@ -52,17 +57,105 @@ function Machine.syncRoduxTable(roduxMachines: table): nil
 end
 
 function Machine.new(machineData: table): table
-	local self = setmetatable(machineData, Machine)
+	local self = setmetatable(table.clone(machineData), Machine)
+
+	self:createPrompts()
 
 	return self
 end
 
 function Machine:createPrompts()
+	local machineUIPart = self.machine.ControlPanel.AssembleButton
+	local buildPart = self.machine.ProxPromptPart
+
+	self.selectorPrompt = Instance.new("ProximityPrompt")
+	self.selectorPrompt.ActionText = "Open Build Menu"
+	self.selectorPrompt.ObjectText = self.machineType .. " Machine"
+	self.selectorPrompt.MaxActivationDistance = 25
+	self.selectorPrompt.RequiresLineOfSight = false
+
+	self.selectorPrompt.Triggered:Connect(function()
+		self:openMachinePrompt()
+	end)
+	self.selectorPrompt.Parent = machineUIPart
+
+	self.buildPrompt = Instance.new("ProximityPrompt")
+	self.buildPrompt.MaxActivationDistance = 25
+	self.buildPrompt.RequiresLineOfSight = false
+	self.buildPrompt.Enabled = false
+	self.buildPrompt.Parent = buildPart
+
+	self.buildPrompt.Triggered:Connect(function()
+		--
+	end)
+
+	self:updateBuildPrompt()
+end
+
+function Machine:toggleAutomation()
 
 end
 
-function Machine:openBuildUI()
+function Machine:openMachinePrompt()
+	Machine.machinePromptSignal:fire(self)
+end
 
+function Machine:setBuildOption(option: number): boolean
+	if self.buildOption == option then return true end
+
+	if ResearchSystem.hasPlayerResearched(player, self.machineType:lower(), option) then
+		local success = setBuildOption:InvokeServer(self.guid, option)
+
+		if success then
+			self.buildOption = option
+			self:updateBuildPrompt()
+
+			return true
+		end
+	end
+
+	openResearchUI:Fire(self.machineType:lower())
+
+	return false
+end
+
+function Machine:updateBuildPrompt()
+	self.buildPrompt.ActionText = if self.automated then "Start Production" else "Build Item"
+
+	if self.buildOption then
+		self.buildPrompt.ObjectText = MachineUtility.getBuildItems(self.machineType)[self.buildOption]
+		self.buildPrompt.Enabled = true
+	else
+		self.buildPrompt.Enabled = false
+	end
+end
+
+-- TODO: Ensure sufficient debounce on UI Button
+function Machine:upgradeLevel(levelType: string): boolean
+	if not (levelType == "speed" or levelType == "quality") then return false end
+
+	local upgradeValues = RoduxStore:waitForValue("gameValues", "machineUpgradeValues", self.machineType:lower(), levelType:lower() .. "Upgrades")
+
+	local nextLevel = self[levelType .. "Level"] + 1
+	local upgradeDetails = upgradeValues[nextLevel]
+
+	if not upgradeDetails then
+		warn(levelType .. " is already at max level for machine of type " .. self.machineType)
+		return false
+	end
+
+	if CurrencyManager:hasAmount(player, upgradeDetails.currency, upgradeDetails.cost) then
+		local success = upgradeMachine:InvokeServer(self.guid, levelType)
+
+		if success then
+			self[levelType .. "Level"] = nextLevel
+
+			return true
+		end
+	else
+		-- TODO: Open Currency UI
+		return false
+	end
 end
 
 function Machine:destroy()

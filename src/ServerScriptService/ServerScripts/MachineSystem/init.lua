@@ -7,6 +7,7 @@ local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithF
 local CurrencyManager = loadModule("CurrencyManager")
 local Llama = loadModule("Llama")
 local PlayerDataManager = loadModule("PlayerDataManager")
+local ResearchSystem = loadModule("ResearchSystem")
 local RoduxStore = loadModule("RoduxStore")
 
 local addServerMachine = loadModule("addServerMachine")
@@ -15,8 +16,8 @@ local removeServerMachine = loadModule("removeServerMachine")
 local startServerMachineSession = loadModule("startServerMachineSession")
 local endServerMachineSession = loadModule("endServerMachineSession")
 
-local upgradeMachine = getDataStream("UpgradeMachine", "RemoteEvent")
-local setBuildOption = getDataStream("SetMachineBuildOption", "RemoteEvent")
+local upgradeMachine = getDataStream("UpgradeMachine", "RemoteFunction")
+local setBuildOption = getDataStream("SetMachineBuildOption", "RemoteFunction")
 
 local assets = ReplicatedStorage.Assets
 
@@ -25,6 +26,8 @@ local Machine = {
 }
 Machine.__index = Machine
 
+
+-- TODO: Save to player Data
 function Machine.initiate(): nil
 	-- Allows for inheritance
 	for _, module in script:GetChildren() do
@@ -36,58 +39,26 @@ function Machine.initiate(): nil
 end
 
 function Machine.start()
+	-- TODO: Debounces
+	upgradeMachine.OnServerInvoke = function(player: Player, guid: string, levelType: string): boolean
+		local machine = Machine.getPlayerMachine(player, guid)
 
-end
+		if machine then
+			return machine:upgradeLevel(levelType)
+		end
 
-function Machine.new(player: Player, data: table?, onPlayerAdded: boolean?): table
-	local machineModel = assets.Machines[data.machineType .. "Machine"]:Clone()
-
-	-- TODO: Don't get guid if onPlayerAdded
-	local self = setmetatable(Llama.Dictionary.join({
-		player = player;
-		machine = machineModel;
-		guid = HttpService:GenerateGUID(false);
-		speedLevel = 1;
-		qualityLevel = 1;
-	}, data), Machine)
-
-	self:placeMachine()
-
-	-- This is handled seperately for initiating the player's machines to reduce the amount of dispatches
-	if not onPlayerAdded then
-		Machine.playerMachines[tostring(player.UserId)][self.guid] = self
-		RoduxStore:dispatch(addServerMachine(player.UserId, table.clone(self)))
+		return false
 	end
 
-	return self
-end
+	setBuildOption.OnServerInvoke = function(player: Player, guid: string, option: string): boolean
+		local machine = Machine.getPlayerMachine(player, guid)
 
-function Machine:writeToRodux(newData: table): nil
-	RoduxStore:dispatch(updateServerMachine(self.player.UserId, self.guid, newData))
-end
+		if machine then
+			return machine:setBuildOption(option)
+		end
 
--- TODO: Integrate with the PlotSystem
-function Machine:placeMachine(): nil
-	self.machine:SetPrimaryPartCFrame(CFrame.new(self.position))
-
-	self.machine.Parent = workspace
-end
-
-function Machine:setBuildOption(option: string): boolean
-
-end
-
-function Machine:upgradeLevel(levelType: string): boolean
-
-end
-
-function Machine:destroy(isPlayerLeaving: boolean?): nil
-	-- Only remove from the Rodux store if the player is not leaving to avoid multiple dispatches
-	if not isPlayerLeaving then
-		RoduxStore:dispatch(removeServerMachine(self.player.UserId, self.guid))
+		return false
 	end
-
-	self.machine:Destroy()
 end
 
 function Machine.getPlayerMachine(player: Player, guid: string): table?
@@ -139,6 +110,92 @@ function Machine.playerRemoving(player: Player): nil
 	end
 
 	Machine.playerMachines[tostring(player.UserId)] = nil
+end
+
+function Machine.new(player: Player, data: table?, onPlayerAdded: boolean?): table
+	local machineModel = assets.Machines[data.machineType .. "Machine"]:Clone()
+
+	-- TODO: Don't get guid if onPlayerAdded
+	local self = setmetatable(Llama.Dictionary.join({
+		player = player;
+		machine = machineModel;
+		guid = HttpService:GenerateGUID(false);
+		speedLevel = 1;
+		qualityLevel = 1;
+	}, data), Machine)
+
+	self:placeMachine()
+
+	-- This is handled seperately for initiating the player's machines to reduce the amount of dispatches
+	if not onPlayerAdded then
+		Machine.playerMachines[tostring(player.UserId)][self.guid] = self
+		RoduxStore:dispatch(addServerMachine(player.UserId, table.clone(self)))
+	end
+
+	return self
+end
+
+function Machine:writeToRodux(newData: table): nil
+	RoduxStore:dispatch(updateServerMachine(self.player.UserId, self.guid, newData))
+end
+
+-- TODO: Integrate with the PlotSystem
+function Machine:placeMachine(): nil
+	self.machine:SetPrimaryPartCFrame(CFrame.new(self.position))
+
+	self.machine.Parent = workspace
+end
+
+function Machine:setBuildOption(option: number): boolean
+	if typeof(option) ~= "number" then return false end
+
+	if ResearchSystem.hasPlayerResearched(self.player, self.machineType, option) then
+		self.buildOption = option
+
+		self:writeToRodux({
+			buildOption = option;
+		})
+
+		return true
+	end
+
+	return false
+end
+
+-- TODO: Update Physical Properties of Machine
+function Machine:upgradeLevel(levelType: string): boolean
+	if not (levelType == "speed" or levelType == "quality") then return false end
+
+	local upgradeValues = RoduxStore:waitForValue("gameValues", "machineUpgradeValues", self.machineType:lower(), levelType:lower() .. "Upgrades")
+
+	local nextLevel = self[levelType .. "Level"] + 1
+	local upgradeDetails = upgradeValues[nextLevel]
+
+	if not upgradeDetails then
+		warn(levelType .. " is already at max level for machine of type " .. self.machineType)
+		return false
+	end
+
+	if CurrencyManager:transact(self.player, upgradeDetails.currency, -upgradeDetails.cost) then
+		self[levelType .. "Level"] = nextLevel
+
+		self:writeToRodux({
+			[levelType .. "Level"] = nextLevel;
+		})
+
+		return true
+	end
+
+	return false
+end
+
+function Machine:destroy(isPlayerLeaving: boolean?): nil
+	-- Only remove from the Rodux store if the player is not leaving to avoid multiple dispatches
+	if not isPlayerLeaving then
+		RoduxStore:dispatch(removeServerMachine(self.player.UserId, self.guid))
+	end
+
+	self.machine:Destroy()
 end
 
 return Machine
