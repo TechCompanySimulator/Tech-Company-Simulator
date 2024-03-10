@@ -140,13 +140,22 @@ function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffs
 		cf = saveCf;
 	})
 
-	print(RoduxStore:getState())
-
 	return true
 end
 
 function PlotSystem.deleteItemRequest(player, plotName, item)
-	-- Check if the player is the owner of this plot and the given item is a descendant of the plot
+	if typeof(plotName) ~= "string" or typeof(item) ~= "Instance" then return end
+
+	-- Sanity checks
+	local plot = workspace.Plots:FindFirstChild(plotName)
+	local placedItems = workspace.PlacedItems:FindFirstChild(plotName)
+	if not plot 
+		or plot:GetAttribute("Owner") ~= player.UserId 
+		or not placedItems
+		or not item:IsDescendantOf(placedItems) 
+	then 
+		return 
+	end
 
 	local splitName = string.split(item.Name, "_")
 	local category, variation, _itemId, itemIndex = splitName[1], splitName[2], splitName[3], splitName[4]
@@ -154,9 +163,7 @@ function PlotSystem.deleteItemRequest(player, plotName, item)
 	item:Destroy()
 	PlayerDataManager:updatePlayerData(player, removePlotItem, category, variation, itemIndex)
 
-	print(RoduxStore:getState())
-
-	-- Give the a refund?
+	-- Give them a refund?
 end
 
 function PlotSystem.placePlotData(player, plot)
