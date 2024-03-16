@@ -88,7 +88,9 @@ function Machine.playerAdded(player: Player, playerData: table): nil
 	RoduxStore:dispatch(startServerMachineSession(player.UserId, roduxMachineData))
 
 	-- TODO: Remove Testing Code Below
-	while #Players:GetPlayers() == 0 do task.wait() end
+	while #Players:GetPlayers() == 0 do
+		task.wait()
+	end
 
 	local part = workspace:FindFirstChild("MachineTestPart")
 
