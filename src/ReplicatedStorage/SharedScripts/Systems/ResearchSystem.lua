@@ -98,7 +98,6 @@ function ResearchSystem.incrementResearch(player: Player, machineType: string, r
 
 				-- If they have done all research steps then increment their research level
 				if ResearchSystem.isResearchCompleted(player, machineType) then
-					print("COMPLETE RESEARCH")
 					PlayerDataManager:updatePlayerData(player, completeResearch, machineType, playerLevel + 1)
 				end
 			end
