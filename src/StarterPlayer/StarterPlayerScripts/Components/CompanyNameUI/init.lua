@@ -5,9 +5,9 @@ local loadModule, _, loadComponent = table.unpack(require(ReplicatedStorage.Zeni
 local React = loadModule("React")
 local RoactTemplate = loadModule("RoactTemplate")
 
-local Button = loadModule("Button")
+local Button = loadComponent("Button")
 
-local companyNameUITemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.CompanyNameUI)
+local companyNameUITemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.CompanyNameUI)
 local exitButton = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.BuildMode.ExitButton)
 
 local e = React.createElement

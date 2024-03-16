@@ -38,7 +38,7 @@ local interfaceStates = {
 	};
 }
 
-local toggleBinds = require(script.ToggleBinds)
+local toggleBinds = require(script.Parent.ToggleBinds)
 
 for _, components in interfaceStates do
 	for componentName, info in pairs(components) do
