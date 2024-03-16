@@ -131,13 +131,15 @@ function Machine:updateBuildPrompt()
 end
 
 -- TODO: Ensure sufficient debounce on UI Button
+-- Game values is indexed from 1 onwards, with 1 representing costs for level 2
 function Machine:upgradeLevel(levelType: string): boolean
-	if not (levelType == "speed" or levelType == "quality") then return false end
+	if not MachineUtility.isValidLevelType(levelType) then return false end
 
-	local upgradeValues = RoduxStore:waitForValue("gameValues", "machineUpgradeValues", self.machineType:lower(), levelType:lower() .. "Upgrades")
+	local upgradeValues = RoduxStore:waitForValue("gameValues", "machines", self.machineType:lower(), levelType .. "Upgrades")
 
-	local nextLevel = self[levelType .. "Level"] + 1
-	local upgradeDetails = upgradeValues[nextLevel]
+	-- Upgrade costs are indexed from 1 onwards, with 1 representing costs for level 2 etc
+	local currentLevel = self[levelType .. "Level"]
+	local upgradeDetails = upgradeValues[currentLevel]
 
 	if not upgradeDetails then
 		warn(levelType .. " is already at max level for machine of type " .. self.machineType)
@@ -148,7 +150,7 @@ function Machine:upgradeLevel(levelType: string): boolean
 		local success = upgradeMachine:InvokeServer(self.guid, levelType)
 
 		if success then
-			self[levelType .. "Level"] = nextLevel
+			self[levelType .. "Level"] = currentLevel + 1
 
 			return true
 		end

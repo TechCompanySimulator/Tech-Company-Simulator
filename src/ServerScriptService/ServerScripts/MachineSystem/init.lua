@@ -166,10 +166,11 @@ end
 function Machine:upgradeLevel(levelType: string): boolean
 	if not (levelType == "speed" or levelType == "quality") then return false end
 
-	local upgradeValues = RoduxStore:waitForValue("gameValues", "machineUpgradeValues", self.machineType:lower(), levelType:lower() .. "Upgrades")
+	local upgradeValues = RoduxStore:waitForValue("gameValues", "machines", self.machineType:lower(), levelType:lower() .. "Upgrades")
 
-	local nextLevel = self[levelType .. "Level"] + 1
-	local upgradeDetails = upgradeValues[nextLevel]
+	-- Upgrade costs are indexed from 1 onwards, with 1 representing costs for level 2 etc
+	local currentLevel = self[levelType .. "Level"]
+	local upgradeDetails = upgradeValues[currentLevel]
 
 	if not upgradeDetails then
 		warn(levelType .. " is already at max level for machine of type " .. self.machineType)
@@ -177,10 +178,10 @@ function Machine:upgradeLevel(levelType: string): boolean
 	end
 
 	if CurrencyManager:transact(self.player, upgradeDetails.currency, -upgradeDetails.cost) then
-		self[levelType .. "Level"] = nextLevel
+		self[levelType .. "Level"] = currentLevel + 1
 
 		self:writeToRodux({
-			[levelType .. "Level"] = nextLevel;
+			[levelType .. "Level"] = currentLevel + 1;
 		})
 
 		return true
