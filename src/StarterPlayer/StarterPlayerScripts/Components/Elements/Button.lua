@@ -31,55 +31,79 @@ local BUTTON_STYLES = {
 local e = React.createElement
 local useRef = React.useRef
 local useBinding = React.useBinding
+local joinBindings = React.joinBindings
 local camera = workspace.CurrentCamera
 
 local buttonTemplate = RoactTemplate.fromInstance(React, ReplicatedStorage.Assets.ReactTemplates.Elements.Button)
 
-return function(props)
+return function(props: table): table
 	local isHovered, setHovered = useBinding(false)
 	local debounce = useRef(false)
 
-	local buttonColours = BUTTON_STYLES[props.buttonType or "Standard"]
-	local debounceTime = props.debounce or 0.2
-	local isActive = props.buttonType ~= "Disabled"
+	local buttonTypeBinding = if typeof(props.buttonType) ~= "string" then props.buttonType else nil
+
+	local function isDisabled(): boolean
+		local buttonType = if buttonTypeBinding then buttonTypeBinding:getValue() else props.buttonType
+
+		return buttonType == "Disabled"
+	end
 
 	return e(buttonTemplate, {
 		[RoactTemplate.Root] = props.buttonProps or {};
 
 		Click = {
-			Active = isActive;
-			BackgroundColor3 = isHovered:map(function(bool)
-				local index = bool and "hover" or "default"
+			BackgroundColor3 = joinBindings({
+				buttonType = buttonTypeBinding;
+				isHovered = isHovered;
+			}):map(function(values: table): Color3
+				local buttonType = if values.buttonType then values.buttonType else props.buttonType
+
+				local buttonColours = BUTTON_STYLES[buttonType]
+
+				if not buttonColours then
+					warn("Invalid button type: " .. tostring(buttonType))
+					buttonColours = BUTTON_STYLES.Standard
+				end
+
+				local index = if values.isHovered then "hover" else "default"
+
 				return buttonColours[index]
 			end);
-			[React.Event.MouseButton1Click] = function()
-				if not isActive or debounce.current or typeof(props.onClick) ~= "function" then return end
+			[React.Event.MouseButton1Click] = function(): nil
+				if isDisabled() or debounce.current or typeof(props.onClick) ~= "function" then return end
 
 				debounce.current = true
 
 				-- TODO: Click Sound
 				props.onClick()
 
-				task.wait(debounceTime)
+				if props.debounce then
+					task.wait(props.debounce)
+				end
+
 				debounce.current = false
 			end;
 
-			[React.Event.MouseEnter] = if isActive then function(...)
+			[React.Event.MouseEnter] = function(...): nil
+				if isDisabled() then return end
+
 				setHovered(true)
 				-- TODO: Hover Sound
 
 				if typeof(props.onMouseEnter) == "function" then
 					props.onMouseEnter(...)
 				end
-			end else nil;
+			end;
 
-			[React.Event.MouseLeave] = if isActive then function(...)
+			[React.Event.MouseLeave] = function(...): nil
+				if isDisabled() then return end
+
 				setHovered(false)
 
 				if typeof(props.onMouseLeave) == "function" then
 					props.onMouseLeave(...)
 				end
-			end else nil;
+			end;
 		};
 
 		Text = {
