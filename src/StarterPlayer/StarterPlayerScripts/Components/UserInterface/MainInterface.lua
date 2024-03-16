@@ -22,7 +22,10 @@ local interfaceStates = {
 		HUD = {};
 		ResearchPrompt = {
 			hasToggle = true;
-		}
+		};
+		MachinePrompt = {
+			hasToggle = true;
+		};
 	};
 	buildMode = {
 		BuildModeUI = {
@@ -84,6 +87,7 @@ local function mainInterface()
 
 	return e("ScreenGui", {
 		Name = "MainInterface";
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
 	}, {
 		Provider = e(ThemeContext.Provider, {
 			value = theme;
