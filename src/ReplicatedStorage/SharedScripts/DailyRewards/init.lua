@@ -11,7 +11,6 @@ local PlayerDataManager = RunService:IsServer() and loadModule("PlayerDataManage
 local updateDailyRewards = loadModule("updateDailyRewards")
 
 local dailyRewardsEvent = getDataStream("DailyRewardsEvent", "RemoteEvent")
-local playerDataLoaded = RunService:IsServer() and getDataStream("playerDataLoaded", "BindableEvent")
 
 local DailyRewards = {}
 
@@ -35,7 +34,7 @@ if RunService:IsClient() then return DailyRewards end
 
 -- Connect this event before the start functions are ran
 function DailyRewards:initiate()
-	playerDataLoaded.Event:Connect(DailyRewards.playerAdded)
+	PlayerDataManager:playerAdded(DailyRewards.playerAdded)
 	PlayerDataManager:addLeavingCallback(DailyRewards.playerRemoving)
 end
 
