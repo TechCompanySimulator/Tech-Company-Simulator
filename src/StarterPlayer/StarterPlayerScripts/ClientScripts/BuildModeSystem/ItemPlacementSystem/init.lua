@@ -158,7 +158,7 @@ function ItemPlacementSystem.stopPlacement()
 		placementAsset = nil
 	end
 
-	placementMaid:DoCleaning()
+	placementMaid:doCleaning()
 
 	if PlotSelection.myPlot then
 		PlotSelection.myPlot.Texture.Transparency = 1
