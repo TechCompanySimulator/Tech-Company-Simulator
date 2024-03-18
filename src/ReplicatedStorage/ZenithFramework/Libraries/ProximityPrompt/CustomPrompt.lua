@@ -161,20 +161,20 @@ local function setupInput(prompt, inputType, ui, maid, manager)
 		end
 	end
 
-	maid:GiveTask(UserInputService.InputBegan:Connect(function(input)
+	maid:giveTask(UserInputService.InputBegan:Connect(function(input)
 		if input.KeyCode ~= prompt.KeyboardKeyCode then return end
 
 		began()
 	end))
 
-	maid:GiveTask(UserInputService.InputEnded:Connect(function(input)
+	maid:giveTask(UserInputService.InputEnded:Connect(function(input)
 		if input.KeyCode ~= prompt.KeyboardKeyCode then return end
 
 		ended()
 	end))
 
 	if inputType == Enum.ProximityPromptInputType.Touch or prompt.ClickablePrompt then 
-		maid:GiveTask(ui.ClickableButton.InputBegan:Connect(function(input)
+		maid:giveTask(ui.ClickableButton.InputBegan:Connect(function(input)
 			if
 				(
 					input.UserInputType == Enum.UserInputType.Touch
@@ -185,7 +185,7 @@ local function setupInput(prompt, inputType, ui, maid, manager)
 			end
 		end))
 
-		maid:GiveTask(ui.ClickableButton.InputEnded:Connect(function(input)
+		maid:giveTask(ui.ClickableButton.InputEnded:Connect(function(input)
 			if
 				input.UserInputType == Enum.UserInputType.Touch
 				or input.UserInputType == Enum.UserInputType.MouseButton1

@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
@@ -36,7 +37,7 @@ function Box:SetupPrompt()
 		objectText = "Wooden Box";
 		actionText = "Pick Up";
 		maxActivationDistance = 10;
-		holdDuration = 1;
+		holdDuration = 0.5;
 		keyboardKeyCode = Enum.KeyCode.E;
 		custom = true;
 	})
@@ -55,6 +56,11 @@ function Box:Pickup()
 	if not success then
 		self.pickedUp = false
 		self.pickupPrompt.prompt.Enabled = true
+	else
+		self.maid:giveTask(UserInputService.InputEnded:Connect(function(input, processed)
+			if processed or input.KeyCode ~= Enum.KeyCode.E then return end
+			
+		end))
 	end
 end
 

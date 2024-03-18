@@ -50,11 +50,11 @@ function ProximityPrompt:_CreatePrompt(contents)
 	end
 
 	if self.onStarted then
-		self.maid:GiveTask(self.prompt.PromptButtonHoldBegan:Connect(self.onStarted))
+		self.maid:giveTask(self.prompt.PromptButtonHoldBegan:Connect(self.onStarted))
 	end
 
 	if self.onStopped then
-		self.maid:GiveTask(self.prompt.PromptButtonHoldEnded:Connect(self.onStopped))
+		self.maid:giveTask(self.prompt.PromptButtonHoldEnded:Connect(self.onStopped))
 	end
 
 	self.prompt.Parent = contents.parent
@@ -62,7 +62,7 @@ end
 
 function ProximityPrompt:Connect(connectedFunction)
 	if not self.custom then
-		self.maid:GiveTask(self.prompt.Triggered:Connect(connectedFunction))
+		self.maid:giveTask(self.prompt.Triggered:Connect(connectedFunction))
 	else
 		if not self.connectedFunctions then
 			self.connectedFunctions = {}
