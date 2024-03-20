@@ -8,13 +8,14 @@ local PlayerDataManager = loadModule("PlayerDataManager")
 local RoduxStore = loadModule("RoduxStore")
 local CurrencyManager = loadModule("CurrencyManager")
 local PlotUtility = loadModule("PlotUtility")
+local BoxSystem = loadModule("BoxSystem")
 
 local addPlotItem = loadModule("addPlotItem")
 
+local claimPlotEvent = getDataStream("ClaimPlot", "RemoteEvent")
 local placeItemFunc = getDataStream("PlaceItem", "RemoteFunction")
 
 local assets = ReplicatedStorage.Assets
-local maids = {}
 
 local PlotSystem = {}
 PlotSystem.playerPlotInfo = {}
@@ -26,6 +27,7 @@ function PlotSystem.initiate()
 
 	Players.PlayerRemoving:Connect(PlotSystem.playerRemoving)
 
+	claimPlotEvent.OnServerEvent:Connect(PlotSystem.promptTriggered)
 	placeItemFunc.OnServerInvoke = PlotSystem.placeItemRequest
 end
 
@@ -34,11 +36,12 @@ function PlotSystem.promptTriggered(player, plot)
 
 	plot:SetAttribute("Owner", player.UserId)
 	plot:SetAttribute("Taken", true)
-	maids[plot]:DoCleaning()
 	plot:FindFirstChild("FreePlotSign"):Destroy()
 	PlotSystem.playerPlotInfo[player] = plot
 
 	PlotSystem.placePlotData(player, plot)
+
+	BoxSystem:spawnBox(player, "Wooden", plot.CFrame * CFrame.new(0, 5, 0))
 end
 
 function PlotSystem.setupPlotSign(plot)
@@ -48,11 +51,6 @@ function PlotSystem.setupPlotSign(plot)
 	freePlotSign.Parent = plot
 	local _, size = freePlotSign:GetBoundingBox()
 	freePlotSign:PivotTo(plot.CFrame * CFrame.new(0, plot.Size.Y / 2 + size.Y / 2, plot.Size.Z / 2))
-
-	maids[plot] = Maid.new()
-	maids[plot]:GiveTask(freePlotSign.Main.ProximityPrompt.Triggered:Connect(function(player)
-		PlotSystem.promptTriggered(player, plot)
-	end))
 end
 
 function PlotSystem.placeItemRequest(player, category, variation, itemId, cfOffset)

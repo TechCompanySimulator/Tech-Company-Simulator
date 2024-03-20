@@ -1,4 +1,13 @@
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+
+local ProximityPrompt = loadModule("ProximityPrompt")
+local ProximityManager = loadModule("ProximityManager")
+
+local claimPlotEvent = getDataStream("ClaimPlot", "RemoteEvent")
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
@@ -7,6 +16,7 @@ local currentIndex = 1
 local PlotSelection = {}
 PlotSelection.freePlots = {}
 PlotSelection.isSelecting = false
+PlotSelection.prompts = {}
 
 function PlotSelection.initiate()
 	for _, plotPart in workspace.Plots:GetChildren() do
@@ -15,6 +25,45 @@ function PlotSelection.initiate()
 			PlotSelection.takenAttributeChanged(plotPart)
 		end)
 	end
+
+	ProximityManager.initiate()
+	
+	for _, sign in CollectionService:GetTagged("PlotSign") do
+		PlotSelection.setupPlotSign(sign)
+	end
+
+	CollectionService:GetInstanceAddedSignal("PlotSign"):Connect(PlotSelection.setupPlotSign)
+	CollectionService:GetInstanceRemovedSignal("PlotSign"):Connect(function(sign)
+		PlotSelection.prompts[sign]:Destroy()
+		PlotSelection.prompts[sign] = nil
+	end)
+end
+
+function PlotSelection.setupPlotSign(sign)
+	if not sign:IsDescendantOf(workspace) then return end
+
+	local prompt = ProximityPrompt.new({
+		parent = sign.Main;
+		objectText = "Plot";
+		actionText = "Claim";
+		maxActivationDistance = 10;
+		holdDuration = .5;
+		keyboardKeyCode = Enum.KeyCode.E;
+		custom = true;
+		onStarted = function()
+			print("Started")
+		end;
+		onStopped = function()
+			print("Stopped")
+		end;
+		--saveProgress = true;
+	})
+
+	prompt:Connect(function()
+		claimPlotEvent:FireServer(sign.Parent)
+	end)
+
+	PlotSelection.prompts[sign] = prompt
 end
 
 function PlotSelection.initiateSelection()
