@@ -53,6 +53,26 @@ function Box:Pickup(player)
 	return true
 end
 
+function Box:Drop(player)
+	if player ~= self.owner then warn("This player does not own the box") return false end
+
+	local primPart = self.model.PrimaryPart
+	if not primPart then return false end
+
+	local weld = primPart:FindFirstChildOfClass("WeldConstraint")
+	if not weld then warn("Weld not found in box") return false end
+
+	for _, part in self.model:GetDescendants() do
+		if not part:IsA("BasePart") then continue end
+
+		part.CanCollide = true
+	end
+
+	weld:Destroy()
+
+	return true
+end
+
 function Box:Destroy()
 	self.maid:doCleaning()
 end

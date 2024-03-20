@@ -8,8 +8,14 @@ local CollisionGroups = {}
 
 local DEFAULT_GROUPS = {
 	Player = {
-		Player = false
-	}
+		Player = false;
+		Sold_Box = false;
+	};
+
+	Sold_Box = {
+		Player = false;
+		Sold_Box = false;
+	};
 }
 
 -- Creates a new collision group
