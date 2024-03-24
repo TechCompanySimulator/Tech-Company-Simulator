@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local loadModule, getDataStream = table.unpack(require(ReplicatedStorage.ZenithFramework))
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
 
 local Maid = loadModule("Maid")
 
@@ -32,6 +32,8 @@ end
 function Box:Pickup(player)
 	if player ~= self.owner then warn("This player does not own the box") return false end
 
+	if self.model:GetAttribute("Sold") then return false end
+
 	local char = player.Character
 	if not char or (not char:FindFirstChild("UpperTorso") and not char:FindFirstChild("Torso")) then return false end
 
@@ -49,6 +51,26 @@ function Box:Pickup(player)
 	self.model:PivotTo(torso.CFrame * CFrame.new(0, 0, -2))
 
 	weld.Parent = self.model.PrimaryPart
+
+	return true
+end
+
+function Box:Drop(player)
+	if player ~= self.owner then warn("This player does not own the box") return false end
+
+	local primPart = self.model.PrimaryPart
+	if not primPart then return false end
+
+	local weld = primPart:FindFirstChildOfClass("WeldConstraint")
+	if not weld then warn("Weld not found in box") return false end
+
+	for _, part in self.model:GetDescendants() do
+		if not part:IsA("BasePart") then continue end
+
+		part.CanCollide = true
+	end
+
+	weld:Destroy()
 
 	return true
 end

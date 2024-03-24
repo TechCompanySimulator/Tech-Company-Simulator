@@ -72,9 +72,9 @@ local function createUI(prompt, gui)
 		button.Parent = newPrompt
 	end
 
-	local enterTween = enterTween(promptFrame, size)
+	local uiEnterTween = enterTween(promptFrame, size)
 
-	return newPrompt, enterTween
+	return newPrompt, uiEnterTween
 end
 
 local function setupInput(prompt, inputType, ui, maid, manager)
@@ -198,13 +198,13 @@ end
 
 return function(prompt, inputType, gui, manager)
 	local promptMaid = Maid.new()
-	local promptUI, enterTween = createUI(prompt, gui)
+	local promptUI, uiEnterTween = createUI(prompt, gui)
 	setupInput(prompt, inputType, promptUI, promptMaid, manager)
 
 	return function()
 		promptMaid:doCleaning()
-		if enterTween then
-			enterTween:reset()
+		if uiEnterTween then
+			uiEnterTween:reset()
 		end
 
 		exitTween(promptUI.PromptFrame)

@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
@@ -23,6 +24,12 @@ function Box.new(box)
 
 	self:SetupPrompt()
 
+	self.maid:giveTask(self.model:GetAttributeChangedSignal("Sold"):Connect(function()
+		if not self.model:GetAttribute("Sold") then return end
+
+		self.pickupPrompt.prompt.Enabled = false
+	end))
+
 	return self
 end
 
@@ -43,6 +50,7 @@ function Box:SetupPrompt()
 	})
 
 	self.pickupPrompt:Connect(function()
+		self.PickupDebounce = true
 		self:Pickup()
 	end)
 end
@@ -52,16 +60,35 @@ function Box:Pickup()
 
 	self.pickedUp = true
 	self.pickupPrompt.prompt.Enabled = false
-	local success = pickupBoxFunc:InvokeServer(self.model)
+	local success = pickupBoxFunc:InvokeServer(true, self.model)
 	if not success then
 		self.pickedUp = false
 		self.pickupPrompt.prompt.Enabled = true
 	else
+		ProximityPromptService.Enabled = false
 		self.maid:giveTask(UserInputService.InputEnded:Connect(function(input, processed)
 			if processed or input.KeyCode ~= Enum.KeyCode.E then return end
 			
-		end))
+			if self.PickupDebounce then
+				self.PickupDebounce = false
+				return
+			end
+
+			self:Drop()
+		end), 'PickupBox')
 	end
+end
+
+function Box:Drop()
+	local success = pickupBoxFunc:InvokeServer(false, self.model)
+	if not success then return end
+
+
+	self.maid:remove('PickupBox')
+
+	ProximityPromptService.Enabled = true
+	self.pickedUp = false
+	self.pickupPrompt.prompt.Enabled = true
 end
 
 function Box:Destroy()
