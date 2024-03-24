@@ -1,6 +1,11 @@
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local loadModule = table.unpack(require(ReplicatedStorage.ZenithFramework))
+
+local Maths = loadModule("Maths")
 
 local LERP_TYPES = {
 	["CFrame"] = true;
@@ -53,7 +58,7 @@ function Tween:play(shouldYield)
 		else
 			local currentVal 
 			if typeof(self.start) == "number" then
-				currentVal = value
+				currentVal = Maths.lerp(start, finish, value)
 			elseif LERP_TYPES[typeof(self.start)] then
 				currentVal = start:Lerp(finish, value)
 			end

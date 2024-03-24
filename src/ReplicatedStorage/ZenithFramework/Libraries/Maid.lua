@@ -1,5 +1,5 @@
+local HttpService = game:GetService("HttpService")
 -- Handles the storing and cleaning up of connections
--- Author: TheM0rt0nator
 
 local Maid = {}
 Maid.__index = Maid
@@ -28,8 +28,9 @@ function Maid.new()
 end
 
 -- Stores a task in the maid
-function Maid:GiveTask(_task)
-	table.insert(self.connections, _task)
+function Maid:GiveTask(cleanupTask, index)
+	index = index or HttpService:GenerateGUID(false)
+	self.connections[index] = cleanupTask
 end
 
 -- Clears all tasks stored in the maid
@@ -49,9 +50,19 @@ function Maid:DoCleaning()
 
 		key, cleanupTask = next(cleanupTask)
 	end
+
+	self.connections = {}
+end
+
+function Maid:Remove(index)
+	if not self.connections[index] then warn("No task with index ", index, " found in maid") return end
+
+	self.connections[index]:Disconnect()
+	self.connections[index] = nil
 end
 
 Maid.giveTask = Maid.GiveTask
 Maid.doCleaning = Maid.DoCleaning
+Maid.remove = Maid.Remove
 
 return Maid

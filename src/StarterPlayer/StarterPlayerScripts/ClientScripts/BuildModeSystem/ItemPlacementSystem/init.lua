@@ -119,14 +119,14 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 	end)
 
 	-- Rotate the asset when the user presses R
-	placementMaid:GiveTask(UserInputService.InputBegan:Connect(function(input)
+	placementMaid:giveTask(UserInputService.InputBegan:Connect(function(input)
 		if input.UserInputType ~= Enum.UserInputType.Keyboard or input.KeyCode ~= Enum.KeyCode.R then return end
 		
 		currentRotation *= CFrame.Angles(0, ROTATE_INCREMENT, 0)
 	end))
 
 	-- Cancel placement when pressing C
-	placementMaid:GiveTask(UserInputService.InputBegan:Connect(function(input)
+	placementMaid:giveTask(UserInputService.InputBegan:Connect(function(input)
 		if input.UserInputType ~= Enum.UserInputType.Keyboard or input.KeyCode ~= Enum.KeyCode.C then return end
 		
 		ItemPlacementSystem.stopPlacement()
@@ -138,7 +138,7 @@ function ItemPlacementSystem.startPlacement(category, variation, itemId)
 		if not placementAsset or not placementAsset.Parent then return end
 
 		-- When the player clicks, ask the server to place the asset
-		placementMaid:GiveTask(UserInputService.InputEnded:Connect(function(input)
+		placementMaid:giveTask(UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
 			
 			local objectSpace = PlotSelection.myPlot.CFrame:ToObjectSpace(placementAsset.PrimaryPart.CFrame)
@@ -158,7 +158,7 @@ function ItemPlacementSystem.stopPlacement()
 		placementAsset = nil
 	end
 
-	placementMaid:DoCleaning()
+	placementMaid:doCleaning()
 
 	if PlotSelection.myPlot then
 		PlotSelection.myPlot.Texture.Transparency = 1

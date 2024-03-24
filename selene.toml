@@ -6,3 +6,5 @@ exclude = ["*.spec.lua"]
 
 global_usage = "allow"
 manual_table_clone = "allow"
+multiple_statements = "allow"
+
