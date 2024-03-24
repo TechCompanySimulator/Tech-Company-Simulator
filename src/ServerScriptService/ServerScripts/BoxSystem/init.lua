@@ -76,6 +76,8 @@ function BoxSystem:setupSellPart(part)
 
 		CollisionGroups.assignGroup(box, "Sold_Box")
 
+		box:SetAttribute("Sold", true)
+
 		task.delay(2, function()
 			self.soldBoxes[box] = nil
 			box:Destroy()

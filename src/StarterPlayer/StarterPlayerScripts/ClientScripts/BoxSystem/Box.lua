@@ -24,6 +24,12 @@ function Box.new(box)
 
 	self:SetupPrompt()
 
+	self.maid:giveTask(self.model:GetAttributeChangedSignal("Sold"):Connect(function()
+		if not self.model:GetAttribute("Sold") then return end
+
+		self.pickupPrompt.prompt.Enabled = false
+	end))
+
 	return self
 end
 

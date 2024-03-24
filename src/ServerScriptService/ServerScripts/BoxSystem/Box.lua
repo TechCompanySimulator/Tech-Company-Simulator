@@ -32,6 +32,8 @@ end
 function Box:Pickup(player)
 	if player ~= self.owner then warn("This player does not own the box") return false end
 
+	if self.model:GetAttribute("Sold") then return false end
+
 	local char = player.Character
 	if not char or (not char:FindFirstChild("UpperTorso") and not char:FindFirstChild("Torso")) then return false end
 
