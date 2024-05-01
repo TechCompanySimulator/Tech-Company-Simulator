@@ -20,7 +20,7 @@ return {
 			[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
 				PlotData = Llama.Dictionary.join(plotData, {
 					[category] = Llama.Dictionary.join(categoryData, {
-						[variation] = Llama.List.join(variationData, {
+						[variation] = Llama.Dictionary.join(variationData, {
 							itemData;
 						})
 					});
@@ -29,6 +29,7 @@ return {
 		})
 	end;
 
+	-- Only remove from plot not inventory
 	removePlotItem = function(state, action)
 		local userId = action.userId
 		local category = action.category
@@ -47,7 +48,7 @@ return {
 			[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
 				PlotData = Llama.Dictionary.join(plotData, {
 					[category] = Llama.Dictionary.join(categoryData, {
-						[variation ] = finalVariationData;
+						[variation] = finalVariationData;
 					});
 				});
 			});

@@ -25,25 +25,44 @@ return {
 		local category = action.category
 		local item = action.item
 
-		if userId and inventoryName and category and item then
-			local currentData = state[tostring(userId)] or {}
-			local currentInventory = currentData[inventoryName] or {}
-			local currentCategoryData = currentInventory[category] or {}
+		if not userId or not inventoryName or not category or not item then return state end
 
-			local key = getUniqueKey(currentCategoryData)
+		local currentData = state[tostring(userId)] or {}
+		local currentInventory = currentData[inventoryName] or {}
+		local currentCategoryData = currentInventory[category] or {}
 
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = Llama.Dictionary.join(currentInventory, {
-						[category] = Llama.Dictionary.join(currentCategoryData, {
-							[key] = item;
-						});
-					});
+		local key = getUniqueKey(currentCategoryData)
+
+		-- Add the item to the inventory data
+		local newInventoryData = Llama.Dictionary.join(currentInventory, {
+			[category] = Llama.Dictionary.join(currentCategoryData, {
+				[key] = item;
+			});
+		})
+
+		-- If we pass in plot data, add it to the plot data with the same key
+		local currentPlotData = currentData.PlotData or {}
+		local newPlotData = currentPlotData
+		if action.plotData then
+			local plotCategoryData = currentPlotData[category] or {}
+			local plotVariationData = plotCategoryData[variation] or {}
+
+			newPlotData = Llama.Dictionary.join(currentPlotData, {
+				[category] = Llama.Dictionary.join(categoryData, {
+					[variation] = Llama.Dictionary.join(variationData, {
+						[key] = action.plotData;
+					})
 				});
-			})
-		else
-			return state
+			});
 		end
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentData, {
+				[inventoryName] = newInventoryData;
+
+				PlotData = newPlotData;
+			});
+		})
 	end;
 
 	addMultipleInvItems = function(state, action)
@@ -104,6 +123,7 @@ return {
 		end
 	end;
 
+	-- REmoves from plot as well
 	removeInventoryItem = function(state, action)
 		local userId = action.userId
 		local inventoryName = action.inventoryName
