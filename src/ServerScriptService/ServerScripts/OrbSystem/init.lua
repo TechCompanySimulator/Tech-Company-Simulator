@@ -17,7 +17,7 @@ function OrbSystem.initiate()
 end
 
 function OrbSystem.spawnOrb(player)
-
+	RoduxStore:dispatch(addOrb(player.UserId))
 end
 
 function OrbSystem.despawnOrb(player, orbId)

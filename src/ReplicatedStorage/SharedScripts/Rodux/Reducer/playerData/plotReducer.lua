@@ -47,7 +47,7 @@ return {
 			[tostring(userId)] = Llama.Dictionary.join(currentPlayerData, {
 				PlotData = Llama.Dictionary.join(plotData, {
 					[category] = Llama.Dictionary.join(categoryData, {
-						[variation ] = finalVariationData;
+						[variation] = finalVariationData;
 					});
 				});
 			});
