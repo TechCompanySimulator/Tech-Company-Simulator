@@ -23,20 +23,24 @@ return {
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
+		local variation = action.variation
 		local item = action.item
 
-		if not userId or not inventoryName or not category or not item then return state end
+		if not userId or not inventoryName or not category or not variation or not item then return state end
 
 		local currentData = state[tostring(userId)] or {}
 		local currentInventory = currentData[inventoryName] or {}
 		local currentCategoryData = currentInventory[category] or {}
+		local currentVariationData = currentCategoryData[variation] or {}
 
 		local key = getUniqueKey(currentCategoryData)
 
 		-- Add the item to the inventory data
 		local newInventoryData = Llama.Dictionary.join(currentInventory, {
 			[category] = Llama.Dictionary.join(currentCategoryData, {
-				[key] = item;
+				[variation] = Llama.Dictionary.join(currentVariationData, {
+					[key] = item;
+				});
 			});
 		})
 
@@ -48,8 +52,8 @@ return {
 			local plotVariationData = plotCategoryData[variation] or {}
 
 			newPlotData = Llama.Dictionary.join(currentPlotData, {
-				[category] = Llama.Dictionary.join(categoryData, {
-					[variation] = Llama.Dictionary.join(variationData, {
+				[category] = Llama.Dictionary.join(plotCategoryData, {
+					[variation] = Llama.Dictionary.join(plotVariationData, {
 						[key] = action.plotData;
 					})
 				});
@@ -69,58 +73,62 @@ return {
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
+		local variation = action.variation
 		local items = action.items
 
-		if userId and inventoryName and category and items then
-			local currentData = state[tostring(userId)] or {}
-			local currentInventory = currentData[inventoryName] or {}
-			local currentCategoryData = currentInventory[category] or {}
+		if not userId or not inventoryName or not category or not variation or not items then return state end
 
-			local newItems = table.clone(currentCategoryData)
-			for _, item in items do
-				local key = getUniqueKey(newItems)
-				newItems[key] = item
-			end
+		local currentData = state[tostring(userId)] or {}
+		local currentInventory = currentData[inventoryName] or {}
+		local currentCategoryData = currentInventory[category] or {}
+		local currentVariationData = currentCategoryData[variation] or {}
 
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = Llama.Dictionary.join(currentInventory, {
-						[category] = newItems;
+		local newItems = table.clone(currentVariationData)
+		for _, item in items do
+			local key = getUniqueKey(newItems)
+			newItems[key] = item
+		end
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentData, {
+				[inventoryName] = Llama.Dictionary.join(currentInventory, {
+					[category] = Llama.Dictionary.join(currentCategoryData, {
+						[variation] = newItems
 					});
 				});
-			})
-		else
-			return state
-		end
+			});
+		})
 	end;
 
 	changeInventoryItem = function(state, action)
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
+		local variation = action.variation
 		local key = action.key
 		local newValues = action.newValues
 
-		if userId and inventoryName and category and key and newValues then
-			local currentData = state[tostring(userId)] or {}
-			local currentInventory = currentData[inventoryName] or {}
-			local currentCategoryData = currentInventory[category] or {}
-			local currentItemData = currentCategoryData[key]
+		if not userId or not inventoryName or not category or not variation or not key or not newValues then return state end
 
-			if not currentItemData then return state end
+		local currentData = state[tostring(userId)] or {}
+		local currentInventory = currentData[inventoryName] or {}
+		local currentCategoryData = currentInventory[category] or {}
+		local currentVariationData = currentCategoryData[variation] or {}
+		local currentItemData = currentVariationData[key]
 
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = Llama.Dictionary.join(currentInventory, {
-						[category] = Llama.Dictionary.join(currentCategoryData, {
+		if not currentItemData then return state end
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentData, {
+				[inventoryName] = Llama.Dictionary.join(currentInventory, {
+					[category] = Llama.Dictionary.join(currentCategoryData, {
+						[variation] = Llama.Dictionary.join(currentVariationData, {
 							[key] = Llama.Dictionary.join(currentItemData, newValues);
-						});
+						})
 					});
 				});
-			})
-		else
-			return state
-		end
+			});
+		})
 	end;
 
 	-- REmoves from plot as well
@@ -128,49 +136,77 @@ return {
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
+		local variation = action.variation
 		local key = action.key
 
-		if userId and inventoryName and category and key then
-			local currentData = state[tostring(userId)] or {}
-			local currentInventory = currentData[inventoryName] or {}
-			local currentCategoryData = currentInventory[category] or {}
+		if not userId or not inventoryName or not category or not variation or not key then return state end
 
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = Llama.Dictionary.join(currentInventory, {
-						[category] = Llama.Dictionary.join(currentCategoryData, {
+		local currentData = state[tostring(userId)] or {}
+		local currentInventory = currentData[inventoryName] or {}
+		local currentCategoryData = currentInventory[category] or {}
+		local currentVariationData = currentCategoryData[variation] or {}
+
+		local currentPlotData = currentData.PlotData or {}
+		local currentPlotCategoryData = currentPlotData[category] or {}
+		local currentPlotVariationData = currentPlotCategoryData[variation] or {}
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentData, {
+				[inventoryName] = Llama.Dictionary.join(currentInventory, {
+					[category] = Llama.Dictionary.join(currentCategoryData, {
+						[variation] = Llama.Dictionary.join(currentVariationData, {
 							[key] = Llama.None;
 						});
 					});
 				});
-			})
-		else
-			return state
-		end
+
+				PlotData = Llama.Dictionary.join(currentPlotData, {
+					[category] = Llama.Dictionary.join(currentPlotCategoryData, {
+						[variation] = Llama.Dictionary.join(currentPlotVariationData, {
+							[key] = Llama.None;
+						});
+					});
+				});
+			});
+		})
 	end;
 
 	removeMultipleInvItems = function(state, action)
 		local userId = action.userId
 		local inventoryName = action.inventoryName
 		local category = action.category
+		local variation = action.variation
 		local keys = action.keys
 
-		if userId and inventoryName and category and keys then
-			local currentData = state[tostring(userId)] or {}
-			local currentInventory = currentData[inventoryName] or {}
-			local currentCategoryData = currentInventory[category] or {}
+		if not userId or not inventoryName or not category or not variation or not keys then return state end
 
-			return Llama.Dictionary.join(state, {
-				[tostring(userId)] = Llama.Dictionary.join(currentData, {
-					[inventoryName] = Llama.Dictionary.join(currentInventory, {
-						[category] = Llama.Dictionary.join(currentCategoryData, Llama.Dictionary.map(keys, function(key, _)
+		local currentData = state[tostring(userId)] or {}
+		local currentInventory = currentData[inventoryName] or {}
+		local currentCategoryData = currentInventory[category] or {}
+		local currentVariationData = currentCategoryData[variation] or {}
+
+		local currentPlotData = currentData.PlotData or {}
+		local currentPlotCategoryData = currentPlotData[category] or {}
+		local currentPlotVariationData = currentPlotCategoryData[variation] or {}
+
+		return Llama.Dictionary.join(state, {
+			[tostring(userId)] = Llama.Dictionary.join(currentData, {
+				[inventoryName] = Llama.Dictionary.join(currentInventory, {
+					[category] = Llama.Dictionary.join(currentCategoryData, {
+						[variation] = Llama.Dictionary.join(currentVariationData, Llama.Dictionary.map(keys, function(key, _)
 							return Llama.None, key
 						end));
 					});
 				});
-			})
-		else
-			return state
-		end
+
+				PlotData = Llama.Dictionary.join(currentPlotData, {
+					[category] = Llama.Dictionary.join(currentPlotCategoryData, {
+						[variation] = Llama.Dictionary.join(currentPlotVariationData, Llama.Dictionary.map(keys, function(key, _)
+							return Llama.None, key
+						end));
+					});
+				});
+			});
+		})
 	end;
 }

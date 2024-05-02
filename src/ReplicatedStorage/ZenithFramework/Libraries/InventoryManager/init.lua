@@ -32,7 +32,13 @@ end
 function InventoryManager.getContentSize(userId, inventoryName, category)
 	if not InventoryManager.isValidCategory(category) then return end
 
-	return Llama.Dictionary.length(InventoryManager.getInventory(userId, inventoryName)[category] or {})
+	local totalSize = 0
+	local categoryData = InventoryManager.getInventory(userId, inventoryName)[category] or {}
+	for _, items in categoryData do
+		totalSize += Llama.Dictionary.length(items)
+	end
+	
+	return totalSize
 end
 
 -- Returns the current max amount of items the player can have in their inventory
@@ -57,13 +63,15 @@ function InventoryManager.isInventoryFull(userId, inventoryName, category)
 	return isFull, spacesLeft
 end
 
-function InventoryManager.getItem(userId, inventoryName, category, item)
+function InventoryManager.getItem(userId, inventoryName, category, variation, item)
 	assert(typeof(category) == "string", "Category argument needs to be a string")
 	assert(typeof(item) == "table", "Item argument needs to be a table")
 
 	if not InventoryManager.isValidCategory(category) then return end
 
-	for key, invItem in pairs(InventoryManager.getInventory(userId, inventoryName)[category] or {}) do
+	local categoryData = InventoryManager.getInventory(userId, inventoryName)[category] or {}
+	local variationData = categoryData[variation] or {}
+	for key, invItem in variationData do
 		if not Llama.deepCheckEquality(item, invItem) then continue end
 
 		return key, invItem
@@ -73,8 +81,8 @@ function InventoryManager.getItem(userId, inventoryName, category, item)
 end
 
 -- Returns a boolean of whether the player has the item in their inventory
-function InventoryManager.hasItem(userId, inventoryName, category, item)
-	return InventoryManager.getItem(userId, inventoryName, category, item) ~= false
+function InventoryManager.hasItem(userId, inventoryName, category, variation, item)
+	return InventoryManager.getItem(userId, inventoryName, category, variation, item) ~= false
 end
 
 -- Returns the number of matches in the inventory for the given item
@@ -86,10 +94,13 @@ function InventoryManager.getItemCount(userId, inventoryName, category, item)
 
 	local itemCount = 0
 
-	for _, invItem in pairs(InventoryManager.getInventory(userId, inventoryName)[category] or {}) do
-		if not Llama.deepCheckEquality(item, invItem) then continue end
+	local categoryData = InventoryManager.getInventory(userId, inventoryName)[category] or {}
+	for _, items in categoryData do
+		for _, invItem in items do
+			if not Llama.deepCheckEquality(item, invItem) then continue end
 
-		itemCount += 1
+			itemCount += 1
+		end
 	end
 
 	return itemCount
@@ -97,16 +108,16 @@ end
 
 if RunService:IsServer() then
 	-- Adds an item to the players inventory, returning a boolean of whether it succeeded or not
-	function InventoryManager.addItem(userId, inventoryName, category, item)
+	function InventoryManager.addItem(userId, inventoryName, category, variation, item)
 		if InventoryManager.isInventoryFull(userId, inventoryName, category) == true then return false end
 
-		RoduxStore:dispatch(addInventoryItem(userId, inventoryName or "Inventory", category, item))
+		RoduxStore:dispatch(addInventoryItem(userId, inventoryName or "Inventory", category, variation, item))
 
 		return true
 	end
 
 	-- Adds multiple items to the players inventory, returning a boolean of whether it succeeded or not (will not exceed the capacity)
-	function InventoryManager.addMultipleItems(userId, inventoryName, category, items)
+	function InventoryManager.addMultipleItems(userId, inventoryName, category, variation, items)
 		local isFull, spacesLeft = InventoryManager.isInventoryFull(userId, inventoryName, category)
 		if isFull then return false end
 
@@ -118,36 +129,36 @@ if RunService:IsServer() then
 			if numItems >= spacesLeft then break end
 		end
 
-		RoduxStore:dispatch(addMultipleInvItems(userId, inventoryName or "Inventory", category, itemsToAdd))
+		RoduxStore:dispatch(addMultipleInvItems(userId, inventoryName or "Inventory", category, variation, itemsToAdd))
 
 		return true
 	end
 
 	-- Removes an item from the players inventory, returning a boolean of whether it succeeded or not
-	function InventoryManager.removeItem(userId, inventoryName, category, key)
+	function InventoryManager.removeItem(userId, inventoryName, category, variation, key)
 		if not InventoryManager.isValidCategory(category) then return false end
 
-		RoduxStore:dispatch(removeInventoryItem(userId, inventoryName or "Inventory", category, key))
+		RoduxStore:dispatch(removeInventoryItem(userId, inventoryName or "Inventory", category, variation, key))
 
 		return true
 	end
 
 	-- Removes multiple items, but only updates the Rodux store once to prevent unnecessary re-renders
 	-- Keys is a list of keys to remove e.g. '{"key_3", "key_10", "key_15"}'
-	function InventoryManager.removeMultipleItems(userId, inventoryName, category, keys)
+	function InventoryManager.removeMultipleItems(userId, inventoryName, category, variation, keys)
 		if not InventoryManager.isValidCategory(category) then return end
 
-		RoduxStore:dispatch(removeMultipleInvItems(userId, inventoryName or "Inventory", category, keys))
+		RoduxStore:dispatch(removeMultipleInvItems(userId, inventoryName or "Inventory", category, variation, keys))
 	end
 
 	-- Updates an item in the inventory with the new item table (can be used for upgrading items etc)
-	function InventoryManager.updateItem(userId, inventoryName, category, key, newValues)
+	function InventoryManager.updateItem(userId, inventoryName, category, variation, key, newValues)
 		if not InventoryManager.isValidCategory(category) then return false end
 
-		local categoryData = InventoryManager.getInventory(userId, inventoryName)[category]
-		if not categoryData or not categoryData[key] then return false end
+		local variationData = InventoryManager.getInventory(userId, inventoryName)[category][variation]
+		if not variationData or not variationData[key] then return false end
 
-		RoduxStore:dispatch(changeInventoryItem(userId, inventoryName or "Inventory", category, key, newValues))
+		RoduxStore:dispatch(changeInventoryItem(userId, inventoryName or "Inventory", category, variation, key, newValues))
 
 		return true
 	end
